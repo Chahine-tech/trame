@@ -19,6 +19,7 @@
   --yellow: #df8e1d;
   --teal: #179299;
   --lav: #7287fd;
+  --red: #d20f39;
 
   /* Emil Kowalski easing tokens — built-in curves are too weak */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -49,6 +50,7 @@
     --yellow: #f9e2af;
     --teal: #94e2d5;
     --lav: #b4befe;
+    --red: #f38ba8;
   }
 }
 
@@ -57,12 +59,14 @@
   --surface1: #bcc0cc; --overlay: #8c8fa1; --subtext: #6c6f85; --text: #4c4f69;
   --blue: #1e66f5; --green: #40a02b; --mauve: #8839ef; --peach: #fe640b;
   --pink: #ea76cb; --yellow: #df8e1d; --teal: #179299; --lav: #7287fd;
+  --red: #d20f39;
 }
 :root[data-theme="dark"] {
   --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
   --surface1: #45475a; --overlay: #6c7086; --subtext: #a6adc8; --text: #cdd6f4;
   --blue: #89b4fa; --green: #a6e3a1; --mauve: #cba6f7; --peach: #fab387;
   --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
+  --red: #f38ba8;
 }
 
 * { box-sizing: border-box; }
@@ -153,6 +157,28 @@ html, body, #root {
 .insp-row b { font-family: var(--font-mono); font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
 .insp-hint { margin-top: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--overlay); line-height: 1.7; }
 .insp-hint .k { color: var(--lav); }
+.insp-violation {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--red);
+  border-left: 2px solid var(--red);
+  padding: 6px 10px;
+  line-height: 1.6;
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border-radius: 0 6px 6px 0;
+}
+.topbar .viol { color: var(--red); }
+
+/* ---------- Cluster bubbles ---------- */
+.cluster-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  white-space: nowrap;
+  pointer-events: none;
+}
 
 /* ---------- Node labels (drei Html) ---------- */
 .node-label {

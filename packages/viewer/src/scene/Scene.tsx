@@ -8,6 +8,7 @@ import { useGraphStore } from "../store/graph"
 import { usePalette } from "../theme"
 import { NodeMesh } from "./NodeMesh"
 import { EdgeMesh } from "./EdgeMesh"
+import { Clusters } from "./Clusters"
 
 /** Eases the OrbitControls target toward the focused node, then lets go. */
 function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
@@ -62,6 +63,8 @@ export function Scene() {
       <hemisphereLight args={[palette.text, palette.crust, 0.55]} />
       <directionalLight position={[35, 45, 50]} intensity={1.3} />
       <directionalLight position={[-40, -15, -35]} intensity={0.45} color={palette.lav} />
+
+      <Clusters />
 
       {data.edges.map((e) => (
         <EdgeMesh key={e.id} edge={e} />

@@ -3,6 +3,8 @@ import type { Project } from "ts-morph"
 import type { EdgeType, GraphCluster, GraphData, GraphEdge, GraphNode, NodeType } from "./types.js"
 import { classify, clusterFor, firstExportLine, labelFor } from "./parsers/classify.js"
 import { extractImports } from "./parsers/imports.js"
+import { extractApiCalls } from "./parsers/api-calls.js"
+import { extractQueryKeys } from "./parsers/query-keys.js"
 
 /** Catppuccin Mocha accents, cycled across clusters. */
 const CLUSTER_COLORS = [
@@ -66,6 +68,57 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
     if (seen.has(id)) continue
     seen.add(id)
     edges.push({ id, source: source.id, target: target.id, type: edgeTypeFor(target.type) })
+  }
+
+  // ---- synthetic nodes: API endpoints (fetch/axios/ky call sites) ----
+  for (const usage of extractApiCalls(project)) {
+    const caller = byPath.get(usage.file)
+    if (!caller) continue
+    const id = `api:${usage.method} ${usage.endpoint}`
+    if (!byPath.has(id)) {
+      const node: GraphNode = {
+        id,
+        label: `${usage.method} ${usage.endpoint}`,
+        type: "api",
+        file: usage.file,
+        line: usage.line,
+        cluster: "api",
+        meta: { endpoint: usage.endpoint, method: usage.method },
+      }
+      nodes.push(node)
+      byPath.set(id, node)
+    }
+    const edgeId = `${caller.id}->${id}`
+    if (!seen.has(edgeId)) {
+      seen.add(edgeId)
+      edges.push({ id: edgeId, source: caller.id, target: id, type: "api-call" })
+    }
+  }
+
+  // ---- synthetic nodes: TanStack Query keys ----
+  for (const usage of extractQueryKeys(project)) {
+    const caller = byPath.get(usage.file)
+    if (!caller) continue
+    const id = `qk:${usage.queryKey}`
+    if (!byPath.has(id)) {
+      const label = usage.queryKey.length > 30 ? `${usage.queryKey.slice(0, 27)}…` : usage.queryKey
+      const node: GraphNode = {
+        id,
+        label,
+        type: "query-key",
+        file: usage.file,
+        line: usage.line,
+        cluster: "queries",
+        meta: { queryKey: usage.queryKey },
+      }
+      nodes.push(node)
+      byPath.set(id, node)
+    }
+    const edgeId = `${caller.id}->${id}`
+    if (!seen.has(edgeId)) {
+      seen.add(edgeId)
+      edges.push({ id: edgeId, source: caller.id, target: id, type: "query-key" })
+    }
   }
 
   const clusterMap = new Map<string, string[]>()

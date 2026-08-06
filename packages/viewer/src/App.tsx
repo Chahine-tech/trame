@@ -21,6 +21,22 @@ export function AppUI() {
       .catch(() => load(DEMO))
   }, [load])
 
+  // watch-mode live reload: hot-swap when the parser rewrites the file
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch("/archviz.json", { cache: "no-store" })
+        if (!r.ok) return
+        const next = (await r.json()) as GraphData
+        const current = useGraphStore.getState().data
+        if (current && next.meta.generated !== current.meta.generated) load(next)
+      } catch {
+        /* server briefly unavailable — retry next tick */
+      }
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [load])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = (e.target as HTMLElement | null)?.tagName === "INPUT"
@@ -49,6 +65,8 @@ export function AppUI() {
           select(id)
           focus(id)
         }
+      } else if (e.key.toLowerCase() === "g") {
+        useGraphStore.getState().toggleClusters()
       }
     }
     window.addEventListener("keydown", onKey)

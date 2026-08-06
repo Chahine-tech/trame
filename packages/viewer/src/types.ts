@@ -40,6 +40,13 @@ export interface GraphCluster {
   nodeIds: string[]
 }
 
+export interface Violation {
+  rule: "unique-caller" | "no-direct-import"
+  message: string
+  nodeIds: string[]
+  edgeIds: string[]
+}
+
 export interface GraphData {
   meta: {
     project: string
@@ -50,6 +57,7 @@ export interface GraphData {
   nodes: GraphNode[]
   edges: GraphEdge[]
   clusters: GraphCluster[]
+  violations?: Violation[]
 }
 
 export type Vec3 = [number, number, number]

@@ -10,9 +10,17 @@ export function Inspector() {
   const outDeg = useGraphStore((s) => s.outDeg)
   const adjacency = useGraphStore((s) => s.adjacency)
 
+  const violatedNodes = useGraphStore((s) => s.violatedNodes)
+  const violatedEdges = useGraphStore((s) => s.violatedEdges)
+
   const node = data?.nodes.find((n) => n.id === selectedId) ?? null
   const edge = data?.edges.find((e) => e.id === selectedEdgeId) ?? null
   const open = Boolean(node || edge)
+  const violations = node
+    ? (violatedNodes.get(node.id) ?? [])
+    : edge
+      ? (violatedEdges.get(edge.id) ?? [])
+      : []
 
   // keep last content while sliding out — the panel exits the way it entered
   return (
@@ -51,6 +59,13 @@ export function Inspector() {
               <b>{adjacency.get(node.id)?.size ?? 0}</b>
             </div>
           </div>
+          {violations.length > 0 && (
+            <div className="insp-violation">
+              {violations.map((m, i) => (
+                <div key={i}>✗ {m}</div>
+              ))}
+            </div>
+          )}
           <div className="insp-hint">
             <span className="k">F</span> focus camera · <span className="k">esc</span> close
           </div>
@@ -74,6 +89,13 @@ export function Inspector() {
             {data?.nodes.find((n) => n.id === edge.target)?.label}
           </div>
           <div className="insp-path">{edge.id}</div>
+          {violations.length > 0 && (
+            <div className="insp-violation">
+              {violations.map((m, i) => (
+                <div key={i}>✗ {m}</div>
+              ))}
+            </div>
+          )}
           <div className="insp-hint">
             <span className="k">drag</span> the lavender handles to reshape the curve
             <br />

@@ -23,6 +23,14 @@ interface GraphState {
   /** user-edited Bézier control points, by edge id */
   ctrl: Map<string, { c1: Vec3; c2: Vec3 }>
 
+  /** rule violations — red highlighting */
+  violatedNodes: Map<string, string[]>
+  violatedEdges: Map<string, string[]>
+
+  /** cluster bubbles visibility (G) */
+  showClusters: boolean
+  toggleClusters: () => void
+
   load: (data: GraphData) => void
   setHover: (id: string | null) => void
   select: (id: string | null) => void
@@ -61,6 +69,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   ctrl: new Map(),
 
+  violatedNodes: new Map(),
+  violatedEdges: new Map(),
+
+  showClusters: true,
+  toggleClusters: () => set({ showClusters: !get().showClusters }),
+
   load: (data) => {
     const positions = runLayout(data)
     const adjacency = new Map<string, Set<string>>()
@@ -80,7 +94,27 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       // persisted curve edits ship inside the JSON
       if (e.ctrl1 && e.ctrl2) ctrl.set(e.id, { c1: e.ctrl1, c2: e.ctrl2 })
     }
-    set({ data, positions, adjacency, inDeg, outDeg, ctrl })
+    const violatedNodes = new Map<string, string[]>()
+    const violatedEdges = new Map<string, string[]>()
+    for (const v of data.violations ?? []) {
+      for (const id of v.nodeIds) violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), v.message])
+      for (const id of v.edgeIds) violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
+    }
+    set({
+      data,
+      positions,
+      adjacency,
+      inDeg,
+      outDeg,
+      ctrl,
+      violatedNodes,
+      violatedEdges,
+      // stale interaction state must not survive a data swap (watch mode)
+      hoverId: null,
+      selectedId: null,
+      selectedEdgeId: null,
+      litSet: new Set(),
+    })
   },
 
   setHover: (id) => {

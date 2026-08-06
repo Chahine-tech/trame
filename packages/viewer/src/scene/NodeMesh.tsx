@@ -50,17 +50,23 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const [localHover, setLocalHover] = useState(false)
   const meshRef = useRef<THREE.Mesh>(null)
 
+  const isViolated = useGraphStore((s) => s.violatedNodes.has(node.id))
+
   const typeColor = palette[NODE_COLOR[node.type]]
 
   // Size = importance: hubs read bigger at a glance
   const baseScale = Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7)
 
-  // Colour = information: grey at rest, type colour only when attention lands
+  // Colour = information: grey at rest, type colour only when attention lands.
+  // Rule violations override everything — they must be visible at rest.
   const { color, emissiveIntensity, opacity } = useMemo(() => {
+    if (isViolated) {
+      return { color: palette.red, emissiveIntensity: isLit ? 0.7 : 0.35, opacity: hasActive && !isLit ? 0.4 : 1 }
+    }
     if (isLit) return { color: typeColor, emissiveIntensity: isHovered || isSelected ? 0.7 : 0.4, opacity: 1 }
     if (hasActive) return { color: palette.overlay, emissiveIntensity: 0, opacity: 0.16 }
     return { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
-  }, [isLit, hasActive, isHovered, isSelected, typeColor, palette])
+  }, [isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette])
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
@@ -106,7 +112,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     >
       <meshStandardMaterial
         color={color}
-        emissive={isLit ? typeColor : palette.overlay}
+        emissive={isViolated ? palette.red : isLit ? typeColor : palette.overlay}
         emissiveIntensity={emissiveIntensity}
         transparent
         opacity={opacity}

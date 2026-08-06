@@ -88,6 +88,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const p0 = useGraphStore((s) => s.positions.get(edge.source))
   const p3 = useGraphStore((s) => s.positions.get(edge.target))
   const edited = useGraphStore((s) => s.ctrl.get(edge.id))
+  const isViolated = useGraphStore((s) => s.violatedEdges.has(edge.id))
   const isSelected = useGraphStore((s) => s.selectedEdgeId === edge.id)
   const litSet = useGraphStore((s) => s.litSet)
   const hasActive = useGraphStore((s) => s.litSet.size > 0)
@@ -122,8 +123,18 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   if (!p0 || !p3 || !ctrl || !geometry) return null
 
   const typeColor = palette[EDGE_COLOR[edge.type]]
-  const color = isLit ? typeColor : palette.surface1
-  const opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
+  const color = isViolated ? palette.red : isLit ? typeColor : palette.surface1
+  const opacity = isViolated
+    ? isSelected || isLit
+      ? 0.95
+      : 0.55
+    : isSelected
+      ? 0.95
+      : isLit
+        ? 0.75
+        : hasActive
+          ? 0.05
+          : 0.22
 
   return (
     <group>

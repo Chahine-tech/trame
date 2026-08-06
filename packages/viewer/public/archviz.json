@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "archviz",
-    "generated": "2026-08-06T18:51:10.205Z",
-    "nodeCount": 13,
-    "edgeCount": 28
+    "generated": "2026-08-06T19:15:46.297Z",
+    "nodeCount": 15,
+    "edgeCount": 34
   },
   "nodes": [
     {
@@ -47,6 +47,14 @@
       "cluster": "root"
     },
     {
+      "id": "scene/Clusters.tsx",
+      "label": "Clusters",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Clusters.tsx",
+      "line": 7,
+      "cluster": "scene"
+    },
+    {
       "id": "scene/EdgeMesh.tsx",
       "label": "EdgeMesh",
       "type": "component",
@@ -67,7 +75,7 @@
       "label": "NodeMesh",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/NodeMesh.tsx",
-      "line": 30,
+      "line": 39,
       "cluster": "scene"
     },
     {
@@ -75,7 +83,7 @@
       "label": "Scene",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Scene.tsx",
-      "line": 41,
+      "line": 45,
       "cluster": "scene"
     },
     {
@@ -83,7 +91,7 @@
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
-      "line": 47,
+      "line": 55,
       "cluster": "store"
     },
     {
@@ -107,8 +115,20 @@
       "label": "TopBar",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/TopBar.tsx",
-      "line": 3,
+      "line": 7,
       "cluster": "ui"
+    },
+    {
+      "id": "api:GET /archviz.json",
+      "label": "GET /archviz.json",
+      "type": "api",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
+      "line": 18,
+      "cluster": "api",
+      "meta": {
+        "endpoint": "/archviz.json",
+        "method": "GET"
+      }
     }
   ],
   "edges": [
@@ -167,9 +187,27 @@
       "type": "component"
     },
     {
+      "id": "main.tsx->store/graph.ts",
+      "source": "main.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "main.tsx->theme.ts",
+      "source": "main.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
       "id": "theme.ts->types.ts",
       "source": "theme.ts",
       "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Clusters.tsx->store/graph.ts",
+      "source": "scene/Clusters.tsx",
+      "target": "store/graph.ts",
       "type": "import"
     },
     {
@@ -239,6 +277,12 @@
       "type": "component"
     },
     {
+      "id": "scene/Scene.tsx->scene/Clusters.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Clusters.tsx",
+      "type": "component"
+    },
+    {
       "id": "store/graph.ts->types.ts",
       "source": "store/graph.ts",
       "target": "types.ts",
@@ -279,6 +323,18 @@
       "source": "ui/TopBar.tsx",
       "target": "store/graph.ts",
       "type": "import"
+    },
+    {
+      "id": "ui/TopBar.tsx->theme.ts",
+      "source": "ui/TopBar.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->api:GET /archviz.json",
+      "source": "App.tsx",
+      "target": "api:GET /archviz.json",
+      "type": "api-call"
     }
   ],
   "clusters": [
@@ -299,6 +355,7 @@
       "label": "scene",
       "color": "#a6e3a1",
       "nodeIds": [
+        "scene/Clusters.tsx",
         "scene/EdgeMesh.tsx",
         "scene/Layout.ts",
         "scene/NodeMesh.tsx",
@@ -322,6 +379,15 @@
       "nodeIds": [
         "store/graph.ts"
       ]
+    },
+    {
+      "id": "api",
+      "label": "api",
+      "color": "#94e2d5",
+      "nodeIds": [
+        "api:GET /archviz.json"
+      ]
     }
-  ]
+  ],
+  "violations": []
 }

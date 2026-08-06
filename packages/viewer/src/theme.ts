@@ -18,11 +18,12 @@ export interface Palette {
   yellow: string
   teal: string
   lav: string
+  red: string
 }
 
 const VARS: (keyof Palette)[] = [
   "crust", "mantle", "base", "surface0", "surface1", "overlay", "subtext", "text",
-  "blue", "green", "mauve", "peach", "pink", "yellow", "teal", "lav",
+  "blue", "green", "mauve", "peach", "pink", "yellow", "teal", "lav", "red",
 ]
 
 /** Color = information: each node type maps to one Catppuccin accent. */
@@ -78,4 +79,33 @@ export function usePalette(): Palette {
     },
     () => current,
   )
+}
+
+/* ---------- theme preference (auto → dark → light) ---------- */
+
+export type ThemePref = "auto" | "dark" | "light"
+const THEME_KEY = "archviz-theme"
+
+export function getThemePref(): ThemePref {
+  const v = localStorage.getItem(THEME_KEY)
+  return v === "dark" || v === "light" ? v : "auto"
+}
+
+/** Stamp data-theme on the root — the MutationObserver refreshes the palette. */
+export function applyThemePref(pref: ThemePref): void {
+  if (pref === "auto") delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = pref
+}
+
+export function setThemePref(pref: ThemePref): void {
+  if (pref === "auto") localStorage.removeItem(THEME_KEY)
+  else localStorage.setItem(THEME_KEY, pref)
+  applyThemePref(pref)
+}
+
+export function cycleThemePref(): ThemePref {
+  const order: ThemePref[] = ["auto", "dark", "light"]
+  const next = order[(order.indexOf(getThemePref()) + 1) % order.length]!
+  setThemePref(next)
+  return next
 }

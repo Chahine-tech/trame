@@ -4,7 +4,11 @@ import { WebGPURenderer } from "three/webgpu"
 import { Scene } from "./scene/Scene"
 import { AppUI } from "./App"
 import { useGraphStore } from "./store/graph"
+import { applyThemePref, getThemePref } from "./theme"
 import "./styles.css"
+
+// stamp the saved theme before first paint — no flash
+applyThemePref(getThemePref())
 
 /**
  * Three.js r185: WebGPU is production-ready everywhere; WebGPURenderer

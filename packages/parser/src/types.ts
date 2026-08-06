@@ -51,4 +51,32 @@ export interface GraphData {
   nodes: GraphNode[]
   edges: GraphEdge[]
   clusters: GraphCluster[]
+  violations?: Violation[]
+}
+
+/* ---------- constraint rules (archviz.config.ts) ---------- */
+
+export interface RuleMatch {
+  edgeType?: EdgeType
+  sourceType?: NodeType
+  targetType?: NodeType
+}
+
+export interface Rule {
+  /** unique-caller: a matched target may have only one matching caller.
+   *  no-direct-import: any matching edge is a violation. */
+  type: "unique-caller" | "no-direct-import"
+  match: RuleMatch
+  message: string
+}
+
+export interface ArchvizConfig {
+  rules?: Rule[]
+}
+
+export interface Violation {
+  rule: Rule["type"]
+  message: string
+  nodeIds: string[]
+  edgeIds: string[]
 }
