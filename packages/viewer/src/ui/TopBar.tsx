@@ -17,7 +17,7 @@ export function TopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
       {data && (
         <span className="counts">
           <b>{data.meta.nodeCount}</b> nodes · <b>{data.meta.edgeCount}</b> edges ·{" "}
-          <b>{data.clusters.length}</b> clusters
+          <b>{data.clusters.length}</b> folders
           {(data.violations?.length ?? 0) > 0 && (
             <span className="viol"> · ✗ {data.violations!.length} violations</span>
           )}

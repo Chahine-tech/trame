@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "archviz",
-    "generated": "2026-08-06T19:15:46.297Z",
-    "nodeCount": 15,
-    "edgeCount": 34
+    "generated": "2026-08-06T20:33:31.274Z",
+    "nodeCount": 16,
+    "edgeCount": 36
   },
   "nodes": [
     {
@@ -12,7 +12,7 @@
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
       "line": 9,
-      "cluster": "root"
+      "cluster": "src"
     },
     {
       "id": "demo-data.ts",
@@ -20,7 +20,7 @@
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/demo-data.ts",
       "line": 4,
-      "cluster": "root"
+      "cluster": "src"
     },
     {
       "id": "main.tsx",
@@ -28,7 +28,7 @@
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/main.tsx",
       "line": 1,
-      "cluster": "root"
+      "cluster": "src"
     },
     {
       "id": "theme.ts",
@@ -36,7 +36,7 @@
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/theme.ts",
       "line": 4,
-      "cluster": "root"
+      "cluster": "src"
     },
     {
       "id": "types.ts",
@@ -44,14 +44,22 @@
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/types.ts",
       "line": 1,
-      "cluster": "root"
+      "cluster": "src"
+    },
+    {
+      "id": "scene/CaptureFrame.tsx",
+      "label": "CaptureFrame",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/CaptureFrame.tsx",
+      "line": 12,
+      "cluster": "scene"
     },
     {
       "id": "scene/Clusters.tsx",
       "label": "Clusters",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Clusters.tsx",
-      "line": 7,
+      "line": 43,
       "cluster": "scene"
     },
     {
@@ -75,7 +83,7 @@
       "label": "NodeMesh",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/NodeMesh.tsx",
-      "line": 39,
+      "line": 66,
       "cluster": "scene"
     },
     {
@@ -83,7 +91,7 @@
       "label": "Scene",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Scene.tsx",
-      "line": 45,
+      "line": 46,
       "cluster": "scene"
     },
     {
@@ -91,7 +99,7 @@
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
-      "line": 55,
+      "line": 81,
       "cluster": "store"
     },
     {
@@ -205,6 +213,12 @@
       "type": "import"
     },
     {
+      "id": "scene/CaptureFrame.tsx->store/graph.ts",
+      "source": "scene/CaptureFrame.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/Clusters.tsx->store/graph.ts",
       "source": "scene/Clusters.tsx",
       "target": "store/graph.ts",
@@ -283,6 +297,12 @@
       "type": "component"
     },
     {
+      "id": "scene/Scene.tsx->scene/CaptureFrame.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/CaptureFrame.tsx",
+      "type": "component"
+    },
+    {
       "id": "store/graph.ts->types.ts",
       "source": "store/graph.ts",
       "target": "types.ts",
@@ -339,27 +359,28 @@
   ],
   "clusters": [
     {
-      "id": "root",
-      "label": "root",
+      "id": "scene",
+      "label": "scene",
       "color": "#89b4fa",
+      "nodeIds": [
+        "scene/CaptureFrame.tsx",
+        "scene/Clusters.tsx",
+        "scene/EdgeMesh.tsx",
+        "scene/Layout.ts",
+        "scene/NodeMesh.tsx",
+        "scene/Scene.tsx"
+      ]
+    },
+    {
+      "id": "src",
+      "label": "src",
+      "color": "#a6e3a1",
       "nodeIds": [
         "App.tsx",
         "demo-data.ts",
         "main.tsx",
         "theme.ts",
         "types.ts"
-      ]
-    },
-    {
-      "id": "scene",
-      "label": "scene",
-      "color": "#a6e3a1",
-      "nodeIds": [
-        "scene/Clusters.tsx",
-        "scene/EdgeMesh.tsx",
-        "scene/Layout.ts",
-        "scene/NodeMesh.tsx",
-        "scene/Scene.tsx"
       ]
     },
     {

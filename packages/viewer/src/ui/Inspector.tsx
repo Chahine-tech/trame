@@ -43,8 +43,16 @@ export function Inspector() {
           </div>
           <div className="insp-rows">
             <div className="insp-row">
-              <span>Cluster</span>
-              <b>{node.cluster}</b>
+              <span>Folder</span>
+              <b className="folder-chip">
+                <span
+                  className="dot"
+                  style={{
+                    background: data?.clusters.find((c) => c.id === node.cluster)?.color,
+                  }}
+                />
+                {node.cluster}/
+              </b>
             </div>
             <div className="insp-row">
               <span>Imports</span>

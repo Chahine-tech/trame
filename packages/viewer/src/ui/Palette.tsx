@@ -46,7 +46,7 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
               <Command.Item key={n.id} value={`${n.label} ${n.id}`} onSelect={() => goTo(n.id)}>
                 <span className="g" style={{ background: palette[NODE_COLOR[n.type]] }} />
                 <span className="lbl">{n.label}</span>
-                <span className="path">{n.cluster}</span>
+                <span className="path">{n.cluster}/</span>
               </Command.Item>
             ))}
           </Command.Group>
@@ -89,10 +89,10 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
               <span className="path">L</span>
             </Command.Item>
             <Command.Item
-              value="toggle clusters bubbles"
+              value="toggle folder labels"
               onSelect={() => useGraphStore.getState().toggleClusters()}
             >
-              <span className="lbl">Toggle clusters</span>
+              <span className="lbl">Toggle folder labels</span>
               <span className="path">G</span>
             </Command.Item>
           </Command.Group>

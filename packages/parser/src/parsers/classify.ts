@@ -52,13 +52,14 @@ export function firstExportLine(file: SourceFile): number {
 }
 
 /**
- * Cluster = feature folder. `src/features/auth/…` → "auth",
- * otherwise the first directory under src, otherwise "root".
+ * Cluster = folder. `src/features/auth/…` → "auth", otherwise the first
+ * directory under src. Files sitting at the src root belong to "src" —
+ * a name the user recognizes, never parser jargon like "root".
  */
 export function clusterFor(relPath: string): string {
   const parts = relPath.split("/")
   const featIdx = parts.findIndex((p) => p === "features" || p === "modules")
   if (featIdx !== -1 && parts.length > featIdx + 2) return parts[featIdx + 1]!
   if (parts.length > 1) return parts[0]!
-  return "root"
+  return "src"
 }
