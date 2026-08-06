@@ -9,6 +9,7 @@ import { usePalette } from "../theme"
 import { NodeMesh } from "./NodeMesh"
 import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
+import { CaptureFrame } from "./CaptureFrame"
 
 /** Eases the OrbitControls target toward the focused node, then lets go. */
 function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
@@ -85,6 +86,7 @@ export function Scene() {
         maxDistance={220}
       />
       <CameraRig controls={controls} />
+      <CaptureFrame />
     </>
   )
 }

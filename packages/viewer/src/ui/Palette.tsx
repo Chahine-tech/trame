@@ -61,9 +61,39 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
               <span className="lbl">Reset camera</span>
               <span className="path">space</span>
             </Command.Item>
+            <Command.Item
+              value="export png screenshot"
+              onSelect={() => {
+                onClose()
+                useGraphStore.getState().requestPng()
+              }}
+            >
+              <span className="lbl">Export PNG</span>
+              <span className="path">⌘E</span>
+            </Command.Item>
             <Command.Item value="export json curves" onSelect={download}>
               <span className="lbl">Export archviz.json (curves included)</span>
-              <span className="path">⌘E</span>
+            </Command.Item>
+            <Command.Item
+              value="cycle edge filter type"
+              onSelect={() => useGraphStore.getState().cycleEdgeFilter()}
+            >
+              <span className="lbl">Cycle edge filter</span>
+              <span className="path">E</span>
+            </Command.Item>
+            <Command.Item
+              value="toggle labels"
+              onSelect={() => useGraphStore.getState().toggleLabels()}
+            >
+              <span className="lbl">Toggle labels</span>
+              <span className="path">L</span>
+            </Command.Item>
+            <Command.Item
+              value="toggle clusters bubbles"
+              onSelect={() => useGraphStore.getState().toggleClusters()}
+            >
+              <span className="lbl">Toggle clusters</span>
+              <span className="path">G</span>
             </Command.Item>
           </Command.Group>
         </Command.List>

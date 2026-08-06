@@ -168,6 +168,7 @@ html, body, #root {
   border-radius: 0 6px 6px 0;
 }
 .topbar .viol { color: var(--red); }
+.topbar .chip { color: var(--lav); }
 
 /* ---------- Cluster bubbles ---------- */
 .cluster-label {

@@ -1,6 +1,16 @@
 import { create } from "zustand"
-import type { GraphData, Vec3 } from "../types"
+import type { EdgeType, GraphData, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
+
+/** E cycles through: everything → each edge type → everything */
+const EDGE_FILTER_CYCLE: (EdgeType | null)[] = [
+  null,
+  "import",
+  "component",
+  "api-call",
+  "query-key",
+  "context",
+]
 
 interface GraphState {
   data: GraphData | null
@@ -30,6 +40,22 @@ interface GraphState {
   /** cluster bubbles visibility (G) */
   showClusters: boolean
   toggleClusters: () => void
+
+  /** node labels visibility (L) */
+  showLabels: boolean
+  toggleLabels: () => void
+
+  /** edge type filter (E cycles) — null shows everything */
+  edgeFilter: EdgeType | null
+  cycleEdgeFilter: () => void
+
+  /** PNG export request, consumed by the in-canvas capture helper (⌘E) */
+  pngRequested: boolean
+  requestPng: () => void
+  clearPng: () => void
+
+  /** reposition a node (drag) — connected edges follow */
+  moveNode: (id: string, pos: Vec3) => void
 
   load: (data: GraphData) => void
   setHover: (id: string | null) => void
@@ -74,6 +100,27 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   showClusters: true,
   toggleClusters: () => set({ showClusters: !get().showClusters }),
+
+  showLabels: true,
+  toggleLabels: () => set({ showLabels: !get().showLabels }),
+
+  edgeFilter: null,
+  cycleEdgeFilter: () => {
+    const next =
+      EDGE_FILTER_CYCLE[(EDGE_FILTER_CYCLE.indexOf(get().edgeFilter) + 1) % EDGE_FILTER_CYCLE.length]!
+    // an edge selected under the old filter may no longer be visible
+    set({ edgeFilter: next, selectedEdgeId: null })
+  },
+
+  pngRequested: false,
+  requestPng: () => set({ pngRequested: true }),
+  clearPng: () => set({ pngRequested: false }),
+
+  moveNode: (id, pos) => {
+    const positions = new Map(get().positions)
+    positions.set(id, pos)
+    set({ positions })
+  },
 
   load: (data) => {
     const positions = runLayout(data)

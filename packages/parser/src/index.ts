@@ -5,16 +5,20 @@ import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
 import { evaluateRules, loadConfig } from "./rules.js"
+import { serve } from "./serve.js"
 import type { GraphData, Violation } from "./types.js"
 
 interface Args {
-  command: "parse" | "check" | "watch"
+  command: "parse" | "check" | "watch" | "serve"
   src: string
   out: string
   tsconfig?: string
   config?: string
   project?: string
   exclude: string[]
+  data: string
+  port: number
+  dist?: string
 }
 
 const DEFAULT_EXCLUDE = ["node_modules", "dist", ".test.", ".spec.", ".stories.", "__tests__", "__mocks__"]
@@ -24,22 +28,43 @@ const HELP = `archviz — parse a TypeScript/React codebase into a 3D architectu
   archviz --src ./src [--out ./archviz.json]     parse and write the graph
   archviz check --src ./src                      evaluate rules, exit 1 on violations
   archviz watch --src ./src [--out ...]          re-parse on file changes
+  archviz serve --data ./archviz.json [--port]   serve the built viewer
 
   options:
     --tsconfig ./tsconfig.json   resolve paths through a tsconfig
     --config ./archviz.config.ts constraint rules (auto-detected in cwd)
     --project name               project name in meta
-    --exclude a,b,c              extra path patterns to skip`
+    --exclude a,b,c              extra path patterns to skip
+    --data ./archviz.json        (serve) graph file to serve
+    --port 3000                  (serve) port
+    --dist ./path                (serve) viewer build override`
 
 function parseArgs(argv: string[]): Args {
-  const args: Args = { command: "parse", src: "", out: "archviz.json", exclude: [...DEFAULT_EXCLUDE] }
+  const args: Args = {
+    command: "parse",
+    src: "",
+    out: "archviz.json",
+    exclude: [...DEFAULT_EXCLUDE],
+    data: "archviz.json",
+    port: 3000,
+  }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     const next = () => argv[++i] ?? ""
     switch (a) {
       case "check":
       case "watch":
+      case "serve":
         args.command = a
+        break
+      case "--data":
+        args.data = next()
+        break
+      case "--port":
+        args.port = Number(next()) || 3000
+        break
+      case "--dist":
+        args.dist = next()
         break
       case "--src":
         args.src = next()
@@ -65,7 +90,7 @@ function parseArgs(argv: string[]): Args {
         process.exit(0)
     }
   }
-  if (!args.src) {
+  if (!args.src && args.command !== "serve") {
     console.error("error: --src <dir> is required (try --help)")
     process.exit(1)
   }
@@ -174,6 +199,15 @@ async function runWatch(args: Args, srcRoot: string): Promise<void> {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
+
+  if (args.command === "serve") {
+    const distDir = args.dist
+      ? path.resolve(args.dist)
+      : path.resolve(import.meta.dirname, "../../viewer/dist")
+    serve({ dataFile: path.resolve(args.data), distDir, port: args.port })
+    return
+  }
+
   const srcRoot = path.resolve(args.src)
   if (!fs.existsSync(srcRoot)) {
     console.error(`error: source directory not found: ${srcRoot}`)

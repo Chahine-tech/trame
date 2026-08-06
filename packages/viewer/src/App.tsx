@@ -46,6 +46,11 @@ export function AppUI() {
         setPaletteOpen((v) => !v)
         return
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+        e.preventDefault()
+        useGraphStore.getState().requestPng()
+        return
+      }
       if (e.key === "Escape") {
         if (paletteOpen) setPaletteOpen(false)
         else clear()
@@ -67,6 +72,10 @@ export function AppUI() {
         }
       } else if (e.key.toLowerCase() === "g") {
         useGraphStore.getState().toggleClusters()
+      } else if (e.key.toLowerCase() === "l") {
+        useGraphStore.getState().toggleLabels()
+      } else if (e.key.toLowerCase() === "e") {
+        useGraphStore.getState().cycleEdgeFilter()
       }
     }
     window.addEventListener("keydown", onKey)

@@ -6,6 +6,7 @@ const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 
 export function TopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const data = useGraphStore((s) => s.data)
+  const edgeFilter = useGraphStore((s) => s.edgeFilter)
   const [theme, setTheme] = useState(getThemePref)
 
   return (
@@ -20,6 +21,7 @@ export function TopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
           {(data.violations?.length ?? 0) > 0 && (
             <span className="viol"> · ✗ {data.violations!.length} violations</span>
           )}
+          {edgeFilter && <span className="chip"> · edges: {edgeFilter}</span>}
         </span>
       )}
       <button

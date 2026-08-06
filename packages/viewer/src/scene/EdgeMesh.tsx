@@ -120,7 +120,10 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     return { geometry, arrowPos, arrowQuat }
   }, [p0, p3, ctrl, isSelected, isLit])
 
+  const edgeFilter = useGraphStore((s) => s.edgeFilter)
+
   if (!p0 || !p3 || !ctrl || !geometry) return null
+  if (edgeFilter && edge.type !== edgeFilter) return null
 
   const typeColor = palette[EDGE_COLOR[edge.type]]
   const color = isViolated ? palette.red : isLit ? typeColor : palette.surface1
