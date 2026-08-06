@@ -1,0 +1,97 @@
+import path from "node:path"
+import type { Project } from "ts-morph"
+import type { EdgeType, GraphCluster, GraphData, GraphEdge, GraphNode, NodeType } from "./types.js"
+import { classify, clusterFor, firstExportLine, labelFor } from "./parsers/classify.js"
+import { extractImports } from "./parsers/imports.js"
+
+/** Catppuccin Mocha accents, cycled across clusters. */
+const CLUSTER_COLORS = [
+  "#89b4fa", // blue
+  "#a6e3a1", // green
+  "#cba6f7", // mauve
+  "#fab387", // peach
+  "#94e2d5", // teal
+  "#f5c2e7", // pink
+  "#f9e2af", // yellow
+  "#b4befe", // lavender
+]
+
+/** Edge semantics derive from what is being imported. */
+function edgeTypeFor(targetType: NodeType): EdgeType {
+  switch (targetType) {
+    case "component":
+      return "component"
+    case "api":
+      return "api-call"
+    case "context":
+      return "context"
+    case "query-key":
+      return "query-key"
+    default:
+      return "import"
+  }
+}
+
+export function buildGraph(project: Project, srcRoot: string, projectName: string): GraphData {
+  const files = project
+    .getSourceFiles()
+    .filter((f) => !f.getFilePath().endsWith(".d.ts"))
+
+  const nodes: GraphNode[] = []
+  const byPath = new Map<string, GraphNode>()
+
+  for (const file of files) {
+    const abs = file.getFilePath() as string
+    const rel = path.relative(srcRoot, abs)
+    if (rel.startsWith("..")) continue
+    const node: GraphNode = {
+      id: rel,
+      label: labelFor(file),
+      type: classify(file),
+      file: abs,
+      line: firstExportLine(file),
+      cluster: clusterFor(rel),
+    }
+    nodes.push(node)
+    byPath.set(abs, node)
+  }
+
+  const seen = new Set<string>()
+  const edges: GraphEdge[] = []
+  for (const raw of extractImports(project)) {
+    const source = byPath.get(raw.from)
+    const target = byPath.get(raw.to)
+    if (!source || !target) continue
+    const id = `${source.id}->${target.id}`
+    if (seen.has(id)) continue
+    seen.add(id)
+    edges.push({ id, source: source.id, target: target.id, type: edgeTypeFor(target.type) })
+  }
+
+  const clusterMap = new Map<string, string[]>()
+  for (const node of nodes) {
+    const list = clusterMap.get(node.cluster) ?? []
+    list.push(node.id)
+    clusterMap.set(node.cluster, list)
+  }
+  const clusters: GraphCluster[] = [...clusterMap.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([id, nodeIds], i) => ({
+      id,
+      label: id,
+      color: CLUSTER_COLORS[i % CLUSTER_COLORS.length]!,
+      nodeIds,
+    }))
+
+  return {
+    meta: {
+      project: projectName,
+      generated: new Date().toISOString(),
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+    },
+    nodes,
+    edges,
+    clusters,
+  }
+}

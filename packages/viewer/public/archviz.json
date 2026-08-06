@@ -1,0 +1,327 @@
+{
+  "meta": {
+    "project": "archviz",
+    "generated": "2026-08-06T18:51:10.205Z",
+    "nodeCount": 13,
+    "edgeCount": 28
+  },
+  "nodes": [
+    {
+      "id": "App.tsx",
+      "label": "App",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
+      "line": 9,
+      "cluster": "root"
+    },
+    {
+      "id": "demo-data.ts",
+      "label": "demo-data",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/demo-data.ts",
+      "line": 4,
+      "cluster": "root"
+    },
+    {
+      "id": "main.tsx",
+      "label": "main",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/main.tsx",
+      "line": 1,
+      "cluster": "root"
+    },
+    {
+      "id": "theme.ts",
+      "label": "theme",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/theme.ts",
+      "line": 4,
+      "cluster": "root"
+    },
+    {
+      "id": "types.ts",
+      "label": "types",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/types.ts",
+      "line": 1,
+      "cluster": "root"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx",
+      "label": "EdgeMesh",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/EdgeMesh.tsx",
+      "line": 86,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/Layout.ts",
+      "label": "Layout",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Layout.ts",
+      "line": 9,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/NodeMesh.tsx",
+      "label": "NodeMesh",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/NodeMesh.tsx",
+      "line": 30,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/Scene.tsx",
+      "label": "Scene",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Scene.tsx",
+      "line": 41,
+      "cluster": "scene"
+    },
+    {
+      "id": "store/graph.ts",
+      "label": "graph",
+      "type": "store",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
+      "line": 47,
+      "cluster": "store"
+    },
+    {
+      "id": "ui/Inspector.tsx",
+      "label": "Inspector",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Inspector.tsx",
+      "line": 4,
+      "cluster": "ui"
+    },
+    {
+      "id": "ui/Palette.tsx",
+      "label": "Palette",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Palette.tsx",
+      "line": 9,
+      "cluster": "ui"
+    },
+    {
+      "id": "ui/TopBar.tsx",
+      "label": "TopBar",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/TopBar.tsx",
+      "line": 3,
+      "cluster": "ui"
+    }
+  ],
+  "edges": [
+    {
+      "id": "App.tsx->store/graph.ts",
+      "source": "App.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->ui/TopBar.tsx",
+      "source": "App.tsx",
+      "target": "ui/TopBar.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Inspector.tsx",
+      "source": "App.tsx",
+      "target": "ui/Inspector.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Palette.tsx",
+      "source": "App.tsx",
+      "target": "ui/Palette.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->demo-data.ts",
+      "source": "App.tsx",
+      "target": "demo-data.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->types.ts",
+      "source": "App.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "demo-data.ts->types.ts",
+      "source": "demo-data.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "main.tsx->scene/Scene.tsx",
+      "source": "main.tsx",
+      "target": "scene/Scene.tsx",
+      "type": "component"
+    },
+    {
+      "id": "main.tsx->App.tsx",
+      "source": "main.tsx",
+      "target": "App.tsx",
+      "type": "component"
+    },
+    {
+      "id": "theme.ts->types.ts",
+      "source": "theme.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->store/graph.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->theme.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->types.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Layout.ts->types.ts",
+      "source": "scene/Layout.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->store/graph.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->theme.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->types.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->store/graph.ts",
+      "source": "scene/Scene.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->theme.ts",
+      "source": "scene/Scene.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/NodeMesh.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/NodeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/EdgeMesh.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/EdgeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "store/graph.ts->types.ts",
+      "source": "store/graph.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->scene/Layout.ts",
+      "source": "store/graph.ts",
+      "target": "scene/Layout.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Inspector.tsx->store/graph.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Inspector.tsx->theme.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->store/graph.ts",
+      "source": "ui/Palette.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->theme.ts",
+      "source": "ui/Palette.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/TopBar.tsx->store/graph.ts",
+      "source": "ui/TopBar.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    }
+  ],
+  "clusters": [
+    {
+      "id": "root",
+      "label": "root",
+      "color": "#89b4fa",
+      "nodeIds": [
+        "App.tsx",
+        "demo-data.ts",
+        "main.tsx",
+        "theme.ts",
+        "types.ts"
+      ]
+    },
+    {
+      "id": "scene",
+      "label": "scene",
+      "color": "#a6e3a1",
+      "nodeIds": [
+        "scene/EdgeMesh.tsx",
+        "scene/Layout.ts",
+        "scene/NodeMesh.tsx",
+        "scene/Scene.tsx"
+      ]
+    },
+    {
+      "id": "ui",
+      "label": "ui",
+      "color": "#cba6f7",
+      "nodeIds": [
+        "ui/Inspector.tsx",
+        "ui/Palette.tsx",
+        "ui/TopBar.tsx"
+      ]
+    },
+    {
+      "id": "store",
+      "label": "store",
+      "color": "#fab387",
+      "nodeIds": [
+        "store/graph.ts"
+      ]
+    }
+  ]
+}

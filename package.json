@@ -1,0 +1,15 @@
+{
+  "name": "archviz",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "turbo dev --filter=@archviz/viewer",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "parse": "pnpm --filter @archviz/parser dev --"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  },
+  "packageManager": "pnpm@11.5.0"
+}
