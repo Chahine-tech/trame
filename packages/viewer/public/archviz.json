@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "archviz",
-    "generated": "2026-08-06T20:33:31.274Z",
-    "nodeCount": 16,
-    "edgeCount": 36
+    "generated": "2026-08-07T08:21:40.877Z",
+    "nodeCount": 17,
+    "edgeCount": 39
   },
   "nodes": [
     {
@@ -11,7 +11,7 @@
       "label": "App",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 9,
+      "line": 10,
       "cluster": "src"
     },
     {
@@ -20,6 +20,14 @@
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/demo-data.ts",
       "line": 4,
+      "cluster": "src"
+    },
+    {
+      "id": "editor.ts",
+      "label": "editor",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/editor.ts",
+      "line": 2,
       "cluster": "src"
     },
     {
@@ -59,7 +67,7 @@
       "label": "Clusters",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Clusters.tsx",
-      "line": 43,
+      "line": 47,
       "cluster": "scene"
     },
     {
@@ -75,7 +83,7 @@
       "label": "Layout",
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Layout.ts",
-      "line": 9,
+      "line": 42,
       "cluster": "scene"
     },
     {
@@ -99,7 +107,7 @@
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
-      "line": 81,
+      "line": 98,
       "cluster": "store"
     },
     {
@@ -107,7 +115,7 @@
       "label": "Inspector",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Inspector.tsx",
-      "line": 4,
+      "line": 5,
       "cluster": "ui"
     },
     {
@@ -115,7 +123,7 @@
       "label": "Palette",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Palette.tsx",
-      "line": 9,
+      "line": 10,
       "cluster": "ui"
     },
     {
@@ -131,7 +139,7 @@
       "label": "GET /archviz.json",
       "type": "api",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 18,
+      "line": 19,
       "cluster": "api",
       "meta": {
         "endpoint": "/archviz.json",
@@ -168,6 +176,12 @@
       "id": "App.tsx->demo-data.ts",
       "source": "App.tsx",
       "target": "demo-data.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->editor.ts",
+      "source": "App.tsx",
+      "target": "editor.ts",
       "type": "import"
     },
     {
@@ -327,6 +341,12 @@
       "type": "import"
     },
     {
+      "id": "ui/Inspector.tsx->editor.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
       "id": "ui/Palette.tsx->store/graph.ts",
       "source": "ui/Palette.tsx",
       "target": "store/graph.ts",
@@ -336,6 +356,12 @@
       "id": "ui/Palette.tsx->theme.ts",
       "source": "ui/Palette.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->editor.ts",
+      "source": "ui/Palette.tsx",
+      "target": "editor.ts",
       "type": "import"
     },
     {
@@ -359,9 +385,22 @@
   ],
   "clusters": [
     {
+      "id": "src",
+      "label": "src",
+      "color": "#89b4fa",
+      "nodeIds": [
+        "App.tsx",
+        "demo-data.ts",
+        "editor.ts",
+        "main.tsx",
+        "theme.ts",
+        "types.ts"
+      ]
+    },
+    {
       "id": "scene",
       "label": "scene",
-      "color": "#89b4fa",
+      "color": "#a6e3a1",
       "nodeIds": [
         "scene/CaptureFrame.tsx",
         "scene/Clusters.tsx",
@@ -369,18 +408,6 @@
         "scene/Layout.ts",
         "scene/NodeMesh.tsx",
         "scene/Scene.tsx"
-      ]
-    },
-    {
-      "id": "src",
-      "label": "src",
-      "color": "#a6e3a1",
-      "nodeIds": [
-        "App.tsx",
-        "demo-data.ts",
-        "main.tsx",
-        "theme.ts",
-        "types.ts"
       ]
     },
     {
@@ -410,5 +437,9 @@
       ]
     }
   ],
+  "analysis": {
+    "orphans": [],
+    "cycles": []
+  },
   "violations": []
 }

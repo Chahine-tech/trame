@@ -11,7 +11,12 @@ Mermaid and existing tools generate diagrams where you can't control arrow routi
 - **Auto-parsed graph** — components, pages, hooks, API endpoints, TanStack Query keys, Zustand stores, React contexts, extracted straight from your source. No hand-written diagrams.
 - **Controllable Bézier edges** — click an edge, drag its two lavender control points in 3D space, curves persist to JSON. The thing no other tool does.
 - **Folders as neighbourhoods** — a clustering force pulls each folder's files into a compact district; semantic zoom fades folder labels in as you zoom out, like a map.
+- **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
+- **Path tracing** — shift-click a second node to light the dependency chain between them. *"Why does LoginPage depend on Chart?"*
+- **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
 - **Constraint rules** — declare architecture rules in `archviz.config.ts`; violations glow red in the graph and `archviz check` exits 1 for CI.
+- **Diff mode** — `archviz diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
+- **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
 - **Live pipeline** — `archviz watch` re-parses on save, the viewer hot-swaps the graph.
 - **Calm by design** — nodes rest grey; color only lands with your attention (hover/selection lights the neighbourhood). Catppuccin Mocha/Latte, matching your terminal.
 
@@ -43,6 +48,7 @@ archviz --src ./src [--out ./archviz.json]     parse and write the graph
 archviz check --src ./src                      evaluate rules, exit 1 on violations
 archviz watch --src ./src [--out ...]          re-parse on file changes
 archviz serve --data ./archviz.json [--port]   serve the built viewer
+archviz diff --base a.json --head b.json       what a branch did to the architecture
 
 --tsconfig ./tsconfig.json    resolve paths through a tsconfig
 --config ./archviz.config.ts  constraint rules (auto-detected in cwd)
@@ -59,6 +65,9 @@ archviz serve --data ./archviz.json [--port]   serve the built viewer
 | `double-click` node | focus camera |
 | drag node | reposition it (6px threshold — below that it's a click) |
 | `click` edge | show Bézier handles · drag to reshape · `double-click` reset |
+| `I` | impact of selection (transitive dependents) |
+| `shift-click` | trace dependency path from selection |
+| `O` | open selection in your editor |
 | `⌘K` / `/` | command palette (search nodes, commands) |
 | `⌘E` | export PNG |
 | `E` | cycle edge-type filter |
@@ -100,6 +109,10 @@ export default {
       type: "no-direct-import",
       match: { sourceType: "page", targetType: "page" },
       message: "Pages should not import each other directly",
+    },
+    {
+      type: "no-cycles",
+      message: "Circular dependency",
     },
   ],
 }

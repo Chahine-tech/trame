@@ -4,6 +4,7 @@ import { TopBar } from "./ui/TopBar"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { DEMO } from "./demo-data"
+import { openInEditor } from "./editor"
 import type { GraphData } from "./types"
 
 export function AppUI() {
@@ -76,6 +77,12 @@ export function AppUI() {
         useGraphStore.getState().toggleLabels()
       } else if (e.key.toLowerCase() === "e") {
         useGraphStore.getState().cycleEdgeFilter()
+      } else if (e.key.toLowerCase() === "i") {
+        useGraphStore.getState().toggleImpact()
+      } else if (e.key.toLowerCase() === "o") {
+        const s = useGraphStore.getState()
+        const node = s.data?.nodes.find((n) => n.id === s.selectedId)
+        if (node) openInEditor(node.file, node.line)
       }
     }
     window.addEventListener("keydown", onKey)

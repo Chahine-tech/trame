@@ -16,5 +16,9 @@ export default {
       match: { sourceType: "page", targetType: "page" },
       message: "Pages should not import each other directly",
     },
+    {
+      type: "no-cycles",
+      message: "Circular dependency",
+    },
   ],
 }

@@ -10,6 +10,8 @@ export type NodeType =
 
 export type EdgeType = "import" | "api-call" | "query-key" | "component" | "context"
 
+export type DiffStatus = "same" | "added" | "removed"
+
 export interface GraphNode {
   id: string
   label: string
@@ -17,6 +19,7 @@ export interface GraphNode {
   file: string
   line: number
   cluster: string
+  diff?: DiffStatus
   meta?: {
     queryKey?: string
     endpoint?: string
@@ -29,6 +32,7 @@ export interface GraphEdge {
   source: string
   target: string
   type: EdgeType
+  diff?: DiffStatus
   ctrl1?: [number, number, number]
   ctrl2?: [number, number, number]
 }
@@ -41,10 +45,15 @@ export interface GraphCluster {
 }
 
 export interface Violation {
-  rule: "unique-caller" | "no-direct-import"
+  rule: "unique-caller" | "no-direct-import" | "no-cycles"
   message: string
   nodeIds: string[]
   edgeIds: string[]
+}
+
+export interface Analysis {
+  orphans: string[]
+  cycles: string[][]
 }
 
 export interface GraphData {
@@ -58,6 +67,13 @@ export interface GraphData {
   edges: GraphEdge[]
   clusters: GraphCluster[]
   violations?: Violation[]
+  analysis?: Analysis
+  diff?: {
+    addedNodes: number
+    removedNodes: number
+    addedEdges: number
+    removedEdges: number
+  }
 }
 
 export type Vec3 = [number, number, number]

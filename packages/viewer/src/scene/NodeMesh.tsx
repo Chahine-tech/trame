@@ -89,6 +89,12 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   } | null>(null)
 
   const isViolated = useGraphStore((s) => s.violatedNodes.has(node.id))
+  const isOrphan = useGraphStore((s) => s.orphans.has(node.id))
+  const impactOn = useGraphStore((s) => s.impactOf !== null)
+  const impactDepth = useGraphStore((s) => s.impactDepth.get(node.id))
+  const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
+  const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
+  const tracePathTo = useGraphStore((s) => s.tracePathTo)
 
   const typeColor = palette[NODE_COLOR[node.type]]
 
@@ -96,15 +102,40 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const baseScale = Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7)
 
   // Colour = information: grey at rest, type colour only when attention lands.
-  // Rule violations override everything — they must be visible at rest.
+  // Analysis overlays (path, impact, violations) take precedence — they are
+  // the question the user just asked.
   const { color, emissiveIntensity, opacity } = useMemo(() => {
+    // diff mode reframes the whole graph: what this branch added or removed
+    if (node.diff === "added") {
+      return { color: palette.green, emissiveIntensity: 0.6, opacity: 1 }
+    }
+    if (node.diff === "removed") {
+      return { color: palette.red, emissiveIntensity: 0.25, opacity: 0.35 }
+    }
+    if (pathOn) {
+      return onPath
+        ? { color: palette.lav, emissiveIntensity: 0.7, opacity: 1 }
+        : { color: palette.overlay, emissiveIntensity: 0, opacity: 0.1 }
+    }
+    if (impactOn) {
+      if (impactDepth === undefined) {
+        return { color: palette.overlay, emissiveIntensity: 0, opacity: 0.1 }
+      }
+      // fade with distance from the change — near dependents shout, far ones whisper
+      const t = Math.min(impactDepth / 4, 1)
+      return {
+        color: impactDepth === 0 ? palette.peach : palette.yellow,
+        emissiveIntensity: 0.75 - t * 0.5,
+        opacity: 1 - t * 0.45,
+      }
+    }
     if (isViolated) {
       return { color: palette.red, emissiveIntensity: isLit ? 0.7 : 0.35, opacity: hasActive && !isLit ? 0.4 : 1 }
     }
     if (isLit) return { color: typeColor, emissiveIntensity: isHovered || isSelected ? 0.7 : 0.4, opacity: 1 }
     if (hasActive) return { color: palette.overlay, emissiveIntensity: 0, opacity: 0.16 }
     return { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
-  }, [isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette])
+  }, [node.diff, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette])
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
@@ -117,7 +148,8 @@ export function NodeMesh({ node }: { node: GraphNode }) {
 
   if (!position) return null
 
-  const showLabel = showLabels && isLit && (isHovered || isSelected || hasActive)
+  const showLabel =
+    showLabels && (onPath || (isLit && (isHovered || isSelected || hasActive)))
 
   return (
     <mesh
@@ -173,7 +205,9 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         ;(e.target as Element).releasePointerCapture(e.pointerId)
         if (d && !d.moved) {
           e.stopPropagation()
-          select(node.id) // it was a click, not a drag
+          // shift-click traces the dependency path from the current selection
+          if (e.shiftKey) tracePathTo(node.id)
+          else select(node.id) // it was a click, not a drag
         } else if (d?.moved) {
           setControlsEnabled(true)
           document.body.style.cursor = localHover ? "pointer" : ""
@@ -194,13 +228,15 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         roughness={0.5}
         metalness={0.12}
         flatShading={FACETED.has(node.type)}
+        // hollow: dead code, or a node this branch removed (a ghost)
+        wireframe={(isOrphan && !isLit) || node.diff === "removed"}
       />
       {/* soft luminous halo behind lit nodes — the moodboard glow */}
-      {(isLit || isViolated) && (
+      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) && (
         <sprite scale={[5.2, 5.2, 1]} raycast={() => null}>
           <spriteMaterial
             map={getGlowTexture()}
-            color={isViolated ? palette.red : typeColor}
+            color={onPath ? palette.lav : impactOn ? palette.yellow : isViolated ? palette.red : typeColor}
             transparent
             opacity={isDarkGround(palette.base) ? (isHovered || isSelected ? 0.55 : 0.32) : 0.22}
             blending={isDarkGround(palette.base) ? THREE.AdditiveBlending : THREE.NormalBlending}

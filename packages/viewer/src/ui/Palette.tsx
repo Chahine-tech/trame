@@ -1,6 +1,7 @@
 import { Command } from "cmdk"
 import { exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
+import { EDITOR_LABEL, cycleEditor, getEditor, openInEditor } from "../editor"
 
 /**
  * ⌘K command palette. Opened 100+ times a day → zero animation, ever
@@ -52,6 +53,21 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
           </Command.Group>
           <Command.Group heading="commands">
             <Command.Item
+              value="open in editor file source"
+              onSelect={() => {
+                const s = useGraphStore.getState()
+                const node = s.data?.nodes.find((n) => n.id === s.selectedId)
+                if (node) openInEditor(node.file, node.line)
+                onClose()
+              }}
+            >
+              <span className="lbl">Open selection in {EDITOR_LABEL[getEditor()]}</span>
+              <span className="path">O</span>
+            </Command.Item>
+            <Command.Item value="switch editor vscode cursor zed" onSelect={() => cycleEditor()}>
+              <span className="lbl">Switch editor (now: {EDITOR_LABEL[getEditor()]})</span>
+            </Command.Item>
+            <Command.Item
               value="reset camera center"
               onSelect={() => {
                 resetCamera()
@@ -73,6 +89,16 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
             </Command.Item>
             <Command.Item value="export json curves" onSelect={download}>
               <span className="lbl">Export archviz.json (curves included)</span>
+            </Command.Item>
+            <Command.Item
+              value="impact analysis blast radius dependents"
+              onSelect={() => {
+                onClose()
+                useGraphStore.getState().toggleImpact()
+              }}
+            >
+              <span className="lbl">Impact of selection</span>
+              <span className="path">I</span>
             </Command.Item>
             <Command.Item
               value="cycle edge filter type"

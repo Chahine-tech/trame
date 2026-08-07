@@ -121,23 +121,40 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   }, [p0, p3, ctrl, isSelected, isLit])
 
   const edgeFilter = useGraphStore((s) => s.edgeFilter)
+  const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
+  const onPath = useGraphStore((s) => s.pathEdges.has(edge.id))
+  const impactOn = useGraphStore((s) => s.impactOf !== null)
+  const impactHasSource = useGraphStore((s) => s.impactDepth.has(edge.source))
+  const impactHasTarget = useGraphStore((s) => s.impactDepth.has(edge.target))
 
   if (!p0 || !p3 || !ctrl || !geometry) return null
   if (edgeFilter && edge.type !== edgeFilter) return null
 
   const typeColor = palette[EDGE_COLOR[edge.type]]
-  const color = isViolated ? palette.red : isLit ? typeColor : palette.surface1
-  const opacity = isViolated
-    ? isSelected || isLit
-      ? 0.95
-      : 0.55
-    : isSelected
-      ? 0.95
-      : isLit
-        ? 0.75
-        : hasActive
-          ? 0.05
-          : 0.22
+
+  // analysis overlays win over the resting language
+  let color: string
+  let opacity: number
+  if (edge.diff === "added") {
+    color = palette.green
+    opacity = 0.85
+  } else if (edge.diff === "removed") {
+    color = palette.red
+    opacity = 0.3
+  } else if (pathOn) {
+    color = onPath ? palette.lav : palette.surface1
+    opacity = onPath ? 0.95 : 0.03
+  } else if (impactOn) {
+    const both = impactHasSource && impactHasTarget
+    color = both ? palette.yellow : palette.surface1
+    opacity = both ? 0.6 : 0.03
+  } else if (isViolated) {
+    color = palette.red
+    opacity = isSelected || isLit ? 0.95 : 0.55
+  } else {
+    color = isLit ? typeColor : palette.surface1
+    opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
+  }
 
   return (
     <group>

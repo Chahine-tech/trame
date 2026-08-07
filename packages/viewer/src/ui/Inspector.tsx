@@ -1,5 +1,6 @@
 import { useGraphStore } from "../store/graph"
 import { NODE_COLOR, EDGE_COLOR, usePalette } from "../theme"
+import { EDITOR_LABEL, getEditor, openInEditor } from "../editor"
 
 export function Inspector() {
   const palette = usePalette()
@@ -13,9 +14,12 @@ export function Inspector() {
   const violatedNodes = useGraphStore((s) => s.violatedNodes)
   const violatedEdges = useGraphStore((s) => s.violatedEdges)
 
+  const orphans = useGraphStore((s) => s.orphans)
+
   const node = data?.nodes.find((n) => n.id === selectedId) ?? null
   const edge = data?.edges.find((e) => e.id === selectedEdgeId) ?? null
   const open = Boolean(node || edge)
+  const isOrphan = node ? orphans.has(node.id) : false
   const violations = node
     ? (violatedNodes.get(node.id) ?? [])
     : edge
@@ -38,9 +42,15 @@ export function Inspector() {
             {node.type}
           </div>
           <div className="insp-title">{node.label}</div>
-          <div className="insp-path">
+          <button
+            className="insp-path insp-path-link"
+            onClick={() => openInEditor(node.file, node.line)}
+            title={`Open in ${EDITOR_LABEL[getEditor()]} — ${node.file}:${node.line}`}
+            disabled={!node.file}
+          >
             {node.id}:{node.line}
-          </div>
+            <span className="go">↗</span>
+          </button>
           <div className="insp-rows">
             <div className="insp-row">
               <span>Folder</span>
@@ -67,6 +77,11 @@ export function Inspector() {
               <b>{adjacency.get(node.id)?.size ?? 0}</b>
             </div>
           </div>
+          {isOrphan && (
+            <div className="insp-warning">
+              ⌀ Nothing imports this — possible dead code
+            </div>
+          )}
           {violations.length > 0 && (
             <div className="insp-violation">
               {violations.map((m, i) => (
@@ -75,7 +90,10 @@ export function Inspector() {
             </div>
           )}
           <div className="insp-hint">
-            <span className="k">F</span> focus camera · <span className="k">esc</span> close
+            <span className="k">O</span> open in editor · <span className="k">I</span> impact ·{" "}
+            <span className="k">F</span> focus
+            <br />
+            <span className="k">shift-click</span> another node to trace the path
           </div>
         </>
       )}

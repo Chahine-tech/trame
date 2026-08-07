@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
+import { findCycles } from "./analysis.js"
 import type { ArchvizConfig, GraphData, GraphEdge, Rule, RuleMatch, Violation } from "./types.js"
 
 const CONFIG_CANDIDATES = [
@@ -28,7 +29,8 @@ export async function loadConfig(explicit?: string, cwd = process.cwd()): Promis
   return null
 }
 
-function edgeMatches(edge: GraphEdge, match: RuleMatch, graph: GraphData): boolean {
+function edgeMatches(edge: GraphEdge, match: RuleMatch | undefined, graph: GraphData): boolean {
+  if (!match) return true
   if (match.edgeType && edge.type !== match.edgeType) return false
   if (match.sourceType) {
     const source = graph.nodes.find((n) => n.id === edge.source)
@@ -79,11 +81,32 @@ function checkNoDirectImport(rule: Rule, graph: GraphData): Violation[] {
   return violations
 }
 
+function checkNoCycles(rule: Rule, graph: GraphData): Violation[] {
+  return findCycles(graph).map((cycle) => {
+    const labels = cycle.map((id) => graph.nodes.find((n) => n.id === id)?.label ?? id)
+    // edges that close the loop, including the wrap-around back to the start
+    const edgeIds: string[] = []
+    for (let i = 0; i < cycle.length; i++) {
+      const from = cycle[i]!
+      const to = cycle[(i + 1) % cycle.length]!
+      const edge = graph.edges.find((e) => e.source === from && e.target === to)
+      if (edge) edgeIds.push(edge.id)
+    }
+    return {
+      rule: rule.type,
+      message: `${rule.message} (${labels.join(" → ")} → ${labels[0]})`,
+      nodeIds: cycle,
+      edgeIds,
+    }
+  })
+}
+
 export function evaluateRules(graph: GraphData, config: ArchvizConfig): Violation[] {
   const violations: Violation[] = []
   for (const rule of config.rules ?? []) {
     if (rule.type === "unique-caller") violations.push(...checkUniqueCaller(rule, graph))
     else if (rule.type === "no-direct-import") violations.push(...checkNoDirectImport(rule, graph))
+    else if (rule.type === "no-cycles") violations.push(...checkNoCycles(rule, graph))
   }
   return violations
 }

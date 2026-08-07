@@ -37,6 +37,23 @@ interface GraphState {
   violatedNodes: Map<string, string[]>
   violatedEdges: Map<string, string[]>
 
+  /** nodes nothing imports — likely dead code */
+  orphans: Set<string>
+
+  /** directed adjacency, for impact and path queries */
+  importers: Map<string, Set<string>>
+  imports: Map<string, Set<string>>
+
+  /** "if I change this, what breaks?" — depth per transitive dependent (I) */
+  impactOf: string | null
+  impactDepth: Map<string, number>
+  toggleImpact: () => void
+
+  /** dependency path between two nodes (shift-click) */
+  pathNodes: string[]
+  pathEdges: Set<string>
+  tracePathTo: (targetId: string) => void
+
   /** cluster bubbles visibility (G) */
   showClusters: boolean
   toggleClusters: () => void
@@ -98,6 +115,90 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   violatedNodes: new Map(),
   violatedEdges: new Map(),
 
+  orphans: new Set(),
+
+  importers: new Map(),
+  imports: new Map(),
+
+  impactOf: null,
+  impactDepth: new Map(),
+  toggleImpact: () => {
+    const { selectedId, impactOf, importers } = get()
+    if (impactOf || !selectedId) {
+      set({ impactOf: null, impactDepth: new Map() })
+      return
+    }
+    // BFS up the importer graph — everything that would break
+    const depth = new Map<string, number>([[selectedId, 0]])
+    let frontier = [selectedId]
+    let d = 0
+    while (frontier.length > 0) {
+      d++
+      const next: string[] = []
+      for (const id of frontier) {
+        for (const importer of importers.get(id) ?? []) {
+          if (depth.has(importer)) continue
+          depth.set(importer, d)
+          next.push(importer)
+        }
+      }
+      frontier = next
+    }
+    set({ impactOf: selectedId, impactDepth: depth, pathNodes: [], pathEdges: new Set() })
+  },
+
+  pathNodes: [],
+  pathEdges: new Set(),
+  tracePathTo: (targetId) => {
+    const { selectedId, imports, importers, data } = get()
+    if (!selectedId || selectedId === targetId) return
+
+    // shortest path, following imports in either direction
+    const prev = new Map<string, string>()
+    const seen = new Set([selectedId])
+    let frontier = [selectedId]
+    let found = false
+    while (frontier.length > 0 && !found) {
+      const next: string[] = []
+      for (const id of frontier) {
+        const neighbours = [...(imports.get(id) ?? []), ...(importers.get(id) ?? [])]
+        for (const n of neighbours) {
+          if (seen.has(n)) continue
+          seen.add(n)
+          prev.set(n, id)
+          if (n === targetId) {
+            found = true
+            break
+          }
+          next.push(n)
+        }
+        if (found) break
+      }
+      frontier = next
+    }
+    if (!found) {
+      set({ pathNodes: [], pathEdges: new Set() })
+      return
+    }
+
+    const chain: string[] = [targetId]
+    let cursor = targetId
+    while (cursor !== selectedId) {
+      cursor = prev.get(cursor)!
+      chain.unshift(cursor)
+    }
+    const edgeIds = new Set<string>()
+    for (let i = 0; i < chain.length - 1; i++) {
+      const a = chain[i]!
+      const b = chain[i + 1]!
+      const edge = data?.edges.find(
+        (e) => (e.source === a && e.target === b) || (e.source === b && e.target === a),
+      )
+      if (edge) edgeIds.add(edge.id)
+    }
+    set({ pathNodes: chain, pathEdges: edgeIds, impactOf: null, impactDepth: new Map() })
+  },
+
   showClusters: true,
   toggleClusters: () => set({ showClusters: !get().showClusters }),
 
@@ -127,8 +228,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const adjacency = new Map<string, Set<string>>()
     const inDeg = new Map<string, number>()
     const outDeg = new Map<string, number>()
+    const importers = new Map<string, Set<string>>()
+    const imports = new Map<string, Set<string>>()
     for (const n of data.nodes) {
       adjacency.set(n.id, new Set())
+      importers.set(n.id, new Set())
+      imports.set(n.id, new Set())
       inDeg.set(n.id, 0)
       outDeg.set(n.id, 0)
     }
@@ -136,6 +241,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     for (const e of data.edges) {
       adjacency.get(e.source)?.add(e.target)
       adjacency.get(e.target)?.add(e.source)
+      imports.get(e.source)?.add(e.target)
+      importers.get(e.target)?.add(e.source)
       outDeg.set(e.source, (outDeg.get(e.source) ?? 0) + 1)
       inDeg.set(e.target, (inDeg.get(e.target) ?? 0) + 1)
       // persisted curve edits ship inside the JSON
@@ -156,11 +263,18 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       ctrl,
       violatedNodes,
       violatedEdges,
+      orphans: new Set(data.analysis?.orphans ?? []),
+      importers,
+      imports,
       // stale interaction state must not survive a data swap (watch mode)
       hoverId: null,
       selectedId: null,
       selectedEdgeId: null,
       litSet: new Set(),
+      impactOf: null,
+      impactDepth: new Map(),
+      pathNodes: [],
+      pathEdges: new Set(),
     })
   },
 
@@ -177,6 +291,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedId: id,
       selectedEdgeId: null,
       litSet: computeLit({ adjacency }, id),
+      // a new selection invalidates any impact/path overlay
+      impactOf: null,
+      impactDepth: new Map(),
+      pathNodes: [],
+      pathEdges: new Set(),
     })
   },
 
@@ -218,7 +337,17 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   clear: () =>
-    set({ hoverId: null, selectedId: null, selectedEdgeId: null, litSet: new Set(), focusTarget: null }),
+    set({
+      hoverId: null,
+      selectedId: null,
+      selectedEdgeId: null,
+      litSet: new Set(),
+      focusTarget: null,
+      impactOf: null,
+      impactDepth: new Map(),
+      pathNodes: [],
+      pathEdges: new Set(),
+    }),
 }))
 
 /** Serialize current data + curve edits back to the archviz.json schema. */
