@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber"
 import { Billboard, Html } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js"
 import { useGraphStore } from "../store/graph"
-import { NODE_COLOR, usePalette } from "../theme"
+import { isDarkGround, mix, NODE_COLOR, usePalette, type Palette } from "../theme"
 import type { GraphNode } from "../types"
 
 /**
@@ -26,6 +26,36 @@ const GEOMETRY: Record<GraphNode["type"], () => THREE.BufferGeometry> = {
 
 const FACETED: Set<GraphNode["type"]> = new Set(["page", "query-key", "store", "module"])
 
+/** Delay per hop when impact propagates outward. Slow enough to read. */
+const IMPACT_RING_MS = 90
+
+interface Surface {
+  color: string
+  emissiveIntensity: number
+  opacity: number
+}
+
+/**
+ * Two grounds, two languages.
+ *
+ * On dark, attention adds light and what is unlit fades toward the void.
+ * On paper it inverts: what matters is denser ink, and what recedes is washed
+ * toward the page — still opaque, just pale. Fading by opacity on a light
+ * ground pushes a node *into* the background instead of behind it, which is
+ * how the lit/unlit hierarchy used to collapse.
+ */
+function recede(dark: boolean, p: Palette, amount: number): Surface {
+  return dark
+    ? { color: p.overlay, emissiveIntensity: 0, opacity: 1 - amount * 0.84 }
+    : { color: mix(p.overlay, p.base, amount * 0.86), emissiveIntensity: 0, opacity: 1 }
+}
+
+function press(dark: boolean, p: Palette, ink: string, strength: number): Surface {
+  return dark
+    ? { color: ink, emissiveIntensity: strength, opacity: 1 }
+    : { color: mix(ink, p.text, 0.12), emissiveIntensity: 0, opacity: 1 }
+}
+
 /** Shared soft radial halo — the moodboard glow, tinted per node via material color. */
 let glowTexture: THREE.CanvasTexture | null = null
 function getGlowTexture(): THREE.CanvasTexture {
@@ -43,15 +73,6 @@ function getGlowTexture(): THREE.CanvasTexture {
   return glowTexture
 }
 
-/** Additive glow sings on Mocha; on Latte it washes out, so blend normally. */
-function isDarkGround(hex: string): boolean {
-  const h = hex.replace("#", "")
-  if (h.length < 6) return true
-  const r = parseInt(h.slice(0, 2), 16)
-  const g = parseInt(h.slice(2, 4), 16)
-  const b = parseInt(h.slice(4, 6), 16)
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5
-}
 
 const geometryCache = new Map<GraphNode["type"], THREE.BufferGeometry>()
 function geometryFor(type: GraphNode["type"]): THREE.BufferGeometry {
@@ -94,53 +115,73 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const isOrphan = useGraphStore((s) => s.orphans.has(node.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
   const impactDepth = useGraphStore((s) => s.impactDepth.get(node.id))
+  const impactStartedAt = useGraphStore((s) => s.impactStartedAt)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
   const tracePathTo = useGraphStore((s) => s.tracePathTo)
 
   const typeColor = palette[NODE_COLOR[node.type]]
+  const dark = isDarkGround()
 
   // Size = importance: hubs read bigger at a glance
   const baseScale = Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7)
+
 
   // Colour = information: grey at rest, type colour only when attention lands.
   // Analysis overlays (path, impact, violations) take precedence — they are
   // the question the user just asked.
   const { color, emissiveIntensity, opacity } = useMemo(() => {
     // diff mode reframes the whole graph: what this branch added or removed
-    if (node.diff === "added") {
-      return { color: palette.green, emissiveIntensity: 0.6, opacity: 1 }
-    }
+    if (node.diff === "added") return press(dark, palette, palette.green, 0.6)
     if (node.diff === "removed") {
-      return { color: palette.red, emissiveIntensity: 0.25, opacity: 0.35 }
+      return dark
+        ? { color: palette.red, emissiveIntensity: 0.25, opacity: 0.35 }
+        : { color: mix(palette.red, palette.base, 0.55), emissiveIntensity: 0, opacity: 1 }
     }
-    if (pathOn) {
-      return onPath
-        ? { color: palette.lav, emissiveIntensity: 0.7, opacity: 1 }
-        : { color: palette.overlay, emissiveIntensity: 0, opacity: 0.1 }
-    }
+    if (pathOn) return onPath ? press(dark, palette, palette.lav, 0.7) : recede(dark, palette, 1)
     if (impactOn) {
-      if (impactDepth === undefined) {
-        return { color: palette.overlay, emissiveIntensity: 0, opacity: 0.1 }
-      }
+      if (impactDepth === undefined) return recede(dark, palette, 1)
       // fade with distance from the change — near dependents shout, far ones whisper
       const t = Math.min(impactDepth / 4, 1)
-      return {
-        color: impactDepth === 0 ? palette.peach : palette.yellow,
-        emissiveIntensity: 0.75 - t * 0.5,
-        opacity: 1 - t * 0.45,
-      }
+      const ink = impactDepth === 0 ? palette.peach : palette.yellow
+      return dark
+        ? { color: ink, emissiveIntensity: 0.75 - t * 0.5, opacity: 1 - t * 0.45 }
+        : { color: mix(mix(ink, palette.text, 0.12), palette.base, t * 0.5), emissiveIntensity: 0, opacity: 1 }
     }
     if (isViolated) {
+      if (!dark) return press(dark, palette, palette.red, 0)
       return { color: palette.red, emissiveIntensity: isLit ? 0.7 : 0.35, opacity: hasActive && !isLit ? 0.4 : 1 }
     }
-    if (isLit) return { color: typeColor, emissiveIntensity: isHovered || isSelected ? 0.7 : 0.4, opacity: 1 }
-    if (hasActive) return { color: palette.overlay, emissiveIntensity: 0, opacity: 0.16 }
-    return { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
-  }, [node.diff, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette])
+    if (isLit) return press(dark, palette, typeColor, isHovered || isSelected ? 0.7 : 0.4)
+    if (hasActive) return recede(dark, palette, 1)
+    // at rest: neutral ink, present but quiet
+    return dark
+      ? { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
+      : { color: mix(palette.overlay, palette.base, 0.42), emissiveIntensity: 0, opacity: 1 }
+  }, [node.diff, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark])
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
+  // Impact reveals ring by ring so the eye reads propagation, not a flat
+  // highlight: each hop waits its turn, like a wave leaving the change.
+  const waveRef = useRef<THREE.Mesh>(null)
+  useFrame(({ invalidate }) => {
+    const m = meshRef.current
+    if (!m || !impactOn || impactDepth === undefined) return
+    const age = performance.now() - impactStartedAt
+    const due = impactDepth * IMPACT_RING_MS
+    const t = THREE.MathUtils.clamp((age - due) / 260, 0, 1)
+    m.visible = t > 0
+    if (waveRef.current) {
+      // a brief halo that swells and dies as the wave passes this ring
+      const pulse = Math.sin(Math.PI * t)
+      waveRef.current.scale.setScalar(1 + pulse * 1.6)
+      const mat = waveRef.current.material as THREE.MeshBasicMaterial
+      mat.opacity = pulse * 0.35
+    }
+    if (t < 1) invalidate()
+  })
+
   useFrame(({ invalidate }, dt) => {
     const m = meshRef.current
     if (!m) return
@@ -241,18 +282,51 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         // hollow: dead code, or a node this branch removed (a ghost)
         wireframe={(isOrphan && !isLit) || node.diff === "removed"}
       />
-      {/* soft luminous halo behind lit nodes — the moodboard glow */}
-      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) && (
-        <sprite scale={[5.2, 5.2, 1]} raycast={() => null}>
-          <spriteMaterial
-            map={getGlowTexture()}
-            color={onPath ? palette.lav : impactOn ? palette.yellow : isViolated ? palette.red : typeColor}
+      {/* On dark this is a glow: light added to the void. On paper the same
+          shape becomes a shadow — importance reads as elevation, not emission. */}
+      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
+        (() => {
+          const accent = onPath
+            ? palette.lav
+            : impactOn
+              ? palette.yellow
+              : isViolated
+                ? palette.red
+                : typeColor
+          const strong = isHovered || isSelected
+          return (
+            <sprite scale={dark ? [5.2, 5.2, 1] : [4.4, 4.4, 1]} raycast={() => null}>
+              <spriteMaterial
+                map={getGlowTexture()}
+                color={dark ? accent : mix(accent, palette.text, 0.55)}
+                transparent
+                opacity={dark ? (strong ? 0.55 : 0.32) : strong ? 0.3 : 0.16}
+                blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
+                depthWrite={false}
+              />
+            </sprite>
+          )
+        })()}
+
+      {/* the crisp edge that replaces the glow as a "this one" marker on paper:
+          an inverted hull, the classic way to outline a solid */}
+      {!dark && (isLit || onPath || isViolated) && (
+        <mesh geometry={geometryFor(node.type)} scale={1.14} raycast={() => null}>
+          <meshBasicMaterial color={mix(color, palette.text, 0.55)} side={THREE.BackSide} />
+        </mesh>
+      )}
+
+      {/* the wave front, alive only while the impact ripple passes this ring */}
+      {impactOn && impactDepth !== undefined && (
+        <mesh ref={waveRef} raycast={() => null}>
+          <sphereGeometry args={[1.6, 16, 12]} />
+          <meshBasicMaterial
+            color={palette.yellow}
             transparent
-            opacity={isDarkGround(palette.base) ? (isHovered || isSelected ? 0.55 : 0.32) : 0.22}
-            blending={isDarkGround(palette.base) ? THREE.AdditiveBlending : THREE.NormalBlending}
+            opacity={0}
             depthWrite={false}
           />
-        </sprite>
+        </mesh>
       )}
 
       {/* static selection ring — state indication without motion on data */}

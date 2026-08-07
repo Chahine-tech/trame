@@ -5,10 +5,12 @@ import { OrbitControls } from "@react-three/drei"
 
 type OrbitControlsImpl = ComponentRef<typeof OrbitControls>
 import { useGraphStore } from "../store/graph"
-import { usePalette } from "../theme"
+import { isDarkGround, usePalette } from "../theme"
 import { NodeMesh } from "./NodeMesh"
 import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
+import { Districts } from "./Districts"
+import { ZoomDirector } from "./ZoomDirector"
 import { CaptureFrame } from "./CaptureFrame"
 
 /** Scratch vectors, reused every frame — always rewritten before they are read. */
@@ -17,6 +19,31 @@ const DIR = new THREE.Vector3()
 
 /** Convergence rate, in "fraction of the remaining distance closed per second". */
 const FOCUS_LAMBDA = 5
+
+/**
+ * Pulls the fog in while something is selected so everything around it
+ * recedes — the cheap half of a depth-of-field effect, no postprocessing.
+ */
+function FocusDepth() {
+  const attentive = useGraphStore((s) => s.litSet.size > 0 || s.selectedEdgeId !== null)
+  const scene = useThree((s) => s.scene)
+  const invalidate = useThree((s) => s.invalidate)
+
+  useFrame((_, dt) => {
+    const fog = scene.fog as THREE.Fog | null
+    if (!fog) return
+    const near = attentive ? 26 : 60
+    const far = attentive ? 96 : 150
+    const nextNear = THREE.MathUtils.damp(fog.near, near, 4, dt)
+    const nextFar = THREE.MathUtils.damp(fog.far, far, 4, dt)
+    if (Math.abs(nextFar - fog.far) < 0.05 && Math.abs(nextNear - fog.near) < 0.05) return
+    fog.near = nextNear
+    fog.far = nextFar
+    invalidate()
+  })
+
+  return null
+}
 
 /** Eases the OrbitControls target toward the focused node, then lets go. */
 function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
@@ -93,6 +120,8 @@ export function Scene() {
     (s) => s.litSet.size === 0 && !s.selectedEdgeId && !s.focusTarget,
   )
   const introSpin = useIntroSpin()
+  const districtMode = useGraphStore((s) => s.districtMode)
+  const dark = isDarkGround()
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
 
@@ -107,22 +136,43 @@ export function Scene() {
   return (
     <>
       <color attach="background" args={[palette.base]} />
-      {/* depth fog — far nodes recede into the void, never a flat board */}
+      {/* depth fog — far nodes recede into the void, never a flat board.
+          It tightens on selection: the surroundings lose contrast like a
+          shallow depth of field, without paying for a blur pass. */}
       <fog attach="fog" args={[palette.base, 60, 150]} />
+      <FocusDepth />
 
-      {/* sky/ground ambience + key + cool rim: sculpts the facets */}
-      <hemisphereLight args={[palette.text, palette.crust, 0.55]} />
-      <directionalLight position={[35, 45, 50]} intensity={1.3} />
-      <directionalLight position={[-40, -15, -35]} intensity={0.45} color={palette.lav} />
+      {/* Dark: a lit space — key light and a cool rim sculpt the facets.
+          Light: a printed plate — strong lights would blow every colour toward
+          white, so the material colour carries and shading only hints at form. */}
+      {dark ? (
+        <>
+          <hemisphereLight args={[palette.text, palette.crust, 0.55]} />
+          <directionalLight position={[35, 45, 50]} intensity={1.3} />
+          <directionalLight position={[-40, -15, -35]} intensity={0.45} color={palette.lav} />
+        </>
+      ) : (
+        <>
+          <ambientLight intensity={2.1} />
+          <directionalLight position={[30, 45, 40]} intensity={0.35} />
+        </>
+      )}
 
-      <Clusters />
+      <ZoomDirector />
 
-      {data.edges.map((e) => (
-        <EdgeMesh key={e.id} edge={e} />
-      ))}
-      {data.nodes.map((n) => (
-        <NodeMesh key={n.id} node={n} />
-      ))}
+      {districtMode ? (
+        <Districts />
+      ) : (
+        <>
+          <Clusters />
+          {data.edges.map((e) => (
+            <EdgeMesh key={e.id} edge={e} />
+          ))}
+          {data.nodes.map((n) => (
+            <NodeMesh key={n.id} node={n} />
+          ))}
+        </>
+      )}
 
       <OrbitControls
         ref={controls}

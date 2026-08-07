@@ -71,6 +71,28 @@ if (typeof document !== "undefined") {
   mq.addEventListener("change", () => setTimeout(refresh, 50))
 }
 
+function channels(hex: string): [number, number, number] {
+  const h = hex.replace("#", "")
+  const full = h.length === 3 ? h[0]! + h[0] + h[1] + h[1] + h[2] + h[2] : h
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ]
+}
+
+/**
+ * Blend two palette colours. On a light ground this is how a node is dimmed:
+ * washed toward the paper, never made transparent. Lowering opacity on white
+ * pushes a node toward the background — the opposite of receding.
+ */
+export function mix(a: string, b: string, t: number): string {
+  const [r1, g1, b1] = channels(a)
+  const [r2, g2, b2] = channels(b)
+  const to = (x: number, y: number) => Math.round(x + (y - x) * t)
+  return `rgb(${to(r1, r2)}, ${to(g1, g2)}, ${to(b1, b2)})`
+}
+
 /** Non-reactive read, for code outside React (store, toasts). */
 export function getPalette(): Palette {
   return current

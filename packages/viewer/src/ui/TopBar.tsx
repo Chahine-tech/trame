@@ -17,6 +17,12 @@ export function TopBar({
   const impactCount = useGraphStore((s) => s.impactDepth.size)
   const pathNodes = useGraphStore((s) => s.pathNodes)
   const isDemo = useGraphStore((s) => s.isDemo)
+  const districtMode = useGraphStore((s) => s.districtMode)
+
+  const healthy =
+    (data?.violations?.length ?? 0) === 0 &&
+    (data?.analysis?.cycles.length ?? 0) === 0 &&
+    (data?.analysis?.orphans.length ?? 0) === 0
   const [theme, setTheme] = useState(getThemePref)
 
   const impactLabel = impactOf ? data?.nodes.find((n) => n.id === impactOf)?.label : null
@@ -52,16 +58,38 @@ export function TopBar({
       )}
       {data && !data.diff && !impactLabel && pathNodes.length === 0 && (
         <span className="counts">
-          <b>{data.meta.nodeCount}</b> nodes · <b>{data.meta.edgeCount}</b> edges ·{" "}
-          <b>{data.clusters.length}</b> folders
-          {(data.violations?.length ?? 0) > 0 && (
-            <span className="viol"> · ✗ {data.violations!.length} violations</span>
+          {/* the project first, then how much of it you are looking at — a
+              bare stat line says nothing about the thing itself. Skipped when
+              it repeats the wordmark, as it does when trame parses itself. */}
+          {data.meta.project !== "trame" && (
+            <>
+              <b className="project">{data.meta.project}</b>
+              <span className="sep">·</span>
+            </>
           )}
-          {(data.analysis?.orphans.length ?? 0) > 0 && (
-            <span className="warn"> · ⌀ {data.analysis!.orphans.length} orphans</span>
+          {districtMode ? (
+            <>
+              <b>{data.clusters.length}</b> folders
+            </>
+          ) : (
+            <>
+              <b>{data.meta.nodeCount}</b> files in <b>{data.clusters.length}</b> folders
+            </>
           )}
-          {(data.analysis?.cycles.length ?? 0) > 0 && (
-            <span className="warn"> · ↻ {data.analysis!.cycles.length} cycles</span>
+          {healthy ? (
+            <span className="ok"> · ✓ no violations</span>
+          ) : (
+            <>
+              {(data.violations?.length ?? 0) > 0 && (
+                <span className="viol"> · ✗ {data.violations!.length} violations</span>
+              )}
+              {(data.analysis?.cycles.length ?? 0) > 0 && (
+                <span className="warn"> · ↻ {data.analysis!.cycles.length} cycles</span>
+              )}
+              {(data.analysis?.orphans.length ?? 0) > 0 && (
+                <span className="warn"> · ⌀ {data.analysis!.orphans.length} unused</span>
+              )}
+            </>
           )}
           {edgeFilter && <span className="chip"> · edges: {edgeFilter}</span>}
         </span>

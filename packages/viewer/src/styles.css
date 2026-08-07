@@ -100,6 +100,9 @@ html, body, #root {
 .topbar .brand .d { color: var(--lav); }
 .topbar .counts { color: var(--overlay); font-variant-numeric: tabular-nums; }
 .topbar .counts b { color: var(--subtext); font-weight: 500; }
+.topbar .counts .project { color: var(--text); }
+.topbar .counts .sep { margin: 0 6px; color: var(--surface1); }
+.topbar .ok { color: var(--green); }
 .topbar .kbd {
   margin-left: auto;
   color: var(--subtext);
@@ -159,17 +162,31 @@ html, body, #root {
 .insp-path-link:disabled { cursor: default; }
 .insp-path-link .go { opacity: 0; transition: opacity 140ms ease; }
 .insp-path-link:hover:not(:disabled) .go { opacity: 1; }
-.insp-rows { display: flex; flex-direction: column; }
+/* Labels recede, values carry: the eye should land on the number, and only
+   then look left to learn what it counts. */
+.insp-rows { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
 .insp-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 9px 0;
-  border-top: 1px solid var(--surface0);
-  font-size: 0.8125rem;
+  flex-direction: column;
+  gap: 2px;
 }
-.insp-row span { color: var(--subtext); }
-.insp-row b { font-family: var(--font-mono); font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+.insp-row span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--overlay);
+}
+.insp-row b { font-size: 0.9375rem; }
+.insp-row b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+/* the type is the headline, so it gets a rule under it, not a border per row */
+.insp-title { padding-bottom: 2px; }
+.insp-rows { border-top: 1px solid var(--surface0); padding-top: 16px; }
 .insp-row .folder-chip { display: flex; align-items: center; gap: 6px; }
 .insp-row .folder-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 .insp-hint { margin-top: auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--overlay); line-height: 1.7; }
@@ -404,6 +421,41 @@ html, body, #root {
   border-radius: 5px;
   padding: 2px 7px;
   white-space: nowrap;
+}
+
+/* ---------- Districts (zoomed-out map level) ---------- */
+.district-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+  /* a halo, not a drop shadow: the label sits on its own region and has to
+     stay readable whatever colour ends up behind it */
+  paint-order: stroke fill;
+  -webkit-text-stroke: 3px var(--base);
+}
+.district-label .name {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+.district-label .count {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--subtext);
+}
+.district-weight {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtext);
+  background: color-mix(in srgb, var(--base) 80%, transparent);
+  border: 1px solid var(--surface0);
+  border-radius: 999px;
+  padding: 1px 6px;
+  pointer-events: none;
 }
 
 /* ---------- Toasts (goey-toast) ---------- */

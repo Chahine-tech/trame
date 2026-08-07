@@ -1,0 +1,227 @@
+import { useMemo, useRef } from "react"
+import * as THREE from "three"
+import { useFrame, useThree } from "@react-three/fiber"
+import { Html } from "@react-three/drei"
+import { useGraphStore } from "../store/graph"
+import { isDarkGround, usePalette } from "../theme"
+import type { Vec3 } from "../types"
+
+interface District {
+  id: string
+  label: string
+  color: string
+  centroid: THREE.Vector3
+  /** world radius of the sphere standing in for the whole folder */
+  radius: number
+  fileCount: number
+}
+
+interface DistrictLink {
+  id: string
+  from: THREE.Vector3
+  to: THREE.Vector3
+  /** how many file-level edges this one line stands for */
+  weight: number
+}
+
+/** A folder reads as one body once you are far enough not to read filenames. */
+function radiusFor(fileCount: number): number {
+  return 2.2 + Math.sqrt(fileCount) * 1.5
+}
+
+function centroidOf(ids: string[], positions: Map<string, Vec3>): THREE.Vector3 | null {
+  const found = ids.map((id) => positions.get(id)).filter((p): p is Vec3 => Boolean(p))
+  if (found.length === 0) return null
+  const c = new THREE.Vector3()
+  for (const p of found) c.add(new THREE.Vector3(...p))
+  return c.divideScalar(found.length)
+}
+
+function DistrictBody({ district, appear }: { district: District; appear: React.RefObject<number> }) {
+  const palette = usePalette()
+  const focus = useGraphStore((s) => s.focus)
+  const meshRef = useRef<THREE.Mesh>(null)
+  const matRef = useRef<THREE.MeshStandardMaterial>(null)
+  const hovered = useRef(false)
+
+  // on a light ground an emissive translucent body turns to pastel mush;
+  // lean on the base colour there and keep the glow for the dark theme
+  const dark = isDarkGround()
+
+  useFrame(() => {
+    const t = appear.current
+    const m = meshRef.current
+    if (m) m.scale.setScalar(THREE.MathUtils.lerp(0.85, hovered.current ? 1.06 : 1, t))
+    if (matRef.current) matRef.current.opacity = (dark ? 0.62 : 0.78) * t
+  })
+
+  return (
+    <group position={district.centroid}>
+      <mesh
+        ref={meshRef}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          hovered.current = true
+          document.body.style.cursor = "pointer"
+        }}
+        onPointerOut={() => {
+          hovered.current = false
+          document.body.style.cursor = ""
+        }}
+        onClick={(e) => {
+          // clicking a district flies you into it — the camera crossing the
+          // threshold is what expands it back into files
+          e.stopPropagation()
+          const first = useGraphStore
+            .getState()
+            .data?.clusters.find((c) => c.id === district.id)?.nodeIds[0]
+          if (first) focus(first)
+        }}
+      >
+        <icosahedronGeometry args={[district.radius, 2]} />
+        <meshStandardMaterial
+          ref={matRef}
+          color={district.color}
+          emissive={district.color}
+          emissiveIntensity={dark ? 0.35 : 0.08}
+          roughness={dark ? 0.55 : 0.35}
+          metalness={0.1}
+          flatShading
+          transparent
+          opacity={0}
+        />
+      </mesh>
+
+      {/* the name sits on the region and always faces you, the way a map
+          labels a district — an offset label gets swallowed by the body as
+          soon as the camera orbits */}
+      <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+        <div className="district-label">
+          <span className="name" style={{ color: district.color }}>
+            {district.label}/
+          </span>
+          <span className="count">
+            {district.fileCount} {district.fileCount === 1 ? "file" : "files"}
+          </span>
+        </div>
+      </Html>
+
+      {/* a faint shell so the body reads as a region, not a planet */}
+      <mesh raycast={() => null}>
+        <sphereGeometry args={[district.radius * 1.35, 20, 14]} />
+        <meshBasicMaterial
+          color={district.color}
+          transparent
+          opacity={0.05}
+          depthWrite={false}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  )
+}
+
+function DistrictEdge({ link, appear }: { link: DistrictLink; appear: React.RefObject<number> }) {
+  const palette = usePalette()
+  const matRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  const geometry = useMemo(() => {
+    const curve = new THREE.LineCurve3(link.from, link.to)
+    // one line stands for many imports: thickness carries the count
+    const radius = Math.min(0.12 + Math.log2(link.weight + 1) * 0.14, 0.85)
+    return new THREE.TubeGeometry(curve, 1, radius, 8)
+  }, [link])
+
+  useFrame(() => {
+    if (matRef.current) matRef.current.opacity = 0.4 * appear.current
+  })
+
+  const mid = useMemo(() => link.from.clone().lerp(link.to, 0.5), [link])
+
+  return (
+    <group>
+      <mesh geometry={geometry} raycast={() => null}>
+        <meshBasicMaterial ref={matRef} color={palette.surface1} transparent opacity={0} />
+      </mesh>
+      {link.weight > 1 && (
+        <Html position={mid} center zIndexRange={[3, 0]} style={{ pointerEvents: "none" }}>
+          <div className="district-weight">{link.weight}</div>
+        </Html>
+      )}
+    </group>
+  )
+}
+
+/**
+ * The district layer: every folder becomes one body, and the imports between
+ * two folders become one weighted line. This is the zoomed-out level of the
+ * map — you read the shape of the system, not its filenames.
+ */
+export function Districts() {
+  const data = useGraphStore((s) => s.data)
+  const positions = useGraphStore((s) => s.positions)
+  const invalidate = useThree((s) => s.invalidate)
+  // 0 → 1 entrance, driven imperatively so the crossfade costs no re-renders
+  const appear = useRef(0)
+
+  const { districts, links } = useMemo(() => {
+    if (!data) return { districts: [] as District[], links: [] as DistrictLink[] }
+
+    const districts: District[] = []
+    const centre = new Map<string, THREE.Vector3>()
+    for (const cluster of data.clusters) {
+      const centroid = centroidOf(cluster.nodeIds, positions)
+      if (!centroid) continue
+      centre.set(cluster.id, centroid)
+      districts.push({
+        id: cluster.id,
+        label: cluster.label,
+        color: cluster.color,
+        centroid,
+        radius: radiusFor(cluster.nodeIds.length),
+        fileCount: cluster.nodeIds.length,
+      })
+    }
+
+    // collapse every file-level edge crossing two folders into one line
+    const folderOf = new Map<string, string>()
+    for (const node of data.nodes) folderOf.set(node.id, node.cluster)
+    const weights = new Map<string, number>()
+    for (const edge of data.edges) {
+      const a = folderOf.get(edge.source)
+      const b = folderOf.get(edge.target)
+      if (!a || !b || a === b) continue
+      const key = `${a}|${b}`
+      weights.set(key, (weights.get(key) ?? 0) + 1)
+    }
+
+    const links: DistrictLink[] = []
+    for (const [key, weight] of weights) {
+      const [a, b] = key.split("|") as [string, string]
+      const from = centre.get(a)
+      const to = centre.get(b)
+      if (from && to) links.push({ id: key, from, to, weight })
+    }
+
+    return { districts, links }
+  }, [data, positions])
+
+  useFrame((_, dt) => {
+    if (appear.current >= 1) return
+    appear.current = Math.min(1, appear.current + dt * 3.5)
+    invalidate() // keep the entrance running under frameloop="demand"
+  })
+
+  if (!data) return null
+
+  return (
+    <>
+      {links.map((link) => (
+        <DistrictEdge key={link.id} link={link} appear={appear} />
+      ))}
+      {districts.map((district) => (
+        <DistrictBody key={district.id} district={district} appear={appear} />
+      ))}
+    </>
+  )
+}

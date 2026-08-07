@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client"
 import { Canvas } from "@react-three/fiber"
+import * as THREE from "three"
 import { WebGPURenderer } from "three/webgpu"
 import { Scene } from "./scene/Scene"
 import { AppUI } from "./App"
@@ -28,6 +29,11 @@ createRoot(document.getElementById("root")!).render(
           ...(props as ConstructorParameters<typeof WebGPURenderer>[0]),
           antialias: true,
         })
+        // R3F defaults to ACES Filmic, which is right for photoreal renders and
+        // wrong for a diagram: it crushed #1e1e2e toward black and desaturated
+        // every accent, so the scene and the UI disagreed on the same token.
+        // We want the Catppuccin values on screen exactly as written.
+        renderer.toneMapping = THREE.NoToneMapping
         await renderer.init()
         return renderer
       }}

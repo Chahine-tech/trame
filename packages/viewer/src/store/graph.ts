@@ -48,6 +48,8 @@ interface GraphState {
   /** "if I change this, what breaks?" — depth per transitive dependent (I) */
   impactOf: string | null
   impactDepth: Map<string, number>
+  /** when the current impact query started — drives the ring-by-ring reveal */
+  impactStartedAt: number
   toggleImpact: () => void
 
   /** dependency path between two nodes (shift-click) */
@@ -79,6 +81,10 @@ interface GraphState {
 
   /** true when no trame.json was served and the demo graph stands in */
   isDemo: boolean
+
+  /** zoomed out far enough that folders stand in for their files */
+  districtMode: boolean
+  setDistrictMode: (v: boolean) => void
 
   load: (data: GraphData, isDemo?: boolean) => void
   setHover: (id: string | null) => void
@@ -128,6 +134,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   impactOf: null,
   impactDepth: new Map(),
+  impactStartedAt: 0,
   toggleImpact: () => {
     const { selectedId, impactOf, importers } = get()
     if (impactOf) {
@@ -154,7 +161,13 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       }
       frontier = next
     }
-    set({ impactOf: selectedId, impactDepth: depth, pathNodes: [], pathEdges: new Set() })
+    set({
+      impactOf: selectedId,
+      impactDepth: depth,
+      impactStartedAt: performance.now(),
+      pathNodes: [],
+      pathEdges: new Set(),
+    })
   },
 
   pathNodes: [],
@@ -240,6 +253,27 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   pinned: new Set(),
   isDemo: false,
+
+  districtMode: false,
+  setDistrictMode: (v) => {
+    if (get().districtMode === v) return
+    // leaving the file level drops anything that referred to a single file
+    set(
+      v
+        ? {
+            districtMode: true,
+            hoverId: null,
+            selectedId: null,
+            selectedEdgeId: null,
+            litSet: new Set(),
+            impactOf: null,
+            impactDepth: new Map(),
+            pathNodes: [],
+            pathEdges: new Set(),
+          }
+        : { districtMode: false },
+    )
+  },
 
   load: (data, isDemo = false) => {
     const prev = get()

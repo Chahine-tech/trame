@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react"
 import * as THREE from "three"
-import type { ThreeEvent } from "@react-three/fiber"
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { useGraphStore } from "../store/graph"
-import { EDGE_COLOR, usePalette } from "../theme"
+import { EDGE_COLOR, isDarkGround, mix, usePalette } from "../theme"
 import type { GraphEdge, Vec3 } from "../types"
 import { useDisposable } from "./useDisposable"
 
@@ -10,6 +10,9 @@ const UP = new THREE.Vector3(0, 1, 0)
 
 /** Scratch hit point — written by intersectPlane and read in the same event. */
 const HIT = new THREE.Vector3()
+
+/** Handle entrance, in ms. Short enough to feel like a response, not a show. */
+const APPEAR_MS = 260
 
 /** Deterministic default control points: a gentle perpendicular bow. */
 function defaultCtrl(p0: Vec3, p3: Vec3, edgeId: string): { c1: Vec3; c2: Vec3 } {
@@ -32,13 +35,33 @@ function defaultCtrl(p0: Vec3, p3: Vec3, edgeId: string): { c1: Vec3; c2: Vec3 }
 function DraggableHandle({
   position,
   color,
+  delay,
   onDrag,
 }: {
   position: Vec3
   color: string
+  /** seconds to wait before appearing — the two handles land one after the other */
+  delay: number
   onDrag: (p: Vec3) => void
 }) {
   const setControlsEnabled = useGraphStore((s) => s.setControlsEnabled)
+  const invalidate = useThree((s) => s.invalidate)
+  const meshRef = useRef<THREE.Mesh>(null)
+  const elapsed = useRef(0)
+
+  // the handles are the whole point of trame, so they arrive rather than
+  // simply exist: a short overshoot, staggered, like a vector tool
+  useFrame((_, dt) => {
+    const m = meshRef.current
+    if (!m || elapsed.current > APPEAR_MS) return
+    elapsed.current += dt * 1000
+    const t = THREE.MathUtils.clamp((elapsed.current - delay * 1000) / APPEAR_MS, 0, 1)
+    // ease-out back: settles just past 1 then returns
+    const eased = t === 0 ? 0 : 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2)
+    m.scale.setScalar(eased)
+    m.visible = t > 0
+    invalidate()
+  })
   // the drag plane lives exactly as long as the gesture: built on press,
   // dropped on release. Per-handle, so multi-touch can drag two handles on
   // different planes at once.
@@ -46,7 +69,9 @@ function DraggableHandle({
 
   return (
     <mesh
+      ref={meshRef}
       position={position}
+      scale={0}
       onPointerDown={(e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation()
         setControlsEnabled(false)
@@ -145,6 +170,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   if (edgeFilter && edge.type !== edgeFilter) return null
 
   const typeColor = palette[EDGE_COLOR[edge.type]]
+  const dark = isDarkGround()
 
   // analysis overlays win over the resting language
   let color: string
@@ -166,11 +192,16 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     color = palette.red
     opacity = isSelected || isLit ? 0.95 : 0.55
   } else if (hovered) {
-    color = typeColor
+    color = dark ? typeColor : mix(typeColor, palette.text, 0.3)
     opacity = 0.9
-  } else {
+  } else if (dark) {
     color = isLit ? typeColor : palette.surface1
     opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
+  } else {
+    // on paper a live edge is darker ink, not brighter light, and it stays
+    // opaque — a translucent line on white simply vanishes
+    color = isLit || isSelected ? mix(typeColor, palette.text, 0.3) : palette.surface1
+    opacity = isLit || isSelected ? 0.95 : hasActive ? 0.14 : 0.45
   }
 
   return (
@@ -210,11 +241,13 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
           <DraggableHandle
             position={ctrl.c1}
             color={palette.lav}
+            delay={0}
             onDrag={(p) => setCtrl(edge.id, p, ctrl.c2)}
           />
           <DraggableHandle
             position={ctrl.c2}
             color={palette.lav}
+            delay={0.06}
             onDrag={(p) => setCtrl(edge.id, ctrl.c1, p)}
           />
         </>

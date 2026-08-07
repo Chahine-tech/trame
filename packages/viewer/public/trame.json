@@ -1,7 +1,7 @@
 {
   "meta": {
     "project": "trame",
-    "generated": "2026-08-07T13:16:56.086Z",
+    "generated": "2026-08-07T13:25:28.148Z",
     "nodeCount": 21,
     "edgeCount": 50
   },
@@ -10,7 +10,7 @@
       "id": "App.tsx",
       "label": "App",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/App.tsx",
       "line": 22,
       "cluster": "src"
     },
@@ -18,7 +18,7 @@
       "id": "demo-data.ts",
       "label": "demo-data",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/demo-data.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/demo-data.ts",
       "line": 4,
       "cluster": "src"
     },
@@ -26,7 +26,7 @@
       "id": "editor.ts",
       "label": "editor",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/editor.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/editor.ts",
       "line": 2,
       "cluster": "src"
     },
@@ -34,7 +34,7 @@
       "id": "graph-feed.ts",
       "label": "graph-feed",
       "type": "api",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/graph-feed.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/graph-feed.ts",
       "line": 7,
       "cluster": "src"
     },
@@ -42,7 +42,7 @@
       "id": "main.tsx",
       "label": "main",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/main.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/main.tsx",
       "line": 1,
       "cluster": "src"
     },
@@ -50,7 +50,7 @@
       "id": "theme.ts",
       "label": "theme",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/theme.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/theme.ts",
       "line": 4,
       "cluster": "src"
     },
@@ -58,7 +58,7 @@
       "id": "types.ts",
       "label": "types",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/types.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/types.ts",
       "line": 1,
       "cluster": "src"
     },
@@ -66,7 +66,7 @@
       "id": "scene/CaptureFrame.tsx",
       "label": "CaptureFrame",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/CaptureFrame.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/CaptureFrame.tsx",
       "line": 13,
       "cluster": "scene"
     },
@@ -74,7 +74,7 @@
       "id": "scene/Clusters.tsx",
       "label": "Clusters",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Clusters.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Clusters.tsx",
       "line": 55,
       "cluster": "scene"
     },
@@ -82,7 +82,7 @@
       "id": "scene/EdgeMesh.tsx",
       "label": "EdgeMesh",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/EdgeMesh.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/EdgeMesh.tsx",
       "line": 95,
       "cluster": "scene"
     },
@@ -90,7 +90,7 @@
       "id": "scene/Layout.ts",
       "label": "Layout",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Layout.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Layout.ts",
       "line": 38,
       "cluster": "scene"
     },
@@ -98,7 +98,7 @@
       "id": "scene/NodeMesh.tsx",
       "label": "NodeMesh",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/NodeMesh.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/NodeMesh.tsx",
       "line": 66,
       "cluster": "scene"
     },
@@ -106,7 +106,7 @@
       "id": "scene/Scene.tsx",
       "label": "Scene",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Scene.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Scene.tsx",
       "line": 88,
       "cluster": "scene"
     },
@@ -114,7 +114,7 @@
       "id": "scene/useDisposable.ts",
       "label": "useDisposable",
       "type": "hook",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/useDisposable.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/useDisposable.ts",
       "line": 14,
       "cluster": "scene"
     },
@@ -122,7 +122,7 @@
       "id": "store/graph.ts",
       "label": "graph",
       "type": "store",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/graph.ts",
       "line": 104,
       "cluster": "store"
     },
@@ -130,7 +130,7 @@
       "id": "ui/FirstRunHint.tsx",
       "label": "FirstRunHint",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/FirstRunHint.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/FirstRunHint.tsx",
       "line": 10,
       "cluster": "ui"
     },
@@ -138,7 +138,7 @@
       "id": "ui/Inspector.tsx",
       "label": "Inspector",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Inspector.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Inspector.tsx",
       "line": 5,
       "cluster": "ui"
     },
@@ -146,7 +146,7 @@
       "id": "ui/Palette.tsx",
       "label": "Palette",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Palette.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Palette.tsx",
       "line": 38,
       "cluster": "ui"
     },
@@ -154,7 +154,7 @@
       "id": "ui/Shortcuts.tsx",
       "label": "Shortcuts",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Shortcuts.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Shortcuts.tsx",
       "line": 56,
       "cluster": "ui"
     },
@@ -162,7 +162,7 @@
       "id": "ui/toast.ts",
       "label": "toast",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/toast.ts",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/toast.ts",
       "line": 28,
       "cluster": "ui"
     },
@@ -170,7 +170,7 @@
       "id": "ui/TopBar.tsx",
       "label": "TopBar",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/TopBar.tsx",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/TopBar.tsx",
       "line": 7,
       "cluster": "ui"
     }
