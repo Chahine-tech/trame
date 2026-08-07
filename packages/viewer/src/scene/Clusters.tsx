@@ -49,15 +49,16 @@ export function Clusters() {
   const positions = useGraphStore((s) => s.positions)
   const show = useGraphStore((s) => s.showClusters)
 
+  // every folder the topbar counts gets a label, single-file ones included —
+  // a count that doesn't match what's on screen is a count nobody trusts
   const bubbles = useMemo(() => {
     if (!data) return []
     return data.clusters
-      .filter((c) => c.nodeIds.length >= 2)
       .map((cluster) => {
         const pts = cluster.nodeIds
           .map((id) => positions.get(id))
           .filter((p): p is [number, number, number] => Boolean(p))
-        if (pts.length < 2) return null
+        if (pts.length === 0) return null
         const centroid = new THREE.Vector3()
         for (const p of pts) centroid.add(new THREE.Vector3(...p))
         centroid.divideScalar(pts.length)

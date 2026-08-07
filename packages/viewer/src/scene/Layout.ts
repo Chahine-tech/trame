@@ -35,12 +35,41 @@ function forceCluster(strength = 0.08) {
   return force
 }
 
+export interface LayoutOptions {
+  /** positions from the previous graph — keeps the mental map stable on reload */
+  previous?: Map<string, Vec3>
+  /** nodes the user dragged: frozen, never moved by the simulation */
+  pinned?: Set<string>
+}
+
 /**
- * Static 3D force layout: settle synchronously at load, then the scene is
- * calm (moodboard rule — the graph organises itself once, then holds still).
+ * Static 3D force layout: settle synchronously, then the scene is calm.
+ * On a watch-mode reload the simulation restarts from the previous positions
+ * and pinned nodes stay put, so a file save never rearranges work you did
+ * by hand — only genuinely new nodes have to find a place.
  */
-export function runLayout(data: GraphData): Map<string, Vec3> {
-  const nodes: SimNode[] = data.nodes.map((n) => ({ id: n.id, cluster: n.cluster }))
+export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<string, Vec3> {
+  const { previous, pinned } = options
+  let hadPrevious = false
+
+  const nodes: SimNode[] = data.nodes.map((n) => {
+    const node: SimNode = { id: n.id, cluster: n.cluster }
+    // positions persisted in the file win, then the live previous layout
+    const seed = previous?.get(n.id) ?? (n.x !== undefined ? ([n.x, n.y!, n.z!] as Vec3) : undefined)
+    if (seed) {
+      hadPrevious = true
+      node.x = seed[0]
+      node.y = seed[1]
+      node.z = seed[2]
+      if (pinned?.has(n.id)) {
+        node.fx = seed[0]
+        node.fy = seed[1]
+        node.fz = seed[2]
+      }
+    }
+    return node
+  })
+
   const links = data.edges.map((e) => ({ source: e.source, target: e.target }))
 
   const sim = forceSimulation(nodes, 3)
@@ -55,7 +84,8 @@ export function runLayout(data: GraphData): Map<string, Vec3> {
     .force("center", forceCenter(0, 0, 0))
     .force("cluster", forceCluster())
 
-  sim.tick(300)
+  // a warm start only needs to place the newcomers, not redraw the world
+  sim.tick(hadPrevious ? 60 : 300)
   sim.stop()
 
   const positions = new Map<string, Vec3>()

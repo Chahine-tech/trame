@@ -1,7 +1,7 @@
 {
   "meta": {
     "project": "archviz",
-    "generated": "2026-08-07T09:01:20.350Z",
+    "generated": "2026-08-07T09:09:46.271Z",
     "nodeCount": 20,
     "edgeCount": 48
   },
@@ -11,7 +11,7 @@
       "label": "App",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 16,
+      "line": 23,
       "cluster": "src"
     },
     {
@@ -83,7 +83,7 @@
       "label": "Layout",
       "type": "module",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/Layout.ts",
-      "line": 42,
+      "line": 38,
       "cluster": "scene"
     },
     {
@@ -107,7 +107,7 @@
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
-      "line": 99,
+      "line": 104,
       "cluster": "store"
     },
     {
@@ -163,7 +163,7 @@
       "label": "GET /archviz.json",
       "type": "api",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 27,
+      "line": 34,
       "cluster": "api",
       "meta": {
         "endpoint": "/archviz.json",

@@ -46,6 +46,27 @@ export function toastViolations(count: number): void {
   })
 }
 
+/** The code didn't compile — the graph on screen is no longer current. */
+export function toastParseFailed(message: string): void {
+  const p = getPalette()
+  gooeyToast.error("Parse failed", {
+    ...tinted(p.red),
+    id: "parse-failed",
+    description: `Showing the last good graph · ${message}`,
+    duration: 6000,
+  })
+}
+
+/** For toggles whose result isn't visible until you interact with the graph. */
+export function toastToggled(what: string, on: boolean): void {
+  const p = getPalette()
+  gooeyToast(`${what} ${on ? "on" : "off"}`, {
+    ...tinted(p.lav),
+    id: `toggle-${what}`,
+    duration: 1600,
+  })
+}
+
 /** Shift-click found nothing — say so instead of doing nothing. */
 export function toastNoPath(from: string, to: string): void {
   const p = getPalette()

@@ -16,6 +16,7 @@ export function TopBar({
   const impactOf = useGraphStore((s) => s.impactOf)
   const impactCount = useGraphStore((s) => s.impactDepth.size)
   const pathNodes = useGraphStore((s) => s.pathNodes)
+  const isDemo = useGraphStore((s) => s.isDemo)
   const [theme, setTheme] = useState(getThemePref)
 
   const impactLabel = impactOf ? data?.nodes.find((n) => n.id === impactOf)?.label : null
@@ -39,6 +40,16 @@ export function TopBar({
         </span>
       )}
       {pathNodes.length > 0 && <span className="mode path">path · {pathNodes.length} hops</span>}
+      {isDemo && (
+        <span className="mode warn-chip" title="No archviz.json was served — this is sample data">
+          demo data
+        </span>
+      )}
+      {data?.meta.error && (
+        <span className="mode stale" title={data.meta.error}>
+          stale · parse failed
+        </span>
+      )}
       {data && !data.diff && !impactLabel && pathNodes.length === 0 && (
         <span className="counts">
           <b>{data.meta.nodeCount}</b> nodes · <b>{data.meta.edgeCount}</b> edges ·{" "}

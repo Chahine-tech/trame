@@ -207,6 +207,14 @@ html, body, #root {
 }
 .topbar .mode.diff .add { color: var(--green); }
 .topbar .mode.diff .del { color: var(--red); }
+.topbar .mode.warn-chip {
+  color: var(--yellow);
+  background: color-mix(in srgb, var(--yellow) 14%, transparent);
+}
+.topbar .mode.stale {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
 .insp-warning {
   font-family: var(--font-mono);
   font-size: 0.75rem;

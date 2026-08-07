@@ -187,6 +187,7 @@ async function runCheck(args: Args, srcRoot: string): Promise<void> {
 async function runWatch(args: Args, srcRoot: string): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | null = null
   let running = false
+  let lastGood: GraphData | null = null
 
   const rebuild = async () => {
     if (running) return
@@ -194,6 +195,7 @@ async function runWatch(args: Args, srcRoot: string): Promise<void> {
     const started = Date.now()
     try {
       const graph = await runParse(args, srcRoot, true)
+      lastGood = graph
       const vCount = graph.violations?.length ?? 0
       console.log(
         `  ↻ ${new Date().toLocaleTimeString()} · ${graph.meta.nodeCount} nodes · ${graph.meta.edgeCount} edges` +
@@ -201,13 +203,23 @@ async function runWatch(args: Args, srcRoot: string): Promise<void> {
           ` (${Date.now() - started}ms)`,
       )
     } catch (err) {
-      console.error(`  ✗ parse failed: ${err instanceof Error ? err.message : err}`)
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(`  ✗ parse failed: ${message}`)
+      // republish the last good graph flagged as stale, so the viewer can say
+      // so instead of showing an out-of-date architecture as if it were current
+      if (lastGood) {
+        const stale: GraphData = {
+          ...lastGood,
+          meta: { ...lastGood.meta, generated: new Date().toISOString(), error: message },
+        }
+        fs.writeFileSync(path.resolve(args.out), JSON.stringify(stale, null, 2))
+      }
     } finally {
       running = false
     }
   }
 
-  await runParse(args, srcRoot)
+  lastGood = await runParse(args, srcRoot)
   console.log(`  watching ${srcRoot} …`)
 
   fs.watch(srcRoot, { recursive: true }, (_event, filename) => {

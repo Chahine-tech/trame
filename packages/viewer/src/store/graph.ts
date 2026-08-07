@@ -74,8 +74,13 @@ interface GraphState {
 
   /** reposition a node (drag) — connected edges follow */
   moveNode: (id: string, pos: Vec3) => void
+  /** nodes the user placed by hand — frozen out of the simulation */
+  pinned: Set<string>
 
-  load: (data: GraphData) => void
+  /** true when no archviz.json was served and the demo graph stands in */
+  isDemo: boolean
+
+  load: (data: GraphData, isDemo?: boolean) => void
   setHover: (id: string | null) => void
   select: (id: string | null) => void
   selectEdge: (id: string | null) => void
@@ -227,11 +232,20 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   moveNode: (id, pos) => {
     const positions = new Map(get().positions)
     positions.set(id, pos)
-    set({ positions })
+    // placing a node by hand freezes it: a re-parse must not undo the gesture
+    const pinned = new Set(get().pinned)
+    pinned.add(id)
+    set({ positions, pinned })
   },
 
-  load: (data) => {
-    const positions = runLayout(data)
+  pinned: new Set(),
+  isDemo: false,
+
+  load: (data, isDemo = false) => {
+    const prev = get()
+    // a watch reload must not destroy hand-made work: keep the arrangement
+    // and the bent curves, only new nodes get placed
+    const positions = runLayout(data, { previous: prev.positions, pinned: prev.pinned })
     const adjacency = new Map<string, Set<string>>()
     const inDeg = new Map<string, number>()
     const outDeg = new Map<string, number>()
@@ -252,8 +266,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       importers.get(e.target)?.add(e.source)
       outDeg.set(e.source, (outDeg.get(e.source) ?? 0) + 1)
       inDeg.set(e.target, (inDeg.get(e.target) ?? 0) + 1)
-      // persisted curve edits ship inside the JSON
+      // persisted curve edits ship inside the JSON…
       if (e.ctrl1 && e.ctrl2) ctrl.set(e.id, { c1: e.ctrl1, c2: e.ctrl2 })
+      // …but an unsaved edit in this session wins over it
+      const live = prev.ctrl.get(e.id)
+      if (live) ctrl.set(e.id, live)
     }
     const violatedNodes = new Map<string, string[]>()
     const violatedEdges = new Map<string, string[]>()
@@ -261,9 +278,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       for (const id of v.nodeIds) violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), v.message])
       for (const id of v.edgeIds) violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
     }
+    // a node that disappeared from the codebase shouldn't stay pinned forever
+    const alive = new Set(data.nodes.map((n) => n.id))
+    const pinned = new Set([...prev.pinned].filter((id) => alive.has(id)))
+
     set({
       data,
+      isDemo,
       positions,
+      pinned,
       adjacency,
       inDeg,
       outDeg,
@@ -357,13 +380,20 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }),
 }))
 
-/** Serialize current data + curve edits back to the archviz.json schema. */
+/**
+ * Serialize the graph the way it looks right now — curves you bent and the
+ * layout you arranged, so reopening the file restores your composition.
+ */
 export function exportGraph(): string | null {
-  const { data, ctrl } = useGraphStore.getState()
+  const { data, ctrl, positions } = useGraphStore.getState()
   if (!data) return null
   const edges = data.edges.map((e) => {
     const c = ctrl.get(e.id)
     return c ? { ...e, ctrl1: c.c1, ctrl2: c.c2 } : e
   })
-  return JSON.stringify({ ...data, edges }, null, 2)
+  const nodes = data.nodes.map((n) => {
+    const p = positions.get(n.id)
+    return p ? { ...n, x: p[0], y: p[1], z: p[2] } : n
+  })
+  return JSON.stringify({ ...data, nodes, edges }, null, 2)
 }

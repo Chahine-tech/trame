@@ -21,6 +21,10 @@ export interface GraphNode {
   line: number
   cluster: string
   diff?: DiffStatus
+  /** persisted layout position, written by the viewer's export */
+  x?: number
+  y?: number
+  z?: number
   meta?: {
     queryKey?: string
     endpoint?: string
@@ -52,6 +56,8 @@ export interface GraphData {
     generated: string
     nodeCount: number
     edgeCount: number
+    /** watch mode: last parse failed, this graph is the last good one */
+    error?: string
   }
   nodes: GraphNode[]
   edges: GraphEdge[]

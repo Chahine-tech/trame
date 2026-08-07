@@ -3,7 +3,14 @@ import { GooeyToaster } from "goey-toast"
 import "goey-toast/styles.css"
 import { useGraphStore } from "./store/graph"
 import { isDarkGround, usePalette } from "./theme"
-import { toastGraphUpdated, toastOpeningEditor, toastViolations } from "./ui/toast"
+import {
+  toastGraphUpdated,
+  toastNeedsSelection,
+  toastOpeningEditor,
+  toastParseFailed,
+  toastToggled,
+  toastViolations,
+} from "./ui/toast"
 import { TopBar } from "./ui/TopBar"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
@@ -26,8 +33,8 @@ export function AppUI() {
   useEffect(() => {
     fetch("/archviz.json")
       .then((r) => (r.ok ? (r.json() as Promise<GraphData>) : Promise.reject(new Error("no data"))))
-      .then(load)
-      .catch(() => load(DEMO))
+      .then((d) => load(d))
+      .catch(() => load(DEMO, true))
   }, [load])
 
   // watch-mode live reload: hot-swap when the parser rewrites the file
@@ -43,9 +50,14 @@ export function AppUI() {
           const before = current.violations?.length ?? 0
           const after = next.violations?.length ?? 0
           load(next)
-          toastGraphUpdated(next.meta.nodeCount, delta)
-          // that save broke a rule — surface it now, not at CI time
-          if (after > before) toastViolations(after)
+          // a failed parse serves the last good graph — say so instead of
+          // letting a stale architecture look current
+          if (next.meta.error) toastParseFailed(next.meta.error)
+          else {
+            toastGraphUpdated(next.meta.nodeCount, delta)
+            // that save broke a rule — surface it now, not at CI time
+            if (after > before) toastViolations(after)
+          }
         }
       } catch {
         /* server briefly unavailable — retry next tick */
@@ -92,11 +104,14 @@ export function AppUI() {
         if (id) {
           select(id)
           focus(id)
-        }
+        } else toastNeedsSelection("Focus")
       } else if (e.key.toLowerCase() === "g") {
         useGraphStore.getState().toggleClusters()
       } else if (e.key.toLowerCase() === "l") {
-        useGraphStore.getState().toggleLabels()
+        const s = useGraphStore.getState()
+        s.toggleLabels()
+        // labels only draw on lit nodes, so the toggle can look like a no-op
+        toastToggled("Labels", !s.showLabels)
       } else if (e.key.toLowerCase() === "e") {
         useGraphStore.getState().cycleEdgeFilter()
       } else if (e.key.toLowerCase() === "i") {
@@ -107,7 +122,7 @@ export function AppUI() {
         if (node?.file) {
           openInEditor(node.file, node.line)
           toastOpeningEditor(EDITOR_LABEL[getEditor()], `${node.id}:${node.line}`)
-        }
+        } else toastNeedsSelection("Open in editor")
       }
     }
     window.addEventListener("keydown", onKey)
