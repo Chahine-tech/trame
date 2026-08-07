@@ -393,6 +393,24 @@ html, body, #root {
   white-space: nowrap;
 }
 
+/* ---------- Toasts (goey-toast) ---------- */
+/* mono type so notifications belong to the same product as the graph */
+.gt-title {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.gt-desc {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--subtext);
+}
+.gt-action {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
 /* ---------- First-run hint ---------- */
 .first-hint {
   position: fixed;

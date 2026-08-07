@@ -2,6 +2,7 @@ import { Command } from "cmdk"
 import { exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
 import { EDITOR_LABEL, cycleEditor, getEditor, openInEditor } from "../editor"
+import { toastEditorSwitched, toastExported, toastOpeningEditor } from "./toast"
 
 /**
  * ⌘K command palette. Opened 100+ times a day → zero animation, ever
@@ -41,6 +42,7 @@ export function Palette({
     a.click()
     URL.revokeObjectURL(url)
     onClose()
+    toastExported("archviz.json")
   }
 
   return (
@@ -65,14 +67,20 @@ export function Palette({
               onSelect={() => {
                 const s = useGraphStore.getState()
                 const node = s.data?.nodes.find((n) => n.id === s.selectedId)
-                if (node) openInEditor(node.file, node.line)
                 onClose()
+                if (node?.file) {
+                  openInEditor(node.file, node.line)
+                  toastOpeningEditor(EDITOR_LABEL[getEditor()], `${node.id}:${node.line}`)
+                }
               }}
             >
               <span className="lbl">Open selection in {EDITOR_LABEL[getEditor()]}</span>
               <span className="path">O</span>
             </Command.Item>
-            <Command.Item value="switch editor vscode cursor zed" onSelect={() => cycleEditor()}>
+            <Command.Item
+              value="switch editor vscode cursor zed"
+              onSelect={() => toastEditorSwitched(EDITOR_LABEL[cycleEditor()])}
+            >
               <span className="lbl">Switch editor (now: {EDITOR_LABEL[getEditor()]})</span>
             </Command.Item>
             <Command.Item

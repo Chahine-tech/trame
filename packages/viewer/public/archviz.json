@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "archviz",
-    "generated": "2026-08-07T08:21:40.877Z",
-    "nodeCount": 17,
-    "edgeCount": 39
+    "generated": "2026-08-07T08:43:46.002Z",
+    "nodeCount": 20,
+    "edgeCount": 48
   },
   "nodes": [
     {
@@ -11,7 +11,7 @@
       "label": "App",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 10,
+      "line": 16,
       "cluster": "src"
     },
     {
@@ -59,7 +59,7 @@
       "label": "CaptureFrame",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/scene/CaptureFrame.tsx",
-      "line": 12,
+      "line": 13,
       "cluster": "scene"
     },
     {
@@ -107,8 +107,16 @@
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/store/graph.ts",
-      "line": 98,
+      "line": 99,
       "cluster": "store"
+    },
+    {
+      "id": "ui/FirstRunHint.tsx",
+      "label": "FirstRunHint",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/FirstRunHint.tsx",
+      "line": 10,
+      "cluster": "ui"
     },
     {
       "id": "ui/Inspector.tsx",
@@ -123,7 +131,23 @@
       "label": "Palette",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Palette.tsx",
-      "line": 10,
+      "line": 11,
+      "cluster": "ui"
+    },
+    {
+      "id": "ui/Shortcuts.tsx",
+      "label": "Shortcuts",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Shortcuts.tsx",
+      "line": 48,
+      "cluster": "ui"
+    },
+    {
+      "id": "ui/toast.ts",
+      "label": "toast",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/toast.ts",
+      "line": 28,
       "cluster": "ui"
     },
     {
@@ -139,7 +163,7 @@
       "label": "GET /archviz.json",
       "type": "api",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/App.tsx",
-      "line": 19,
+      "line": 27,
       "cluster": "api",
       "meta": {
         "endpoint": "/archviz.json",
@@ -152,6 +176,18 @@
       "id": "App.tsx->store/graph.ts",
       "source": "App.tsx",
       "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->theme.ts",
+      "source": "App.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->ui/toast.ts",
+      "source": "App.tsx",
+      "target": "ui/toast.ts",
       "type": "import"
     },
     {
@@ -170,6 +206,18 @@
       "id": "App.tsx->ui/Palette.tsx",
       "source": "App.tsx",
       "target": "ui/Palette.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Shortcuts.tsx",
+      "source": "App.tsx",
+      "target": "ui/Shortcuts.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/FirstRunHint.tsx",
+      "source": "App.tsx",
+      "target": "ui/FirstRunHint.tsx",
       "type": "component"
     },
     {
@@ -230,6 +278,12 @@
       "id": "scene/CaptureFrame.tsx->store/graph.ts",
       "source": "scene/CaptureFrame.tsx",
       "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CaptureFrame.tsx->ui/toast.ts",
+      "source": "scene/CaptureFrame.tsx",
+      "target": "ui/toast.ts",
       "type": "import"
     },
     {
@@ -329,6 +383,12 @@
       "type": "import"
     },
     {
+      "id": "store/graph.ts->ui/toast.ts",
+      "source": "store/graph.ts",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
       "id": "ui/Inspector.tsx->store/graph.ts",
       "source": "ui/Inspector.tsx",
       "target": "store/graph.ts",
@@ -362,6 +422,24 @@
       "id": "ui/Palette.tsx->editor.ts",
       "source": "ui/Palette.tsx",
       "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->ui/toast.ts",
+      "source": "ui/Palette.tsx",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/toast.ts->editor.ts",
+      "source": "ui/toast.ts",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/toast.ts->theme.ts",
+      "source": "ui/toast.ts",
+      "target": "theme.ts",
       "type": "import"
     },
     {
@@ -415,8 +493,11 @@
       "label": "ui",
       "color": "#cba6f7",
       "nodeIds": [
+        "ui/FirstRunHint.tsx",
         "ui/Inspector.tsx",
         "ui/Palette.tsx",
+        "ui/Shortcuts.tsx",
+        "ui/toast.ts",
         "ui/TopBar.tsx"
       ]
     },

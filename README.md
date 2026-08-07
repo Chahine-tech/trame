@@ -131,6 +131,7 @@ Violations show up red in the graph (with the message in the inspector) and make
 | d3-force-3d | 3D force layout + custom cluster force |
 | TypeScript 7 (native) · Vite 8 · Turborepo | toolchain |
 | zustand · cmdk · Tailwind 4 | state · palette · UI |
+| goey-toast | feedback for things you can't see happen |
 
 ## Monorepo
 

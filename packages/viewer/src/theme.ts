@@ -71,6 +71,21 @@ if (typeof document !== "undefined") {
   mq.addEventListener("change", () => setTimeout(refresh, 50))
 }
 
+/** Non-reactive read, for code outside React (store, toasts). */
+export function getPalette(): Palette {
+  return current
+}
+
+/** Additive glow and toast chrome need to know which ground they sit on. */
+export function isDarkGround(): boolean {
+  const h = (current.base ?? "#1e1e2e").replace("#", "")
+  if (h.length < 6) return true
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5
+}
+
 export function usePalette(): Palette {
   return useSyncExternalStore(
     (cb) => {

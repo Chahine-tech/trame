@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useThree } from "@react-three/fiber"
 import { useGraphStore } from "../store/graph"
+import { toastExported } from "../ui/toast"
 
 interface CapturableRenderer {
   render: (scene: unknown, camera: unknown) => void
@@ -31,6 +32,7 @@ export function CaptureFrame() {
           a.download = `${project}-archviz.png`
           a.click()
           URL.revokeObjectURL(url)
+          toastExported("PNG")
         }
         useGraphStore.getState().clearPng()
       })

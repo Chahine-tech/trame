@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import type { EdgeType, GraphData, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
+import { toastNeedsSelection, toastNoPath } from "../ui/toast"
 
 /** E cycles through: everything → each edge type → everything */
 const EDGE_FILTER_CYCLE: (EdgeType | null)[] = [
@@ -124,8 +125,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   impactDepth: new Map(),
   toggleImpact: () => {
     const { selectedId, impactOf, importers } = get()
-    if (impactOf || !selectedId) {
+    if (impactOf) {
       set({ impactOf: null, impactDepth: new Map() })
+      return
+    }
+    if (!selectedId) {
+      toastNeedsSelection("Impact")
       return
     }
     // BFS up the importer graph — everything that would break
@@ -177,6 +182,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       frontier = next
     }
     if (!found) {
+      const label = (id: string) => data?.nodes.find((n) => n.id === id)?.label ?? id
+      toastNoPath(label(selectedId), label(targetId))
       set({ pathNodes: [], pathEdges: new Set() })
       return
     }

@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react"
+import { GooeyToaster } from "goey-toast"
+import "goey-toast/styles.css"
 import { useGraphStore } from "./store/graph"
+import { isDarkGround, usePalette } from "./theme"
+import { toastGraphUpdated, toastOpeningEditor, toastViolations } from "./ui/toast"
 import { TopBar } from "./ui/TopBar"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
 import { FirstRunHint } from "./ui/FirstRunHint"
 import { DEMO } from "./demo-data"
-import { openInEditor } from "./editor"
+import { EDITOR_LABEL, getEditor, openInEditor } from "./editor"
 import type { GraphData } from "./types"
 
 export function AppUI() {
+  const palette = usePalette()
   const load = useGraphStore((s) => s.load)
   const clear = useGraphStore((s) => s.clear)
   const select = useGraphStore((s) => s.select)
@@ -33,7 +38,15 @@ export function AppUI() {
         if (!r.ok) return
         const next = (await r.json()) as GraphData
         const current = useGraphStore.getState().data
-        if (current && next.meta.generated !== current.meta.generated) load(next)
+        if (current && next.meta.generated !== current.meta.generated) {
+          const delta = next.meta.nodeCount - current.meta.nodeCount
+          const before = current.violations?.length ?? 0
+          const after = next.violations?.length ?? 0
+          load(next)
+          toastGraphUpdated(next.meta.nodeCount, delta)
+          // that save broke a rule — surface it now, not at CI time
+          if (after > before) toastViolations(after)
+        }
       } catch {
         /* server briefly unavailable — retry next tick */
       }
@@ -91,7 +104,10 @@ export function AppUI() {
       } else if (e.key.toLowerCase() === "o") {
         const s = useGraphStore.getState()
         const node = s.data?.nodes.find((n) => n.id === s.selectedId)
-        if (node) openInEditor(node.file, node.line)
+        if (node?.file) {
+          openInEditor(node.file, node.line)
+          toastOpeningEditor(EDITOR_LABEL[getEditor()], `${node.id}:${node.line}`)
+        }
       }
     }
     window.addEventListener("keydown", onKey)
@@ -112,6 +128,19 @@ export function AppUI() {
         }}
       />
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <GooeyToaster
+        key={palette.base}
+        position="bottom-right"
+        theme={isDarkGround() ? "dark" : "light"}
+        preset="subtle"
+        bounce={0.08}
+        showTimestamp={false}
+        // esc belongs to the graph (deselect), not to the toasts
+        closeOnEscape={false}
+        closeButton="top-right"
+        maxQueue={3}
+        queueOverflow="drop-oldest"
+      />
     </>
   )
 }
