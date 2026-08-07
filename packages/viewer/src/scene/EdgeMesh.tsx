@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import type { ThreeEvent } from "@react-three/fiber"
 import { useGraphStore } from "../store/graph"
@@ -85,6 +85,7 @@ function GuideLine({ from, to, color }: { from: Vec3; to: Vec3; color: string })
 
 export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const palette = usePalette()
+  const [hovered, setHovered] = useState(false)
   const p0 = useGraphStore((s) => s.positions.get(edge.source))
   const p3 = useGraphStore((s) => s.positions.get(edge.target))
   const edited = useGraphStore((s) => s.ctrl.get(edge.id))
@@ -111,14 +112,16 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       new THREE.Vector3(...ctrl.c2),
       new THREE.Vector3(...p3),
     )
-    const geometry = new THREE.TubeGeometry(curve, 40, isSelected ? 0.16 : isLit ? 0.12 : 0.045, 6)
+    // thickens on hover so "this edge is clickable" needs no explaining
+    const radius = isSelected ? 0.16 : hovered ? 0.17 : isLit ? 0.12 : 0.045
+    const geometry = new THREE.TubeGeometry(curve, 40, radius, 6)
     // arrowhead just before the target node's surface
     const t = 0.93
     const arrowPos = curve.getPoint(t)
     const tangent = curve.getTangent(t)
     const arrowQuat = new THREE.Quaternion().setFromUnitVectors(UP, tangent)
     return { geometry, arrowPos, arrowQuat }
-  }, [p0, p3, ctrl, isSelected, isLit])
+  }, [p0, p3, ctrl, isSelected, isLit, hovered])
 
   const edgeFilter = useGraphStore((s) => s.edgeFilter)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
@@ -151,6 +154,9 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   } else if (isViolated) {
     color = palette.red
     opacity = isSelected || isLit ? 0.95 : 0.55
+  } else if (hovered) {
+    color = typeColor
+    opacity = 0.9
   } else {
     color = isLit ? typeColor : palette.surface1
     opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
@@ -160,6 +166,15 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     <group>
       <mesh
         geometry={geometry}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          setHovered(true)
+          document.body.style.cursor = "pointer"
+        }}
+        onPointerOut={() => {
+          setHovered(false)
+          document.body.style.cursor = ""
+        }}
         onClick={(e) => {
           e.stopPropagation()
           selectEdge(edge.id)

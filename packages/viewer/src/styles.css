@@ -322,9 +322,114 @@ html, body, #root {
   color: var(--overlay);
 }
 
+/* ---------- Shortcuts panel (?) ---------- */
+.shortcuts {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--mantle) 94%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--surface1);
+  border-radius: 14px;
+  z-index: 50;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+}
+.shortcuts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--surface0);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text);
+}
+.shortcuts-head .d { color: var(--lav); }
+.shortcuts-head .esc {
+  font-size: 0.72rem;
+  color: var(--subtext);
+  border: 1px solid var(--surface0);
+  border-radius: 5px;
+  padding: 2px 7px;
+  background: var(--base);
+}
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 32px;
+  padding: 18px 20px 22px;
+}
+.shortcuts-grid h3 {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--overlay);
+  margin: 10px 0 8px;
+  font-weight: 400;
+}
+.sc-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.8125rem;
+}
+.sc-keys { display: flex; gap: 4px; flex: none; min-width: 108px; }
+.sc-label { color: var(--subtext); line-height: 1.4; }
+.shortcuts kbd,
+.first-hint kbd {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text);
+  background: var(--base);
+  border: 1px solid var(--surface0);
+  border-radius: 5px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+
+/* ---------- First-run hint ---------- */
+.first-hint {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mantle) 88%, transparent);
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--surface0);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--subtext);
+  z-index: 15;
+  pointer-events: none;
+  animation: hint-in 400ms var(--ease-out) both;
+}
+.first-hint b { color: var(--text); font-weight: 500; }
+.first-hint i { color: var(--surface1); font-style: normal; }
+
+@keyframes hint-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 :focus-visible { outline: 2px solid var(--lav); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .inspector { transition: opacity 200ms ease; transform: none; opacity: 0; pointer-events: none; }
   .inspector.open { opacity: 1; pointer-events: auto; }
+  .first-hint { animation: none; }
+}
+
+@media (max-width: 680px) {
+  .shortcuts-grid { grid-template-columns: 1fr; }
 }

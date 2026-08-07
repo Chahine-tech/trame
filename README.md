@@ -73,6 +73,7 @@ archviz diff --base a.json --head b.json       what a branch did to the architec
 | `E` | cycle edge-type filter |
 | `L` | toggle labels |
 | `G` | toggle folder labels |
+| `?` | all shortcuts, any time |
 | `F` | focus selection · `Space` reset camera · `Esc` deselect |
 
 ## Node & edge language

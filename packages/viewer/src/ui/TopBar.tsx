@@ -4,7 +4,13 @@ import { cycleThemePref, getThemePref } from "../theme"
 
 const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 
-export function TopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
+export function TopBar({
+  onOpenPalette,
+  onOpenShortcuts,
+}: {
+  onOpenPalette: () => void
+  onOpenShortcuts: () => void
+}) {
   const data = useGraphStore((s) => s.data)
   const edgeFilter = useGraphStore((s) => s.edgeFilter)
   const impactOf = useGraphStore((s) => s.impactOf)
@@ -57,6 +63,15 @@ export function TopBar({ onOpenPalette }: { onOpenPalette: () => void }) {
         title={`Theme: ${theme}`}
       >
         {THEME_ICON[theme]} {theme}
+      </button>
+      <button
+        className="kbd"
+        style={{ marginLeft: 0 }}
+        onClick={onOpenShortcuts}
+        aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts"
+      >
+        ?
       </button>
       <button
         className="kbd"

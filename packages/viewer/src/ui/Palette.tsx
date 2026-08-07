@@ -7,7 +7,15 @@ import { EDITOR_LABEL, cycleEditor, getEditor, openInEditor } from "../editor"
  * ⌘K command palette. Opened 100+ times a day → zero animation, ever
  * (frequency rule — Raycast has no open/close animation either).
  */
-export function Palette({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function Palette({
+  open,
+  onClose,
+  onShowShortcuts,
+}: {
+  open: boolean
+  onClose: () => void
+  onShowShortcuts: () => void
+}) {
   const palette = usePalette()
   const data = useGraphStore((s) => s.data)
   const select = useGraphStore((s) => s.select)
@@ -120,6 +128,10 @@ export function Palette({ open, onClose }: { open: boolean; onClose: () => void 
             >
               <span className="lbl">Toggle folder labels</span>
               <span className="path">G</span>
+            </Command.Item>
+            <Command.Item value="show keyboard shortcuts help" onSelect={onShowShortcuts}>
+              <span className="lbl">Show keyboard shortcuts</span>
+              <span className="path">?</span>
             </Command.Item>
           </Command.Group>
         </Command.List>

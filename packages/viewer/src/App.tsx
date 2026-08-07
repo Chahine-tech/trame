@@ -3,6 +3,8 @@ import { useGraphStore } from "./store/graph"
 import { TopBar } from "./ui/TopBar"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
+import { Shortcuts } from "./ui/Shortcuts"
+import { FirstRunHint } from "./ui/FirstRunHint"
 import { DEMO } from "./demo-data"
 import { openInEditor } from "./editor"
 import type { GraphData } from "./types"
@@ -14,6 +16,7 @@ export function AppUI() {
   const focus = useGraphStore((s) => s.focus)
   const resetCamera = useGraphStore((s) => s.resetCamera)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
   useEffect(() => {
     fetch("/archviz.json")
@@ -53,13 +56,19 @@ export function AppUI() {
         return
       }
       if (e.key === "Escape") {
-        if (paletteOpen) setPaletteOpen(false)
+        if (shortcutsOpen) setShortcutsOpen(false)
+        else if (paletteOpen) setPaletteOpen(false)
         else clear()
         return
       }
       if (typing || paletteOpen) return
 
-      if (e.key === "/") {
+      if (e.key === "?") {
+        e.preventDefault()
+        setShortcutsOpen((v) => !v)
+      } else if (shortcutsOpen) {
+        return // the panel is the focus — no stray shortcuts behind it
+      } else if (e.key === "/") {
         e.preventDefault()
         setPaletteOpen(true)
       } else if (e.key === " ") {
@@ -87,13 +96,22 @@ export function AppUI() {
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [paletteOpen, clear, select, focus, resetCamera])
+  }, [paletteOpen, shortcutsOpen, clear, select, focus, resetCamera])
 
   return (
     <>
-      <TopBar onOpenPalette={() => setPaletteOpen(true)} />
+      <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} />
       <Inspector />
-      <Palette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <FirstRunHint />
+      <Palette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onShowShortcuts={() => {
+          setPaletteOpen(false)
+          setShortcutsOpen(true)
+        }}
+      />
+      <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
   )
 }
