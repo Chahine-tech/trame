@@ -25,11 +25,11 @@ export function CaptureFrame() {
       else renderer.render(scene, camera)
       renderer.domElement.toBlob((blob) => {
         if (blob) {
-          const project = useGraphStore.getState().data?.meta.project ?? "archviz"
+          const project = useGraphStore.getState().data?.meta.project ?? "trame"
           const url = URL.createObjectURL(blob)
           const a = document.createElement("a")
           a.href = url
-          a.download = `${project}-archviz.png`
+          a.download = `${project}-trame.png`
           a.click()
           URL.revokeObjectURL(url)
           toastExported("PNG")

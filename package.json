@@ -1,12 +1,12 @@
 {
-  "name": "archviz",
+  "name": "trame",
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "dev": "turbo dev --filter=@archviz/viewer",
+    "dev": "turbo dev --filter=@trame/viewer",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
-    "parse": "pnpm --filter @archviz/parser dev --"
+    "parse": "pnpm --filter @trame/parser dev --"
   },
   "devDependencies": {
     "turbo": "^2.5.0"

@@ -95,7 +95,7 @@ export function Shortcuts({ open, onClose }: { open: boolean; onClose: () => voi
     >
         <div className="shortcuts-head">
           <span>
-            archviz<span className="d">_</span> shortcuts
+            trame<span className="d">_</span> shortcuts
           </span>
           <span className="esc">esc</span>
         </div>

@@ -99,7 +99,7 @@ export function usePalette(): Palette {
 /* ---------- theme preference (auto → dark → light) ---------- */
 
 export type ThemePref = "auto" | "dark" | "light"
-const THEME_KEY = "archviz-theme"
+const THEME_KEY = "trame-theme"
 
 export function getThemePref(): ThemePref {
   const v = localStorage.getItem(THEME_KEY)

@@ -1,10 +1,10 @@
-# archviz_
+# trame_
 
 > Interactive 3D frontend architecture visualizer — parse your codebase, explore it as a force-directed graph with hand-controllable Bézier edges.
 
-Mermaid and existing tools generate diagrams where you can't control arrow routing. **archviz** parses your TypeScript/React code with `ts-morph`, renders it in real 3D (WebGPU), and gives you full manual control over every edge curve — plus an architectural rules engine that fails your CI when constraints break.
+Mermaid and existing tools generate diagrams where you can't control arrow routing. **trame** parses your TypeScript/React code with `ts-morph`, renders it in real 3D (WebGPU), and gives you full manual control over every edge curve — plus an architectural rules engine that fails your CI when constraints break.
 
-![archviz viewer](docs/archviz.png)
+![trame viewer](docs/trame.png)
 
 ## What you get
 
@@ -14,10 +14,11 @@ Mermaid and existing tools generate diagrams where you can't control arrow routi
 - **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
 - **Path tracing** — shift-click a second node to light the dependency chain between them. *"Why does LoginPage depend on Chart?"*
 - **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
-- **Constraint rules** — declare architecture rules in `archviz.config.ts`; violations glow red in the graph and `archviz check` exits 1 for CI.
-- **Diff mode** — `archviz diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
+- **Constraint rules** — declare architecture rules in `trame.config.ts`; violations glow red in the graph and `trame check` exits 1 for CI.
+- **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
 - **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
-- **Live pipeline** — `archviz watch` re-parses on save, the viewer hot-swaps the graph.
+- **Exports where people actually read diagrams** — PNG, `trame.json`, and **Mermaid or Graphviz DOT**. GitHub renders Mermaid natively, so a generated diagram drops straight into a PR, an issue or a README.
+- **Live pipeline** — `trame watch` re-parses on save, the viewer hot-swaps the graph.
 - **Calm by design** — nodes rest grey; color only lands with your attention (hover/selection lights the neighbourhood). Catppuccin Mocha/Latte, matching your terminal.
 
 ## Quickstart
@@ -27,9 +28,9 @@ pnpm install
 pnpm build
 
 # parse a project
-pnpm --filter @archviz/parser dev -- \
+pnpm --filter @trame/parser dev -- \
   --src ./path/to/your/src \
-  --out ./packages/viewer/public/archviz.json
+  --out ./packages/viewer/public/trame.json
 
 # open the viewer
 pnpm dev            # → http://localhost:5173
@@ -38,20 +39,65 @@ pnpm dev            # → http://localhost:5173
 Or serve the built viewer standalone:
 
 ```bash
-pnpm --filter @archviz/parser dev -- serve --data ./archviz.json --port 3000
+pnpm --filter @trame/parser dev -- serve --data ./trame.json --port 3000
 ```
+
+## Diagrams for docs and PRs
+
+Yes, trame exports to Mermaid — the format its own pitch complains about. People
+need a diagram in their README, and GitHub renders Mermaid natively in issues, PR
+comments and Markdown files:
+
+```bash
+trame --src ./src --format mermaid --out docs/architecture.mmd
+trame --src ./src --format dot     --out docs/architecture.dot
+```
+
+Nodes keep their shape-per-type and Catppuccin colour, and folders become
+subgraphs. From the viewer, `⌘K → Copy as Mermaid` puts the diagram on your
+clipboard — scoped to the edge filter you are currently looking at.
+
+See [`docs/architecture.mmd`](docs/architecture.mmd) — trame's own viewer,
+parsed by trame.
+
+## In CI
+
+[`.github/workflows/trame.yml`](.github/workflows/trame.yml) comments on every
+pull request with what it did to the architecture — nodes added or removed, new
+dependency cycles, rule violations, and a Mermaid diagram of just the changed
+neighbourhood. One comment per PR, edited in place. Then `trame check` fails the
+job if a rule broke.
+
+Because GitHub renders Mermaid itself, this needs no headless browser, no image
+hosting and no artifact upload — the diagram is text in the comment body.
+
+```markdown
+## trame
+
+**+1** / **−0** nodes · +3 / −0 edges
+
+### ✗ 1 rule violation
+- `no-cycles` — Circular dependency (Card → Widget → Card)
+
+<details><summary>Architecture diagram</summary>
+…mermaid block GitHub renders inline…
+</details>
+```
+
+Point `TRAME_SRC` and `TRAME_CONFIG` at your own paths and it works on any repo.
 
 ## CLI
 
 ```
-archviz --src ./src [--out ./archviz.json]     parse and write the graph
-archviz check --src ./src                      evaluate rules, exit 1 on violations
-archviz watch --src ./src [--out ...]          re-parse on file changes
-archviz serve --data ./archviz.json [--port]   serve the built viewer
-archviz diff --base a.json --head b.json       what a branch did to the architecture
+trame --src ./src [--out ./trame.json]     parse and write the graph
+trame check --src ./src                      evaluate rules, exit 1 on violations
+trame watch --src ./src [--out ...]          re-parse on file changes
+trame serve --data ./trame.json [--port]   serve the built viewer
+trame diff --base a.json --head b.json       what a branch did to the architecture
 
+--format json|mermaid|dot     output shape (default json)
 --tsconfig ./tsconfig.json    resolve paths through a tsconfig
---config ./archviz.config.ts  constraint rules (auto-detected in cwd)
+--config ./trame.config.ts  constraint rules (auto-detected in cwd)
 --project name                project name in meta
 --exclude a,b,c               extra path patterns to skip
 ```
@@ -93,7 +139,7 @@ Nodes are sized by connectivity. At rest everything is grey — color is informa
 ## Rules
 
 ```ts
-// archviz.config.ts
+// trame.config.ts
 export default {
   rules: [
     {
@@ -119,7 +165,7 @@ export default {
 }
 ```
 
-Violations show up red in the graph (with the message in the inspector) and make `archviz check` exit 1 — wire it into CI and your architecture stops drifting.
+Violations show up red in the graph (with the message in the inspector) and make `trame check` exit 1 — wire it into CI and your architecture stops drifting.
 
 ## Stack
 
@@ -141,4 +187,4 @@ packages/
 └── viewer/    # Browser — 3D scene, inspector, command palette
 ```
 
-Dogfooded: the demo graph you see is archviz's own viewer source, parsed by its own parser.
+Dogfooded: the demo graph you see is trame's own viewer source, parsed by its own parser.

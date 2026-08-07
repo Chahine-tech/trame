@@ -2,29 +2,29 @@ import fs from "node:fs"
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 import { findCycles } from "./analysis.js"
-import type { ArchvizConfig, GraphData, GraphEdge, Rule, RuleMatch, Violation } from "./types.js"
+import type { TrameConfig, GraphData, GraphEdge, Rule, RuleMatch, Violation } from "./types.js"
 
 const CONFIG_CANDIDATES = [
-  "archviz.config.ts",
-  "archviz.config.js",
-  "archviz.config.mjs",
-  "archviz.config.json",
+  "trame.config.ts",
+  "trame.config.js",
+  "trame.config.mjs",
+  "trame.config.json",
 ]
 
 /**
- * Load archviz.config.* — .ts works directly on Node ≥23.6 thanks to
+ * Load trame.config.* — .ts works directly on Node ≥23.6 thanks to
  * native type stripping; .json is parsed as-is.
  */
-export async function loadConfig(explicit?: string, cwd = process.cwd()): Promise<ArchvizConfig | null> {
+export async function loadConfig(explicit?: string, cwd = process.cwd()): Promise<TrameConfig | null> {
   const candidates = explicit ? [explicit] : CONFIG_CANDIDATES
   for (const candidate of candidates) {
     const p = path.resolve(cwd, candidate)
     if (!fs.existsSync(p)) continue
     if (p.endsWith(".json")) {
-      return JSON.parse(fs.readFileSync(p, "utf8")) as ArchvizConfig
+      return JSON.parse(fs.readFileSync(p, "utf8")) as TrameConfig
     }
-    const mod = (await import(pathToFileURL(p).href)) as { default?: ArchvizConfig }
-    return mod.default ?? (mod as ArchvizConfig)
+    const mod = (await import(pathToFileURL(p).href)) as { default?: TrameConfig }
+    return mod.default ?? (mod as TrameConfig)
   }
   return null
 }
@@ -101,7 +101,7 @@ function checkNoCycles(rule: Rule, graph: GraphData): Violation[] {
   })
 }
 
-export function evaluateRules(graph: GraphData, config: ArchvizConfig): Violation[] {
+export function evaluateRules(graph: GraphData, config: TrameConfig): Violation[] {
   const violations: Violation[] = []
   for (const rule of config.rules ?? []) {
     if (rule.type === "unique-caller") violations.push(...checkUniqueCaller(rule, graph))

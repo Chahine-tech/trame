@@ -3,7 +3,7 @@ import { cycleEditor, EDITOR_LABEL } from "../editor"
 import { getPalette } from "../theme"
 
 /**
- * archviz speaks quietly: subtle preset, minimal bounce, Catppuccin fills,
+ * trame speaks quietly: subtle preset, minimal bounce, Catppuccin fills,
  * mono type like the rest of the app. The morph stays, the playfulness
  * doesn't — this is a precision instrument, and toasts here are rare.
  */
@@ -87,6 +87,23 @@ export function toastNeedsSelection(action: string): void {
 export function toastExported(what: string): void {
   const p = getPalette()
   gooeyToast.success(`${what} exported`, { ...tinted(p.green) })
+}
+
+export function toastCopied(what: string): void {
+  const p = getPalette()
+  gooeyToast.success(`${what} copied`, {
+    ...tinted(p.green),
+    description: "Paste it into a PR, an issue or a README",
+  })
+}
+
+/** Clipboard writes need a secure context and can be denied. */
+export function toastCopyFailed(what: string): void {
+  const p = getPalette()
+  gooeyToast.error(`Could not copy ${what}`, {
+    ...tinted(p.red),
+    description: "Clipboard access was blocked — use the CLI --format flag",
+  })
 }
 
 /**

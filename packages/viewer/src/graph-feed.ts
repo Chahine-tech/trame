@@ -1,7 +1,7 @@
 import { DEMO } from "./demo-data"
 import type { GraphData } from "./types"
 
-const SOURCE = "/archviz.json"
+const SOURCE = "/trame.json"
 const POLL_MS = 2500
 
 export type GraphFeedEvent =
@@ -13,7 +13,7 @@ export type GraphFeedEvent =
   | { kind: "updated"; data: GraphData }
 
 /**
- * The single reader of archviz.json: one initial load, then a watch poll.
+ * The single reader of trame.json: one initial load, then a watch poll.
  *
  * Requests are strictly sequential — the next one is only scheduled once the
  * previous has settled — so a slow response can never land on top of a newer
@@ -26,7 +26,7 @@ export function subscribeToGraph(onEvent: (event: GraphFeedEvent) => void): () =
 
   const read = async (cache: RequestCache): Promise<GraphData> => {
     const r = await fetch(SOURCE, { cache, signal: controller.signal })
-    if (!r.ok) throw new Error(`archviz.json responded ${r.status}`)
+    if (!r.ok) throw new Error(`trame.json responded ${r.status}`)
     return (await r.json()) as GraphData
   }
 

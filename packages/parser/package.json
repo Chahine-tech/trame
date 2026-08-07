@@ -1,8 +1,12 @@
 {
-  "name": "@archviz/parser",
+  "name": "@trame/parser",
   "version": "0.1.0",
   "type": "module",
-  "bin": { "archviz": "./dist/index.js" },
+  "bin": { "trame": "./dist/index.js" },
+  "exports": {
+    "./export": "./src/export.ts",
+    "./types": "./src/types.ts"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",

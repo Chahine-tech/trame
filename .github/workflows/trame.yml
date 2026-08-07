@@ -1,0 +1,80 @@
+name: trame
+
+# Comments on every pull request with what it did to the architecture:
+# nodes added or removed, new dependency cycles, rule violations, and a
+# Mermaid diagram of the changed neighbourhood. GitHub renders the diagram
+# itself, so this needs no headless browser and no artifact hosting.
+
+on:
+  pull_request:
+
+# the job only reads code and writes one comment
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  # adapt these two to your project
+  TRAME_SRC: packages/viewer/src
+  TRAME_CONFIG: trame.config.ts
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the base commit has to be reachable
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Parse the head of the pull request
+        run: |
+          pnpm --filter @trame/parser dev -- \
+            --src "$PWD/$TRAME_SRC" \
+            --config "$PWD/$TRAME_CONFIG" \
+            --out "$RUNNER_TEMP/head.json"
+
+      - name: Parse the base branch
+        run: |
+          git worktree add "$RUNNER_TEMP/base" "${{ github.event.pull_request.base.sha }}"
+          pnpm --filter @trame/parser dev -- \
+            --src "$RUNNER_TEMP/base/$TRAME_SRC" \
+            --config "$PWD/$TRAME_CONFIG" \
+            --out "$RUNNER_TEMP/base.json"
+
+      - name: Build the report
+        run: |
+          pnpm --filter @trame/parser dev -- diff \
+            --base "$RUNNER_TEMP/base.json" \
+            --head "$RUNNER_TEMP/head.json" \
+            --format markdown \
+            --out "$RUNNER_TEMP/report.md"
+
+      - name: Post it on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # one comment per PR, edited in place — a bot that appends on every
+          # push buries the conversation
+          existing=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" \
+            --jq 'map(select(.body | contains("<!-- trame-report -->"))) | .[0].id // empty')
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$existing" \
+              -F body=@"$RUNNER_TEMP/report.md"
+          else
+            gh pr comment "$PR" --body-file "$RUNNER_TEMP/report.md"
+          fi
+
+      - name: Fail if the architecture rules are broken
+        run: |
+          pnpm --filter @trame/parser dev -- check \
+            --src "$PWD/$TRAME_SRC" \
+            --config "$PWD/$TRAME_CONFIG"

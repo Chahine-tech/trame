@@ -1,7 +1,7 @@
 /** Which editor deep-link scheme to use when jumping to a file. */
 export type EditorScheme = "vscode" | "cursor" | "windsurf" | "zed"
 
-const EDITOR_KEY = "archviz-editor"
+const EDITOR_KEY = "trame-editor"
 
 export const EDITOR_LABEL: Record<EditorScheme, string> = {
   vscode: "VS Code",

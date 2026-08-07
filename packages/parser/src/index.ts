@@ -7,6 +7,7 @@ import { buildGraph } from "./graph.js"
 import { evaluateRules, loadConfig } from "./rules.js"
 import { findCycles, findOrphans } from "./analysis.js"
 import { diffGraphs } from "./diff.js"
+import { toDot, toMarkdown, toMermaid } from "./export.js"
 import { serve } from "./serve.js"
 import type { GraphData, Violation } from "./types.js"
 
@@ -23,35 +24,59 @@ interface Args {
   dist?: string
   base?: string
   head?: string
+  format: "json" | "mermaid" | "dot" | "markdown"
 }
+
+/** Serialize the graph in whichever shape the caller asked for. */
+function render(graph: GraphData, format: Args["format"]): string {
+  if (format === "mermaid") return toMermaid(graph)
+  if (format === "dot") return toDot(graph)
+  if (format === "markdown") return toMarkdown(graph)
+  return JSON.stringify(graph, null, 2)
+}
+
+/** Default output name follows the format unless the caller set one. */
+function defaultOut(format: Args["format"]): string {
+  if (format === "mermaid") return "trame.mmd"
+  if (format === "dot") return "trame.dot"
+  if (format === "markdown") return "trame.md"
+  return "trame.json"
+}
+
+const FORMATS = ["json", "mermaid", "dot", "markdown"] as const
 
 const DEFAULT_EXCLUDE = ["node_modules", "dist", ".test.", ".spec.", ".stories.", "__tests__", "__mocks__"]
 
-const HELP = `archviz — parse a TypeScript/React codebase into a 3D architecture graph
+const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture graph
 
-  archviz --src ./src [--out ./archviz.json]     parse and write the graph
-  archviz check --src ./src                      evaluate rules, exit 1 on violations
-  archviz watch --src ./src [--out ...]          re-parse on file changes
-  archviz serve --data ./archviz.json [--port]   serve the built viewer
-  archviz diff --base a.json --head b.json       what a branch did to the architecture
+  trame --src ./src [--out ./trame.json]     parse and write the graph
+  trame check --src ./src                      evaluate rules, exit 1 on violations
+  trame watch --src ./src [--out ...]          re-parse on file changes
+  trame serve --data ./trame.json [--port]   serve the built viewer
+  trame diff --base a.json --head b.json       what a branch did to the architecture
 
   options:
     --tsconfig ./tsconfig.json   resolve paths through a tsconfig
-    --config ./archviz.config.ts constraint rules (auto-detected in cwd)
+    --config ./trame.config.ts constraint rules (auto-detected in cwd)
     --project name               project name in meta
     --exclude a,b,c              extra path patterns to skip
-    --data ./archviz.json        (serve) graph file to serve
+    --format json|mermaid|dot|markdown   output shape (default json)
+    --data ./trame.json        (serve) graph file to serve
     --port 3000                  (serve) port
-    --dist ./path                (serve) viewer build override`
+    --dist ./path                (serve) viewer build override
+
+  Mermaid renders natively in GitHub issues, PRs and READMEs:
+    trame --src ./src --format mermaid --out docs/architecture.mmd`
 
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     command: "parse",
     src: "",
-    out: "archviz.json",
+    out: "", // resolved from --format below unless the caller sets one
     exclude: [...DEFAULT_EXCLUDE],
-    data: "archviz.json",
+    data: "trame.json",
     port: 3000,
+    format: "json",
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
@@ -78,6 +103,15 @@ function parseArgs(argv: string[]): Args {
       case "--dist":
         args.dist = next()
         break
+      case "--format": {
+        const value = next() as Args["format"]
+        if (!FORMATS.includes(value)) {
+          console.error(`error: --format must be one of ${FORMATS.join(", ")} (got "${value}")`)
+          process.exit(1)
+        }
+        args.format = value
+        break
+      }
       case "--src":
         args.src = next()
         break
@@ -102,6 +136,7 @@ function parseArgs(argv: string[]): Args {
         process.exit(0)
     }
   }
+  if (!args.out) args.out = defaultOut(args.format)
   if (!args.src && args.command !== "serve" && args.command !== "diff") {
     console.error("error: --src <dir> is required (try --help)")
     process.exit(1)
@@ -143,7 +178,7 @@ function summarize(graph: GraphData, outPath: string, ms: number): void {
   const orphans = graph.analysis?.orphans.length ?? 0
   const cycles = graph.analysis?.cycles.length ?? 0
   console.log(
-    `archviz · ${graph.meta.project}\n` +
+    `trame · ${graph.meta.project}\n` +
       `  ${graph.meta.nodeCount} nodes · ${graph.meta.edgeCount} edges · ${graph.clusters.length} folders` +
       (vCount ? ` · \x1b[31m${vCount} violations\x1b[0m` : "") +
       `\n  ${typeSummary}` +
@@ -162,7 +197,7 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
   if (config) graph.violations = evaluateRules(graph, config)
 
   const outPath = path.resolve(args.out)
-  fs.writeFileSync(outPath, JSON.stringify(graph, null, 2))
+  fs.writeFileSync(outPath, render(graph, args.format))
   if (!quiet) summarize(graph, outPath, Date.now() - started)
   return graph
 }
@@ -171,7 +206,7 @@ async function runCheck(args: Args, srcRoot: string): Promise<void> {
   const graph = parseOnce(args, srcRoot)
   const config = await loadConfig(args.config)
   if (!config?.rules?.length) {
-    console.error("error: no rules found — create archviz.config.ts or pass --config")
+    console.error("error: no rules found — create trame.config.ts or pass --config")
     process.exit(1)
   }
   const violations = evaluateRules(graph, config)
@@ -212,7 +247,7 @@ async function runWatch(args: Args, srcRoot: string): Promise<void> {
           ...lastGood,
           meta: { ...lastGood.meta, generated: new Date().toISOString(), error: message },
         }
-        fs.writeFileSync(path.resolve(args.out), JSON.stringify(stale, null, 2))
+        fs.writeFileSync(path.resolve(args.out), render(stale, args.format))
       }
     } finally {
       running = false
@@ -241,10 +276,10 @@ async function main() {
     const head = JSON.parse(fs.readFileSync(path.resolve(args.head), "utf8")) as GraphData
     const merged = diffGraphs(base, head)
     const outPath = path.resolve(args.out)
-    fs.writeFileSync(outPath, JSON.stringify(merged, null, 2))
+    fs.writeFileSync(outPath, render(merged, args.format))
     const d = merged.diff!
     console.log(
-      `archviz · diff\n` +
+      `trame · diff\n` +
         `  nodes \x1b[32m+${d.addedNodes}\x1b[0m \x1b[31m−${d.removedNodes}\x1b[0m · ` +
         `edges \x1b[32m+${d.addedEdges}\x1b[0m \x1b[31m−${d.removedEdges}\x1b[0m\n` +
         `  → ${outPath}`,

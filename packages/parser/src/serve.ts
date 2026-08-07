@@ -21,19 +21,19 @@ export interface ServeOptions {
 }
 
 /**
- * Static server for the built viewer. `/archviz.json` is read from disk on
- * every request — run `archviz watch` next to it and the browser follows.
+ * Static server for the built viewer. `/trame.json` is read from disk on
+ * every request — run `trame watch` next to it and the browser follows.
  */
 export function serve({ dataFile, distDir, port }: ServeOptions): void {
   if (!fs.existsSync(path.join(distDir, "index.html"))) {
-    console.error(`error: viewer build not found at ${distDir}\n       run: pnpm --filter @archviz/viewer build`)
+    console.error(`error: viewer build not found at ${distDir}\n       run: pnpm --filter @trame/viewer build`)
     process.exit(1)
   }
 
   const server = http.createServer((req, res) => {
     const url = (req.url ?? "/").split("?")[0] ?? "/"
 
-    if (url === "/archviz.json") {
+    if (url === "/trame.json") {
       try {
         const buf = fs.readFileSync(dataFile)
         res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" })
@@ -61,6 +61,6 @@ export function serve({ dataFile, distDir, port }: ServeOptions): void {
   })
 
   server.listen(port, () => {
-    console.log(`archviz · serving viewer at http://localhost:${port}\n  data: ${dataFile}`)
+    console.log(`trame · serving viewer at http://localhost:${port}\n  data: ${dataFile}`)
   })
 }

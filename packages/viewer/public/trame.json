@@ -1,9 +1,9 @@
 {
   "meta": {
-    "project": "archviz",
-    "generated": "2026-08-07T09:46:47.027Z",
+    "project": "trame",
+    "generated": "2026-08-07T13:16:56.086Z",
     "nodeCount": 21,
-    "edgeCount": 49
+    "edgeCount": 50
   },
   "nodes": [
     {
@@ -147,7 +147,7 @@
       "label": "Palette",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/archviz/packages/viewer/src/ui/Palette.tsx",
-      "line": 11,
+      "line": 38,
       "cluster": "ui"
     },
     {
@@ -438,6 +438,12 @@
       "id": "ui/Palette.tsx->editor.ts",
       "source": "ui/Palette.tsx",
       "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->types.ts",
+      "source": "ui/Palette.tsx",
+      "target": "types.ts",
       "type": "import"
     },
     {

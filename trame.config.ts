@@ -1,4 +1,4 @@
-/** Constraint rules evaluated by `archviz` / `archviz check`. */
+/** Constraint rules evaluated by `trame` / `trame check`. */
 export default {
   rules: [
     {

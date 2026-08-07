@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-const SEEN_KEY = "archviz-seen-hint"
+const SEEN_KEY = "trame-seen-hint"
 
 /**
  * One line, once. Not a tour — just enough to reveal that nodes respond and

@@ -24,7 +24,7 @@ export function TopBar({
   return (
     <header className="topbar">
       <span className="brand">
-        archviz<span className="d">_</span>
+        trame<span className="d">_</span>
       </span>
       {data?.diff && (
         <span className="mode diff">
@@ -41,7 +41,7 @@ export function TopBar({
       )}
       {pathNodes.length > 0 && <span className="mode path">path · {pathNodes.length} hops</span>}
       {isDemo && (
-        <span className="mode warn-chip" title="No archviz.json was served — this is sample data">
+        <span className="mode warn-chip" title="No trame.json was served — this is sample data">
           demo data
         </span>
       )}

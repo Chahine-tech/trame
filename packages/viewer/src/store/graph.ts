@@ -77,7 +77,7 @@ interface GraphState {
   /** nodes the user placed by hand — frozen out of the simulation */
   pinned: Set<string>
 
-  /** true when no archviz.json was served and the demo graph stands in */
+  /** true when no trame.json was served and the demo graph stands in */
   isDemo: boolean
 
   load: (data: GraphData, isDemo?: boolean) => void
@@ -381,10 +381,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 }))
 
 /**
- * Serialize the graph the way it looks right now — curves you bent and the
- * layout you arranged, so reopening the file restores your composition.
+ * The graph as it looks right now — curves you bent and the layout you
+ * arranged — in the trame.json shape, so reopening restores your composition.
  */
-export function exportGraph(): string | null {
+export function currentGraph(): GraphData | null {
   const { data, ctrl, positions } = useGraphStore.getState()
   if (!data) return null
   const edges = data.edges.map((e) => {
@@ -395,5 +395,10 @@ export function exportGraph(): string | null {
     const p = positions.get(n.id)
     return p ? { ...n, x: p[0], y: p[1], z: p[2] } : n
   })
-  return JSON.stringify({ ...data, nodes, edges }, null, 2)
+  return { ...data, nodes, edges }
+}
+
+export function exportGraph(): string | null {
+  const graph = currentGraph()
+  return graph ? JSON.stringify(graph, null, 2) : null
 }

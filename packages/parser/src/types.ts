@@ -72,7 +72,7 @@ export interface GraphData {
   }
 }
 
-/* ---------- constraint rules (archviz.config.ts) ---------- */
+/* ---------- constraint rules (trame.config.ts) ---------- */
 
 export interface RuleMatch {
   edgeType?: EdgeType
@@ -89,7 +89,7 @@ export interface Rule {
   message: string
 }
 
-export interface ArchvizConfig {
+export interface TrameConfig {
   rules?: Rule[]
 }
 

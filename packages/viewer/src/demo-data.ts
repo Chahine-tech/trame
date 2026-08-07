@@ -1,6 +1,6 @@
 import type { GraphData } from "./types"
 
-/** Tiny fallback graph shown when no archviz.json is served. */
+/** Tiny fallback graph shown when no trame.json is served. */
 export const DEMO: GraphData = {
   meta: { project: "demo", generated: new Date().toISOString(), nodeCount: 8, edgeCount: 9 },
   nodes: [

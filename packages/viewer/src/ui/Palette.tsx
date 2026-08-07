@@ -1,8 +1,35 @@
 import { Command } from "cmdk"
-import { exportGraph, useGraphStore } from "../store/graph"
+import { toDot, toMermaid } from "@trame/parser/export"
+import { currentGraph, exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
 import { EDITORS, EDITOR_LABEL, getEditor, openInEditor, setEditor } from "../editor"
-import { toastEditorSwitched, toastExported, toastOpeningEditor } from "./toast"
+import type { GraphData } from "../types"
+import {
+  toastCopied,
+  toastCopyFailed,
+  toastEditorSwitched,
+  toastExported,
+  toastOpeningEditor,
+} from "./toast"
+
+/**
+ * Clipboard, not download: these go straight into a PR body or a README.
+ * Reads the store directly, so it belongs at module scope rather than being
+ * rebuilt on every render.
+ */
+async function copyDiagram(label: string, serialize: (g: GraphData) => string): Promise<void> {
+  const graph = currentGraph()
+  if (!graph) return
+  // the filter you are looking at is the diagram you meant to share
+  const filter = useGraphStore.getState().edgeFilter
+  const scoped = filter ? { ...graph, edges: graph.edges.filter((e) => e.type === filter) } : graph
+  try {
+    await navigator.clipboard.writeText(serialize(scoped))
+    toastCopied(label)
+  } catch {
+    toastCopyFailed(label)
+  }
+}
 
 /**
  * ⌘K command palette. Opened 100+ times a day → zero animation, ever
@@ -38,11 +65,11 @@ export function Palette({
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = "archviz.json"
+    a.download = "trame.json"
     a.click()
     URL.revokeObjectURL(url)
     onClose()
-    toastExported("archviz.json")
+    toastExported("trame.json")
   }
 
   return (
@@ -98,7 +125,26 @@ export function Palette({
               <span className="path">⌘E</span>
             </Command.Item>
             <Command.Item value="export json curves" onSelect={download}>
-              <span className="lbl">Export archviz.json (curves included)</span>
+              <span className="lbl">Export trame.json (curves included)</span>
+            </Command.Item>
+            <Command.Item
+              value="copy mermaid diagram markdown github"
+              onSelect={() => {
+                onClose()
+                copyDiagram("Mermaid", (g) => toMermaid(g))
+              }}
+            >
+              <span className="lbl">Copy as Mermaid</span>
+              <span className="path">paste in a PR</span>
+            </Command.Item>
+            <Command.Item
+              value="copy dot graphviz"
+              onSelect={() => {
+                onClose()
+                copyDiagram("DOT", (g) => toDot(g))
+              }}
+            >
+              <span className="lbl">Copy as Graphviz DOT</span>
             </Command.Item>
             <Command.Item
               value="impact analysis blast radius dependents"
