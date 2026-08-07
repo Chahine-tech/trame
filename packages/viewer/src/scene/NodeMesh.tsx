@@ -120,6 +120,11 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
   const tracePathTo = useGraphStore((s) => s.tracePathTo)
+  const justAdded = useGraphStore((s) => s.frameAdded.has(node.id))
+  const whatIfOn = useGraphStore((s) => s.whatIf !== null)
+  const isDoomed = useGraphStore((s) => s.whatIf?.nodeId === node.id)
+  const isStranded = useGraphStore((s) => s.whatIfOrphaned.has(node.id))
+  const isBroken = useGraphStore((s) => s.whatIfBroken.has(node.id))
 
   const typeColor = palette[NODE_COLOR[node.type]]
   const dark = isDarkGround()
@@ -132,6 +137,15 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   // Analysis overlays (path, impact, violations) take precedence — they are
   // the question the user just asked.
   const { color, emissiveIntensity, opacity } = useMemo(() => {
+    // the simulation reframes everything: this is the consequence, not the state
+    if (whatIfOn) {
+      if (isDoomed) return press(dark, palette, palette.red, 0.7)
+      if (isStranded) return press(dark, palette, palette.yellow, 0.5)
+      if (isBroken) return press(dark, palette, palette.peach, 0.45)
+      return recede(dark, palette, 1)
+    }
+    // during a replay, the commit's own arrivals announce themselves
+    if (justAdded) return press(dark, palette, palette.green, 0.7)
     // diff mode reframes the whole graph: what this branch added or removed
     if (node.diff === "added") return press(dark, palette, palette.green, 0.6)
     if (node.diff === "removed") {
@@ -160,7 +174,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     return dark
       ? { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
       : { color: palette.subtext, emissiveIntensity: 0, opacity: 1 }
-  }, [node.diff, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark])
+  }, [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark])
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
@@ -282,7 +296,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         metalness={0.12}
         flatShading={FACETED.has(node.type)}
         // hollow: dead code, or a node this branch removed (a ghost)
-        wireframe={(isOrphan && !isLit) || node.diff === "removed"}
+        wireframe={(isOrphan && !isLit) || node.diff === "removed" || isDoomed}
       />
       {/* On dark this is a glow: light added to the void. On paper the same
           shape becomes a shadow — importance reads as elevation, not emission. */}

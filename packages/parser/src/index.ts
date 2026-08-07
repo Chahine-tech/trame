@@ -4,15 +4,17 @@ import path from "node:path"
 import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
-import { evaluateRules, loadConfig } from "./rules.js"
+import { evaluateRules } from "./rules.js"
+import { loadConfig } from "./config.js"
 import { findCycles, findOrphans } from "./analysis.js"
 import { diffGraphs } from "./diff.js"
 import { toDot, toMarkdown, toMermaid } from "./export.js"
 import { serve } from "./serve.js"
+import { buildTimeline, forEachCommit, sampleCommits } from "./replay.js"
 import type { GraphData, Violation } from "./types.js"
 
 interface Args {
-  command: "parse" | "check" | "watch" | "serve" | "diff"
+  command: "parse" | "check" | "watch" | "serve" | "diff" | "replay"
   src: string
   out: string
   tsconfig?: string
@@ -25,6 +27,9 @@ interface Args {
   base?: string
   head?: string
   format: "json" | "mermaid" | "dot" | "markdown"
+  since: string
+  maxFrames: number
+  repo: string
 }
 
 /** Serialize the graph in whichever shape the caller asked for. */
@@ -54,6 +59,7 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
   trame watch --src ./src [--out ...]          re-parse on file changes
   trame serve --data ./trame.json [--port]   serve the built viewer
   trame diff --base a.json --head b.json       what a branch did to the architecture
+  trame replay --src ./src [--since --max-frames]  how the architecture grew, across git history
 
   options:
     --tsconfig ./tsconfig.json   resolve paths through a tsconfig
@@ -64,6 +70,9 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
     --data ./trame.json        (serve) graph file to serve
     --port 3000                  (serve) port
     --dist ./path                (serve) viewer build override
+    --since "6 months ago"       (replay) how far back to walk
+    --max-frames 40              (replay) frame budget — the stride follows from it
+    --repo .                     (replay) repository root
 
   Mermaid renders natively in GitHub issues, PRs and READMEs:
     trame --src ./src --format mermaid --out docs/architecture.mmd`
@@ -77,6 +86,9 @@ function parseArgs(argv: string[]): Args {
     data: "trame.json",
     port: 3000,
     format: "json",
+    since: "1 year ago",
+    maxFrames: 40,
+    repo: ".",
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
@@ -86,7 +98,17 @@ function parseArgs(argv: string[]): Args {
       case "watch":
       case "serve":
       case "diff":
+      case "replay":
         args.command = a
+        break
+      case "--since":
+        args.since = next()
+        break
+      case "--max-frames":
+        args.maxFrames = Math.max(2, Number(next()) || 40)
+        break
+      case "--repo":
+        args.repo = next()
         break
       case "--base":
         args.base = next()
@@ -194,7 +216,10 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
   const started = Date.now()
   const graph = parseOnce(args, srcRoot)
   const config = await loadConfig(args.config)
-  if (config) graph.violations = evaluateRules(graph, config)
+  if (config) {
+    graph.violations = evaluateRules(graph, config)
+    graph.rules = config.rules
+  }
 
   const outPath = path.resolve(args.out)
   fs.writeFileSync(outPath, render(graph, args.format))
@@ -264,6 +289,62 @@ async function runWatch(args: Args, srcRoot: string): Promise<void> {
   })
 }
 
+/**
+ * Walk the history, parsing a sample of commits, and write a timeline the
+ * viewer can scrub. Each commit is checked out into a throwaway worktree, so
+ * your working copy is never touched.
+ */
+async function runReplay(args: Args, srcRoot: string): Promise<void> {
+  const repo = path.resolve(args.repo)
+  const relSrc = path.relative(repo, srcRoot)
+  if (relSrc.startsWith("..")) {
+    console.error(`error: --src must live inside --repo (${repo})`)
+    process.exit(1)
+  }
+
+  const commits = sampleCommits(repo, args.since, args.maxFrames)
+  if (commits.length === 0) {
+    console.error(`error: no commits since "${args.since}"`)
+    process.exit(1)
+  }
+  console.log(
+    `trame · replay\n  ${commits.length} frames from the history since ${args.since}`,
+  )
+
+  const config = await loadConfig(args.config)
+  const started = Date.now()
+
+  const parsed = forEachCommit(
+    repo,
+    commits,
+    (checkoutRoot) => {
+      const at = path.join(checkoutRoot, relSrc)
+      if (!fs.existsSync(at)) return null // the folder did not exist yet
+      const graph = parseOnce({ ...args, src: at }, at)
+      graph.analysis = { orphans: findOrphans(graph), cycles: findCycles(graph) }
+      if (config) graph.violations = evaluateRules(graph, config)
+      return graph
+    },
+    (i, total, commit) => {
+      process.stdout.write(`\r  parsing ${i + 1}/${total} · ${commit.sha.slice(0, 8)}   `)
+    },
+  )
+  process.stdout.write("\r" + " ".repeat(48) + "\r")
+
+  const projectName = args.project ?? path.basename(repo)
+  const timeline = buildTimeline(projectName, parsed)
+  const outPath = path.resolve(args.out === defaultOut(args.format) ? "trame-replay.json" : args.out)
+  fs.writeFileSync(outPath, JSON.stringify(timeline, null, 2))
+
+  const first = timeline.frames[0]
+  const last = timeline.frames[timeline.frames.length - 1]
+  console.log(
+    `  ${timeline.frames.length} frames · ` +
+      `${first?.nodeCount ?? 0} → ${last?.nodeCount ?? 0} files\n` +
+      `  → ${outPath} (${((Date.now() - started) / 1000).toFixed(1)}s)`,
+  )
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2))
 
@@ -301,7 +382,8 @@ async function main() {
     process.exit(1)
   }
 
-  if (args.command === "check") await runCheck(args, srcRoot)
+  if (args.command === "replay") await runReplay(args, srcRoot)
+  else if (args.command === "check") await runCheck(args, srcRoot)
   else if (args.command === "watch") await runWatch(args, srcRoot)
   else await runParse(args, srcRoot)
 }

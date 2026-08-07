@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "trame",
-    "generated": "2026-08-07T13:25:28.148Z",
-    "nodeCount": 21,
-    "edgeCount": 50
+    "generated": "2026-08-07T15:49:30.007Z",
+    "nodeCount": 24,
+    "edgeCount": 58
   },
   "nodes": [
     {
@@ -79,11 +79,19 @@
       "cluster": "scene"
     },
     {
+      "id": "scene/Districts.tsx",
+      "label": "Districts",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Districts.tsx",
+      "line": 160,
+      "cluster": "scene"
+    },
+    {
       "id": "scene/EdgeMesh.tsx",
       "label": "EdgeMesh",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/EdgeMesh.tsx",
-      "line": 95,
+      "line": 120,
       "cluster": "scene"
     },
     {
@@ -99,7 +107,7 @@
       "label": "NodeMesh",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/NodeMesh.tsx",
-      "line": 66,
+      "line": 88,
       "cluster": "scene"
     },
     {
@@ -107,7 +115,7 @@
       "label": "Scene",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Scene.tsx",
-      "line": 88,
+      "line": 120,
       "cluster": "scene"
     },
     {
@@ -119,11 +127,27 @@
       "cluster": "scene"
     },
     {
+      "id": "scene/ZoomDirector.tsx",
+      "label": "ZoomDirector",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/ZoomDirector.tsx",
+      "line": 12,
+      "cluster": "scene"
+    },
+    {
       "id": "store/graph.ts",
       "label": "graph",
       "type": "store",
       "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/graph.ts",
-      "line": 104,
+      "line": 117,
+      "cluster": "store"
+    },
+    {
+      "id": "store/whatif.ts",
+      "label": "whatif",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/whatif.ts",
+      "line": 5,
       "cluster": "store"
     },
     {
@@ -155,7 +179,7 @@
       "label": "Shortcuts",
       "type": "component",
       "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Shortcuts.tsx",
-      "line": 56,
+      "line": 57,
       "cluster": "ui"
     },
     {
@@ -303,6 +327,24 @@
       "type": "import"
     },
     {
+      "id": "scene/Districts.tsx->store/graph.ts",
+      "source": "scene/Districts.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Districts.tsx->theme.ts",
+      "source": "scene/Districts.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Districts.tsx->types.ts",
+      "source": "scene/Districts.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/EdgeMesh.tsx->store/graph.ts",
       "source": "scene/EdgeMesh.tsx",
       "target": "store/graph.ts",
@@ -381,10 +423,28 @@
       "type": "component"
     },
     {
+      "id": "scene/Scene.tsx->scene/Districts.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Districts.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/ZoomDirector.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/ZoomDirector.tsx",
+      "type": "component"
+    },
+    {
       "id": "scene/Scene.tsx->scene/CaptureFrame.tsx",
       "source": "scene/Scene.tsx",
       "target": "scene/CaptureFrame.tsx",
       "type": "component"
+    },
+    {
+      "id": "scene/ZoomDirector.tsx->store/graph.ts",
+      "source": "scene/ZoomDirector.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
     },
     {
       "id": "store/graph.ts->types.ts",
@@ -402,6 +462,18 @@
       "id": "store/graph.ts->ui/toast.ts",
       "source": "store/graph.ts",
       "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->store/whatif.ts",
+      "source": "store/graph.ts",
+      "target": "store/whatif.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/whatif.ts->types.ts",
+      "source": "store/whatif.ts",
+      "target": "types.ts",
       "type": "import"
     },
     {
@@ -479,9 +551,25 @@
   ],
   "clusters": [
     {
+      "id": "scene",
+      "label": "scene",
+      "color": "#89b4fa",
+      "nodeIds": [
+        "scene/CaptureFrame.tsx",
+        "scene/Clusters.tsx",
+        "scene/Districts.tsx",
+        "scene/EdgeMesh.tsx",
+        "scene/Layout.ts",
+        "scene/NodeMesh.tsx",
+        "scene/Scene.tsx",
+        "scene/useDisposable.ts",
+        "scene/ZoomDirector.tsx"
+      ]
+    },
+    {
       "id": "src",
       "label": "src",
-      "color": "#89b4fa",
+      "color": "#a6e3a1",
       "nodeIds": [
         "App.tsx",
         "demo-data.ts",
@@ -490,20 +578,6 @@
         "main.tsx",
         "theme.ts",
         "types.ts"
-      ]
-    },
-    {
-      "id": "scene",
-      "label": "scene",
-      "color": "#a6e3a1",
-      "nodeIds": [
-        "scene/CaptureFrame.tsx",
-        "scene/Clusters.tsx",
-        "scene/EdgeMesh.tsx",
-        "scene/Layout.ts",
-        "scene/NodeMesh.tsx",
-        "scene/Scene.tsx",
-        "scene/useDisposable.ts"
       ]
     },
     {
@@ -524,7 +598,8 @@
       "label": "store",
       "color": "#fab387",
       "nodeIds": [
-        "store/graph.ts"
+        "store/graph.ts",
+        "store/whatif.ts"
       ]
     }
   ],
@@ -532,5 +607,34 @@
     "orphans": [],
     "cycles": []
   },
-  "violations": []
+  "violations": [],
+  "rules": [
+    {
+      "type": "unique-caller",
+      "match": {
+        "edgeType": "api-call",
+        "targetType": "api"
+      },
+      "message": "API endpoint called from multiple hooks — extract a shared hook"
+    },
+    {
+      "type": "unique-caller",
+      "match": {
+        "edgeType": "query-key"
+      },
+      "message": "Query key used in multiple queries — consolidate"
+    },
+    {
+      "type": "no-direct-import",
+      "match": {
+        "sourceType": "page",
+        "targetType": "page"
+      },
+      "message": "Pages should not import each other directly"
+    },
+    {
+      "type": "no-cycles",
+      "message": "Circular dependency"
+    }
+  ]
 }

@@ -64,6 +64,9 @@ export interface GraphData {
   clusters: GraphCluster[]
   violations?: Violation[]
   analysis?: Analysis
+  /** the rules that produced `violations` — shipped so the viewer can re-run
+   *  them on a hypothetical graph ("what if I deleted this?") */
+  rules?: Rule[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -72,7 +75,6 @@ export interface GraphData {
   }
 }
 
-/* ---------- constraint rules (trame.config.ts) ---------- */
 
 export interface RuleMatch {
   edgeType?: EdgeType

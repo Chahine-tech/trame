@@ -5,6 +5,8 @@
   "bin": { "trame": "./dist/index.js" },
   "exports": {
     "./export": "./src/export.ts",
+    "./analysis": "./src/analysis.ts",
+    "./rules": "./src/rules.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {

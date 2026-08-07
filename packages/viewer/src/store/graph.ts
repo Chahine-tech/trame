@@ -1,7 +1,26 @@
 import { create } from "zustand"
-import type { EdgeType, GraphData, Vec3 } from "../types"
+import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
 import { toastNeedsSelection, toastNoPath } from "../ui/toast"
+import { simulateDelete, type WhatIfReport } from "./whatif"
+import type { LensKind } from "./lens"
+
+/**
+ * Every lens off. Each activator spreads this first, so mutual exclusion is
+ * stated once instead of being re-derived (and quietly forgotten) in each one.
+ */
+function noLens() {
+  return {
+    lens: "none" as LensKind,
+    impactOf: null,
+    impactDepth: new Map<string, number>(),
+    pathNodes: [] as string[],
+    pathEdges: new Set<string>(),
+    whatIf: null,
+    whatIfOrphaned: new Set<string>(),
+    whatIfBroken: new Set<string>(),
+  }
+}
 
 /** E cycles through: everything → each edge type → everything */
 const EDGE_FILTER_CYCLE: (EdgeType | null)[] = [
@@ -86,6 +105,30 @@ interface GraphState {
   districtMode: boolean
   setDistrictMode: (v: boolean) => void
 
+  /** the architecture replayed across git history, when one was generated */
+  timeline: Timeline | null
+  frameIndex: number
+  /** the live graph, parked while a replay is on screen */
+  present: GraphData | null
+  loadTimeline: (t: Timeline) => void
+  enterReplay: () => void
+  exitReplay: () => void
+  showFrame: (index: number) => void
+  /** ids the current frame introduced or dropped, for the replay highlight */
+  frameAdded: Set<string>
+  frameRemoved: Set<string>
+
+  /** which question the colours are currently answering — only one at a time */
+  lens: LensKind
+  /** drop the lens but keep the selection: esc walks back one step at a time */
+  clearLens: () => void
+
+  /** "what if I deleted this?" — the consequences, computed but not applied */
+  whatIf: WhatIfReport | null
+  whatIfOrphaned: Set<string>
+  whatIfBroken: Set<string>
+  toggleWhatIf: () => void
+
   load: (data: GraphData, isDemo?: boolean) => void
   setHover: (id: string | null) => void
   select: (id: string | null) => void
@@ -138,7 +181,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   toggleImpact: () => {
     const { selectedId, impactOf, importers } = get()
     if (impactOf) {
-      set({ impactOf: null, impactDepth: new Map() })
+      set(noLens())
       return
     }
     if (!selectedId) {
@@ -162,11 +205,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       frontier = next
     }
     set({
+      ...noLens(),
+      lens: "impact",
       impactOf: selectedId,
       impactDepth: depth,
       impactStartedAt: performance.now(),
-      pathNodes: [],
-      pathEdges: new Set(),
     })
   },
 
@@ -202,7 +245,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     if (!found) {
       const label = (id: string) => data?.nodes.find((n) => n.id === id)?.label ?? id
       toastNoPath(label(selectedId), label(targetId))
-      set({ pathNodes: [], pathEdges: new Set() })
+      set(noLens())
       return
     }
 
@@ -221,7 +264,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       )
       if (edge) edgeIds.add(edge.id)
     }
-    set({ pathNodes: chain, pathEdges: edgeIds, impactOf: null, impactDepth: new Map() })
+    set({ ...noLens(), lens: "path", pathNodes: chain, pathEdges: edgeIds })
   },
 
   showClusters: true,
@@ -254,6 +297,70 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   pinned: new Set(),
   isDemo: false,
 
+  timeline: null,
+  frameIndex: 0,
+  present: null,
+  frameAdded: new Set(),
+  frameRemoved: new Set(),
+  // a generated replay is merely *available*; entering it is a deliberate act,
+  // so the present stays the default view and only one source loads the graph
+  loadTimeline: (t) => set({ timeline: t }),
+  enterReplay: () => {
+    const { timeline, present, data } = get()
+    if (!timeline) return
+    // remember where we were, so esc can put the present back
+    set({ ...noLens(), lens: "replay", present: present ?? data })
+    // start at the origin: a replay is meant to be watched growing, and
+    // opening on the last frame shows exactly what you just left
+    get().showFrame(0)
+  },
+  exitReplay: () => {
+    const { present } = get()
+    set({ ...noLens(), frameAdded: new Set(), frameRemoved: new Set() })
+    if (present) get().load(present)
+    set({ present: null })
+  },
+  showFrame: (index) => {
+    const { timeline, load } = get()
+    const frame = timeline?.frames[index]
+    if (!frame) return
+    // load() seeds the layout from the previous positions, so a file that
+    // survives this commit keeps its place instead of jumping
+    load(frame.graph)
+    set({
+      lens: "replay",
+      frameIndex: index,
+      frameAdded: new Set(frame.added),
+      frameRemoved: new Set(frame.removed),
+    })
+  },
+
+  lens: "none",
+  clearLens: () => set(noLens()),
+  whatIf: null,
+  whatIfOrphaned: new Set(),
+  whatIfBroken: new Set(),
+  toggleWhatIf: () => {
+    const { whatIf, selectedId, data } = get()
+    if (whatIf) {
+      set(noLens())
+      return
+    }
+    if (!selectedId || !data) {
+      toastNeedsSelection("What if")
+      return
+    }
+    const report = simulateDelete(data, selectedId, data.rules)
+    if (!report) return
+    set({
+      ...noLens(),
+      lens: "whatif",
+      whatIf: report,
+      whatIfOrphaned: new Set(report.orphaned),
+      whatIfBroken: new Set(report.broken),
+    })
+  },
+
   districtMode: false,
   setDistrictMode: (v) => {
     if (get().districtMode === v) return
@@ -266,10 +373,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
             selectedId: null,
             selectedEdgeId: null,
             litSet: new Set(),
-            impactOf: null,
-            impactDepth: new Map(),
-            pathNodes: [],
-            pathEdges: new Set(),
+            ...noLens(),
           }
         : { districtMode: false },
     )
@@ -335,10 +439,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedId: null,
       selectedEdgeId: null,
       litSet: new Set(),
-      impactOf: null,
-      impactDepth: new Map(),
-      pathNodes: [],
-      pathEdges: new Set(),
+      ...noLens(),
     })
   },
 
@@ -355,11 +456,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedId: id,
       selectedEdgeId: null,
       litSet: computeLit({ adjacency }, id),
-      // a new selection invalidates any impact/path overlay
-      impactOf: null,
-      impactDepth: new Map(),
-      pathNodes: [],
-      pathEdges: new Set(),
+      // a new selection invalidates whatever lens was answering about the old one
+      ...noLens(),
     })
   },
 
@@ -407,10 +505,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedEdgeId: null,
       litSet: new Set(),
       focusTarget: null,
-      impactOf: null,
-      impactDepth: new Map(),
-      pathNodes: [],
-      pathEdges: new Set(),
+      ...noLens(),
     }),
 }))
 

@@ -21,9 +21,19 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     rows: [
       { keys: ["hover"], label: "Light a node and its neighbours" },
       { keys: ["click"], label: "Select — opens the inspector" },
-      { keys: ["I"], label: "Impact — everything that depends on it" },
-      { keys: ["shift", "click"], label: "Trace the path between two nodes" },
       { keys: ["O"], label: "Open the file in your editor" },
+    ],
+  },
+  {
+    // one at a time, on purpose: each repaints the whole graph to answer its
+    // own question, and two answers at once mean neither is readable
+    title: "lenses · one at a time",
+    rows: [
+      { keys: ["I"], label: "Impact — what depends on the selection" },
+      { keys: ["W"], label: "What if — what deleting it would break" },
+      { keys: ["shift", "click"], label: "Path — the chain between two nodes" },
+      { keys: ["R"], label: "Replay — the architecture through git history" },
+      { keys: ["esc"], label: "Drop the lens, keep the selection" },
     ],
   },
   {

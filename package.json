@@ -6,7 +6,8 @@
     "dev": "turbo dev --filter=@trame/viewer",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
-    "parse": "pnpm --filter @trame/parser dev --"
+    "parse": "pnpm --filter @trame/parser dev --",
+    "test": "turbo test"
   },
   "devDependencies": {
     "turbo": "^2.5.0"

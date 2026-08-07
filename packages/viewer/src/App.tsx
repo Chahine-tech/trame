@@ -6,6 +6,7 @@ import { isDarkGround, usePalette } from "./theme"
 import {
   toastGraphUpdated,
   toastNeedsSelection,
+  toastNoReplay,
   toastOpeningEditor,
   toastParseFailed,
   toastToggled,
@@ -16,7 +17,8 @@ import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
 import { FirstRunHint } from "./ui/FirstRunHint"
-import { subscribeToGraph } from "./graph-feed"
+import { Timeline as TimelineBar } from "./ui/Timeline"
+import { subscribeToGraph, subscribeToTimeline } from "./graph-feed"
 import { EDITOR_LABEL, getEditor, openInEditor } from "./editor"
 
 export function AppUI() {
@@ -28,6 +30,9 @@ export function AppUI() {
   const resetCamera = useGraphStore((s) => s.resetCamera)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+
+  // a replay, if one was generated — it takes over from the live graph
+  useEffect(() => subscribeToTimeline((t) => useGraphStore.getState().loadTimeline(t)), [])
 
   // initial load + watch-mode live reload, both owned by the feed
   useEffect(() => {
@@ -41,9 +46,20 @@ export function AppUI() {
         return
       }
 
-      // hot-swap when the parser rewrites the file
       const next = event.data
-      const current = useGraphStore.getState().data
+      const state = useGraphStore.getState()
+
+      // While the replay is on screen the poll must not touch the graph: the
+      // frame it shows is history, and its timestamp differs from the live one
+      // on every tick. Park the newest present instead, so leaving the replay
+      // returns to the current architecture rather than the one from entry.
+      if (state.lens === "replay") {
+        useGraphStore.setState({ present: next })
+        return
+      }
+
+      // hot-swap when the parser rewrites the file
+      const current = state.data
       if (!current || next.meta.generated === current.meta.generated) return
 
       const delta = next.meta.nodeCount - current.meta.nodeCount
@@ -76,8 +92,12 @@ export function AppUI() {
         return
       }
       if (e.key === "Escape") {
+        // walk back one layer at a time rather than wiping everything: panel,
+        // then the lens, then the selection itself
         if (shortcutsOpen) setShortcutsOpen(false)
         else if (paletteOpen) setPaletteOpen(false)
+        else if (useGraphStore.getState().lens === "replay") useGraphStore.getState().exitReplay()
+        else if (useGraphStore.getState().lens !== "none") useGraphStore.getState().clearLens()
         else clear()
         return
       }
@@ -111,6 +131,13 @@ export function AppUI() {
         useGraphStore.getState().cycleEdgeFilter()
       } else if (e.key.toLowerCase() === "i") {
         useGraphStore.getState().toggleImpact()
+      } else if (e.key.toLowerCase() === "w") {
+        useGraphStore.getState().toggleWhatIf()
+      } else if (e.key.toLowerCase() === "r") {
+        const s = useGraphStore.getState()
+        if (s.lens === "replay") s.exitReplay()
+        else if (s.timeline) s.enterReplay()
+        else toastNoReplay()
       } else if (e.key.toLowerCase() === "o") {
         const s = useGraphStore.getState()
         const node = s.data?.nodes.find((n) => n.id === s.selectedId)
@@ -129,6 +156,7 @@ export function AppUI() {
       <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} />
       <Inspector />
       <FirstRunHint />
+      <TimelineBar />
       <Palette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

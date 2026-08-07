@@ -76,6 +76,16 @@ export function toastNoPath(from: string, to: string): void {
   })
 }
 
+/** The replay exists only if someone generated it. */
+export function toastNoReplay(): void {
+  const p = getPalette()
+  gooeyToast.info("No replay generated", {
+    ...tinted(p.blue),
+    description: "Run: trame replay --src ./src",
+    duration: 4000,
+  })
+}
+
 export function toastNeedsSelection(action: string): void {
   const p = getPalette()
   gooeyToast.info("Select a node first", {

@@ -118,7 +118,6 @@ export function usePalette(): Palette {
   )
 }
 
-/* ---------- theme preference (auto → dark → light) ---------- */
 
 export type ThemePref = "auto" | "dark" | "light"
 const THEME_KEY = "trame-theme"

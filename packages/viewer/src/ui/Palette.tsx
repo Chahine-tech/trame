@@ -8,6 +8,7 @@ import {
   toastCopied,
   toastCopyFailed,
   toastEditorSwitched,
+  toastNoReplay,
   toastExported,
   toastOpeningEditor,
 } from "./toast"
@@ -155,6 +156,29 @@ export function Palette({
             >
               <span className="lbl">Impact of selection</span>
               <span className="path">I</span>
+            </Command.Item>
+            <Command.Item
+              value="replay history git evolution timeline"
+              onSelect={() => {
+                onClose()
+                const s = useGraphStore.getState()
+                if (s.lens === "replay") s.exitReplay()
+                else if (s.timeline) s.enterReplay()
+                else toastNoReplay()
+              }}
+            >
+              <span className="lbl">Replay the architecture through git history</span>
+              <span className="path">R</span>
+            </Command.Item>
+            <Command.Item
+              value="what if delete simulate consequences"
+              onSelect={() => {
+                onClose()
+                useGraphStore.getState().toggleWhatIf()
+              }}
+            >
+              <span className="lbl">What if I deleted the selection?</span>
+              <span className="path">W</span>
             </Command.Item>
             <Command.Item
               value="cycle edge filter type"

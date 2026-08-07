@@ -1,5 +1,5 @@
 import { DEMO } from "./demo-data"
-import type { GraphData } from "./types"
+import type { GraphData, Timeline } from "./types"
 
 const SOURCE = "/trame.json"
 const POLL_MS = 2500
@@ -19,6 +19,33 @@ export type GraphFeedEvent =
  * previous has settled — so a slow response can never land on top of a newer
  * graph. Unsubscribing aborts whatever is in flight and drops its result.
  */
+const REPLAY_SOURCE = "/trame-replay.json"
+
+/**
+ * A generated replay, if there is one. Read once — history does not change
+ * while you watch it — and aborted on unmount like the live feed.
+ */
+export function subscribeToTimeline(onLoaded: (timeline: Timeline) => void): () => void {
+  const controller = new AbortController()
+  let stopped = false
+
+  void (async () => {
+    try {
+      const r = await fetch(REPLAY_SOURCE, { signal: controller.signal })
+      if (!r.ok) return
+      const timeline = (await r.json()) as Timeline
+      if (!stopped && timeline.frames?.length) onLoaded(timeline)
+    } catch {
+      /* no replay generated, or we were aborted — the live graph stands */
+    }
+  })()
+
+  return () => {
+    stopped = true
+    controller.abort()
+  }
+}
+
 export function subscribeToGraph(onEvent: (event: GraphFeedEvent) => void): () => void {
   const controller = new AbortController()
   let timer: ReturnType<typeof setTimeout> | undefined

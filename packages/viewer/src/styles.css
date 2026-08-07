@@ -83,7 +83,6 @@ html, body, #root {
   font-family: var(--font-sans);
 }
 
-/* ---------- Top bar ---------- */
 .topbar {
   position: fixed;
   inset: 0 0 auto 0;
@@ -119,7 +118,6 @@ html, body, #root {
 }
 .topbar .kbd:active { transform: scale(0.96); }
 
-/* ---------- Inspector ---------- */
 .inspector {
   position: fixed;
   top: 46px;
@@ -221,6 +219,31 @@ html, body, #root {
   color: var(--lav);
   background: color-mix(in srgb, var(--lav) 14%, transparent);
 }
+/* One badge, always in the same place: which question the colours answer. */
+.topbar .lens-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 8px 2px 7px;
+  border: 1px solid var(--surface0);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: var(--mantle);
+}
+.topbar .lens-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+.topbar .lens-badge .esc {
+  color: var(--overlay);
+  border-left: 1px solid var(--surface0);
+  padding-left: 7px;
+}
+.topbar .mode.whatif {
+  color: var(--peach);
+  background: color-mix(in srgb, var(--peach) 14%, transparent);
+}
+.topbar .mode.whatif b { color: var(--red); font-weight: 500; }
+.topbar .mode.whatif .good { color: var(--green); }
 .topbar .mode.diff {
   color: var(--subtext);
   background: color-mix(in srgb, var(--surface0) 60%, transparent);
@@ -246,7 +269,6 @@ html, body, #root {
   border-radius: 0 6px 6px 0;
 }
 
-/* ---------- Folder labels (cluster bubbles) ---------- */
 .cluster-label {
   display: flex;
   align-items: center;
@@ -265,7 +287,6 @@ html, body, #root {
   flex: none;
 }
 
-/* ---------- Node labels (drei Html) ---------- */
 .node-label {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -277,7 +298,6 @@ html, body, #root {
 }
 .node-label.dim { color: var(--subtext); }
 
-/* ---------- Command palette (cmdk) — zero animation, 100+/day ---------- */
 .palette-overlay {
   position: fixed;
   inset: 0;
@@ -350,7 +370,6 @@ html, body, #root {
   color: var(--overlay);
 }
 
-/* ---------- Shortcuts panel (?) — native <dialog> ---------- */
 .shortcuts {
   position: fixed;
   top: 50%;
@@ -426,7 +445,6 @@ html, body, #root {
   white-space: nowrap;
 }
 
-/* ---------- Districts (zoomed-out map level) ---------- */
 .district-label {
   display: flex;
   flex-direction: column;
@@ -461,7 +479,6 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* ---------- Toasts (goey-toast) ---------- */
 /* mono type so notifications belong to the same product as the graph */
 .gt-title {
   font-family: var(--font-mono);
@@ -479,7 +496,73 @@ html, body, #root {
   font-size: 0.72rem;
 }
 
-/* ---------- First-run hint ---------- */
+.timeline {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  width: min(720px, 92vw);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mantle) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--surface0);
+  box-shadow: var(--shadow, 0 18px 50px -20px rgba(0, 0, 0, 0.5));
+  font-family: var(--font-mono);
+  z-index: 16;
+}
+.tl-play {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--surface0);
+  background: var(--base);
+  color: var(--text);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out);
+}
+.tl-play:active { transform: scale(0.94); }
+.tl-range {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  accent-color: var(--lav);
+  cursor: pointer;
+}
+.tl-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tl-subject {
+  font-size: 0.8125rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tl-facts {
+  display: flex;
+  gap: 10px;
+  font-size: 0.68rem;
+  color: var(--overlay);
+  font-variant-numeric: tabular-nums;
+}
+.tl-facts .sha { color: var(--lav); }
+.tl-facts .add { color: var(--green); }
+.tl-facts .del { color: var(--red); }
+.tl-facts .viol { color: var(--red); }
+.tl-count {
+  font-size: 0.68rem;
+  color: var(--overlay);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-play { transition: none; }
+}
+
 .first-hint {
   position: fixed;
   bottom: 28px;

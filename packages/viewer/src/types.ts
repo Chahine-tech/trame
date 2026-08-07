@@ -55,6 +55,18 @@ export interface Violation {
   edgeIds: string[]
 }
 
+export interface RuleMatch {
+  edgeType?: EdgeType
+  sourceType?: NodeType
+  targetType?: NodeType
+}
+
+export interface Rule {
+  type: "unique-caller" | "no-direct-import" | "no-cycles"
+  match?: RuleMatch
+  message: string
+}
+
 export interface Analysis {
   orphans: string[]
   cycles: string[][]
@@ -74,6 +86,8 @@ export interface GraphData {
   clusters: GraphCluster[]
   violations?: Violation[]
   analysis?: Analysis
+  /** rules shipped by the parser so "what if?" can re-evaluate them here */
+  rules?: Rule[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -83,3 +97,28 @@ export interface GraphData {
 }
 
 export type Vec3 = [number, number, number]
+
+export interface ReplayFrame {
+  sha: string
+  date: string
+  subject: string
+  author: string
+  nodeCount: number
+  edgeCount: number
+  added: string[]
+  removed: string[]
+  violations: number
+  cycles: number
+  graph: GraphData
+}
+
+export interface Timeline {
+  meta: {
+    project: string
+    generated: string
+    frameCount: number
+    from: string
+    to: string
+  }
+  frames: ReplayFrame[]
+}

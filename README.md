@@ -18,6 +18,8 @@ Mermaid and existing tools generate diagrams where you can't control arrow routi
 - **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
 - **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
 - **Exports where people actually read diagrams** — PNG, `trame.json`, and **Mermaid or Graphviz DOT**. GitHub renders Mermaid natively, so a generated diagram drops straight into a PR, an issue or a README.
+- **What if?** — select a node, press `W`: what would break, what would be stranded, which cycles it would resolve. An architectural decision, tested before it is made.
+- **Replay** — `trame replay` walks your git history and lets you scrub the architecture as it grew. Surviving files keep their position between frames, so the eye can follow what appeared and what went away.
 - **Live pipeline** — `trame watch` re-parses on save, the viewer hot-swaps the graph.
 - **Calm by design** — nodes rest grey; color only lands with your attention (hover/selection lights the neighbourhood). Catppuccin Mocha/Latte, matching your terminal.
 
@@ -94,6 +96,7 @@ trame check --src ./src                      evaluate rules, exit 1 on violation
 trame watch --src ./src [--out ...]          re-parse on file changes
 trame serve --data ./trame.json [--port]   serve the built viewer
 trame diff --base a.json --head b.json       what a branch did to the architecture
+trame replay --src ./src [--since --max-frames]  how the architecture grew, across git history
 
 --format json|mermaid|dot     output shape (default json)
 --tsconfig ./tsconfig.json    resolve paths through a tsconfig
