@@ -330,21 +330,26 @@ html, body, #root {
   color: var(--overlay);
 }
 
-/* ---------- Shortcuts panel (?) ---------- */
+/* ---------- Shortcuts panel (?) — native <dialog> ---------- */
 .shortcuts {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(760px, 92vw);
+  max-width: min(760px, 92vw);
   max-height: 82vh;
   overflow-y: auto;
+  padding: 0; /* the UA gives dialog 1em; head and grid carry their own */
+  color: var(--text);
   background: color-mix(in srgb, var(--mantle) 94%, transparent);
   backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--surface1);
   border-radius: 14px;
-  z-index: 50;
   box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+}
+.shortcuts::backdrop {
+  background: color-mix(in srgb, var(--crust) 52%, transparent);
 }
 .shortcuts-head {
   display: flex;

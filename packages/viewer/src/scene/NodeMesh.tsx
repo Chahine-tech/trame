@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef } from "react"
 import * as THREE from "three"
 import { useFrame } from "@react-three/fiber"
 import { Billboard, Html } from "@react-three/drei"
@@ -77,7 +77,9 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const focus = useGraphStore((s) => s.focus)
   const moveNode = useGraphStore((s) => s.moveNode)
   const setControlsEnabled = useGraphStore((s) => s.setControlsEnabled)
-  const [localHover, setLocalHover] = useState(false)
+  // only ever read inside handlers, so it must not cost a render: the visible
+  // hover state already lives in the store
+  const localHover = useRef(false)
   const meshRef = useRef<THREE.Mesh>(null)
   // drag with ~6px hysteresis: below it's a click (select), above it moves the node
   const drag = useRef<{
@@ -139,11 +141,19 @@ export function NodeMesh({ node }: { node: GraphNode }) {
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
-  useFrame((_, dt) => {
+  useFrame(({ invalidate }, dt) => {
     const m = meshRef.current
     if (!m) return
-    const s = THREE.MathUtils.damp(m.scale.x, targetScale, 12, dt)
-    m.scale.setScalar(s)
+    const current = m.scale.x
+    // damp approaches asymptotically and never lands: settle explicitly, then
+    // do nothing. One subscriber per node runs every frame, and the scale is
+    // already at rest almost all of the time.
+    if (Math.abs(current - targetScale) < 0.001) {
+      if (current !== targetScale) m.scale.setScalar(targetScale)
+      return
+    }
+    m.scale.setScalar(THREE.MathUtils.damp(current, targetScale, 12, dt))
+    invalidate() // under frameloop="demand", ask for the frame that continues this
   })
 
   if (!position) return null
@@ -159,13 +169,13 @@ export function NodeMesh({ node }: { node: GraphNode }) {
       scale={baseScale}
       onPointerOver={(e) => {
         e.stopPropagation()
-        setLocalHover(true)
+        localHover.current = true
         setHover(node.id)
         document.body.style.cursor = "pointer"
       }}
       onPointerOut={() => {
-        if (localHover) {
-          setLocalHover(false)
+        if (localHover.current) {
+          localHover.current = false
           setHover(null)
           document.body.style.cursor = ""
         }
@@ -210,7 +220,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
           else select(node.id) // it was a click, not a drag
         } else if (d?.moved) {
           setControlsEnabled(true)
-          document.body.style.cursor = localHover ? "pointer" : ""
+          document.body.style.cursor = localHover.current ? "pointer" : ""
         }
       }}
       onDoubleClick={(e) => {

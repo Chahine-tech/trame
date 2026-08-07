@@ -22,11 +22,19 @@ function FolderLabel({
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
+  const lastOpacity = useRef(-1)
+
   useFrame(({ camera }) => {
+    const el = ref.current
+    if (!el) return
     const dist = camera.position.distanceTo(centroid)
     // hidden below 35, fully visible above 60
     const opacity = THREE.MathUtils.clamp((dist - 35) / 25, 0, 1) * 0.9
-    if (ref.current) ref.current.style.opacity = String(opacity)
+    // only touch the DOM when the value actually moved — otherwise this is a
+    // style write per label per frame, forever
+    if (Math.abs(opacity - lastOpacity.current) < 0.01) return
+    lastOpacity.current = opacity
+    el.style.opacity = String(opacity)
   })
 
   return (

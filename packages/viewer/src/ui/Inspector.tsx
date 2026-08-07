@@ -84,8 +84,8 @@ export function Inspector() {
           )}
           {violations.length > 0 && (
             <div className="insp-violation">
-              {violations.map((m, i) => (
-                <div key={i}>✗ {m}</div>
+              {violations.map((m) => (
+                <div key={m}>✗ {m}</div>
               ))}
             </div>
           )}
@@ -117,8 +117,8 @@ export function Inspector() {
           <div className="insp-path">{edge.id}</div>
           {violations.length > 0 && (
             <div className="insp-violation">
-              {violations.map((m, i) => (
-                <div key={i}>✗ {m}</div>
+              {violations.map((m) => (
+                <div key={m}>✗ {m}</div>
               ))}
             </div>
           )}

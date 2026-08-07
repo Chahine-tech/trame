@@ -4,8 +4,12 @@ import type { ThreeEvent } from "@react-three/fiber"
 import { useGraphStore } from "../store/graph"
 import { EDGE_COLOR, usePalette } from "../theme"
 import type { GraphEdge, Vec3 } from "../types"
+import { useDisposable } from "./useDisposable"
 
 const UP = new THREE.Vector3(0, 1, 0)
+
+/** Scratch hit point — written by intersectPlane and read in the same event. */
+const HIT = new THREE.Vector3()
 
 /** Deterministic default control points: a gentle perpendicular bow. */
 function defaultCtrl(p0: Vec3, p3: Vec3, edgeId: string): { c1: Vec3; c2: Vec3 } {
@@ -35,31 +39,35 @@ function DraggableHandle({
   onDrag: (p: Vec3) => void
 }) {
   const setControlsEnabled = useGraphStore((s) => s.setControlsEnabled)
-  const dragging = useRef(false)
-  const plane = useRef(new THREE.Plane())
-  const hit = useRef(new THREE.Vector3())
+  // the drag plane lives exactly as long as the gesture: built on press,
+  // dropped on release. Per-handle, so multi-touch can drag two handles on
+  // different planes at once.
+  const drag = useRef<THREE.Plane | null>(null)
 
   return (
     <mesh
       position={position}
       onPointerDown={(e: ThreeEvent<PointerEvent>) => {
         e.stopPropagation()
-        dragging.current = true
         setControlsEnabled(false)
         // drag on the camera-facing plane through the handle
         const camDir = e.camera.getWorldDirection(new THREE.Vector3())
-        plane.current.setFromNormalAndCoplanarPoint(camDir, new THREE.Vector3(...position))
+        drag.current = new THREE.Plane().setFromNormalAndCoplanarPoint(
+          camDir,
+          new THREE.Vector3(...position),
+        )
         ;(e.target as Element).setPointerCapture(e.pointerId)
       }}
       onPointerMove={(e: ThreeEvent<PointerEvent>) => {
-        if (!dragging.current) return
+        const plane = drag.current
+        if (!plane) return
         e.stopPropagation()
-        if (e.ray.intersectPlane(plane.current, hit.current)) {
-          onDrag([hit.current.x, hit.current.y, hit.current.z])
+        if (e.ray.intersectPlane(plane, HIT)) {
+          onDrag([HIT.x, HIT.y, HIT.z])
         }
       }}
       onPointerUp={(e: ThreeEvent<PointerEvent>) => {
-        dragging.current = false
+        drag.current = null
         setControlsEnabled(true)
         ;(e.target as Element).releasePointerCapture(e.pointerId)
       }}
@@ -76,6 +84,7 @@ function GuideLine({ from, to, color }: { from: Vec3; to: Vec3; color: string })
     const curve = new THREE.LineCurve3(new THREE.Vector3(...from), new THREE.Vector3(...to))
     return new THREE.TubeGeometry(curve, 1, 0.04, 4)
   }, [from, to])
+  useDisposable(geometry)
   return (
     <mesh geometry={geometry}>
       <meshBasicMaterial color={color} transparent opacity={0.4} />
@@ -122,6 +131,8 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     const arrowQuat = new THREE.Quaternion().setFromUnitVectors(UP, tangent)
     return { geometry, arrowPos, arrowQuat }
   }, [p0, p3, ctrl, isSelected, isLit, hovered])
+  // the tube is rebuilt on every hover and selection change — release the old one
+  useDisposable(geometry)
 
   const edgeFilter = useGraphStore((s) => s.edgeFilter)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)

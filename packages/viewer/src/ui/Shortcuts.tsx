@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react"
+
 interface Row {
   keys: string[]
   label: string
@@ -44,14 +46,53 @@ const GROUPS: { title: string; rows: Row[] }[] = [
   },
 ]
 
-/** Always-available reference — the honest alternative to a guided tour. */
+/**
+ * Always-available reference — the honest alternative to a guided tour.
+ *
+ * Native <dialog>: the platform supplies the modal semantics, focus trapping,
+ * focus restore, top-layer stacking and ::backdrop that a role="dialog" div
+ * would have to reimplement by hand.
+ */
 export function Shortcuts({ open, onClose }: { open: boolean; onClose: () => void }) {
-  if (!open) return null
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  // keeps the close listener stable across the parent's inline callback
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    else if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  // Escape and any programmatic close both end here, so parent state follows
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const handleClose = () => onCloseRef.current()
+    dialog.addEventListener("close", handleClose)
+    return () => dialog.removeEventListener("close", handleClose)
+  }, [])
 
   return (
-    <>
-      <div className="palette-overlay" onClick={onClose} />
-      <div className="shortcuts" role="dialog" aria-label="Keyboard shortcuts">
+    <dialog
+      ref={dialogRef}
+      className="shortcuts"
+      aria-label="Keyboard shortcuts"
+      onClick={(e) => {
+        // a backdrop click reports the dialog itself as target; compare against
+        // its box so clicks on the panel's own padding don't dismiss it
+        const dialog = dialogRef.current
+        if (!dialog || e.target !== dialog) return
+        const r = dialog.getBoundingClientRect()
+        const inside =
+          e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+        if (!inside) dialog.close()
+      }}
+    >
         <div className="shortcuts-head">
           <span>
             archviz<span className="d">_</span> shortcuts
@@ -75,7 +116,6 @@ export function Shortcuts({ open, onClose }: { open: boolean; onClose: () => voi
             </section>
           ))}
         </div>
-      </div>
-    </>
+    </dialog>
   )
 }

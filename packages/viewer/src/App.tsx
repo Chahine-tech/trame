@@ -16,9 +16,8 @@ import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
 import { FirstRunHint } from "./ui/FirstRunHint"
-import { DEMO } from "./demo-data"
+import { subscribeToGraph } from "./graph-feed"
 import { EDITOR_LABEL, getEditor, openInEditor } from "./editor"
-import type { GraphData } from "./types"
 
 export function AppUI() {
   const palette = usePalette()
@@ -30,40 +29,36 @@ export function AppUI() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
+  // initial load + watch-mode live reload, both owned by the feed
   useEffect(() => {
-    fetch("/archviz.json")
-      .then((r) => (r.ok ? (r.json() as Promise<GraphData>) : Promise.reject(new Error("no data"))))
-      .then((d) => load(d))
-      .catch(() => load(DEMO, true))
-  }, [load])
-
-  // watch-mode live reload: hot-swap when the parser rewrites the file
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const r = await fetch("/archviz.json", { cache: "no-store" })
-        if (!r.ok) return
-        const next = (await r.json()) as GraphData
-        const current = useGraphStore.getState().data
-        if (current && next.meta.generated !== current.meta.generated) {
-          const delta = next.meta.nodeCount - current.meta.nodeCount
-          const before = current.violations?.length ?? 0
-          const after = next.violations?.length ?? 0
-          load(next)
-          // a failed parse serves the last good graph — say so instead of
-          // letting a stale architecture look current
-          if (next.meta.error) toastParseFailed(next.meta.error)
-          else {
-            toastGraphUpdated(next.meta.nodeCount, delta)
-            // that save broke a rule — surface it now, not at CI time
-            if (after > before) toastViolations(after)
-          }
-        }
-      } catch {
-        /* server briefly unavailable — retry next tick */
+    return subscribeToGraph((event) => {
+      if (event.kind === "loaded") {
+        load(event.data)
+        return
       }
-    }, 2500)
-    return () => clearInterval(interval)
+      if (event.kind === "demo") {
+        load(event.data, true)
+        return
+      }
+
+      // hot-swap when the parser rewrites the file
+      const next = event.data
+      const current = useGraphStore.getState().data
+      if (!current || next.meta.generated === current.meta.generated) return
+
+      const delta = next.meta.nodeCount - current.meta.nodeCount
+      const before = current.violations?.length ?? 0
+      const after = next.violations?.length ?? 0
+      load(next)
+      // a failed parse serves the last good graph — say so instead of
+      // letting a stale architecture look current
+      if (next.meta.error) toastParseFailed(next.meta.error)
+      else {
+        toastGraphUpdated(next.meta.nodeCount, delta)
+        // that save broke a rule — surface it now, not at CI time
+        if (after > before) toastViolations(after)
+      }
+    })
   }, [load])
 
   useEffect(() => {

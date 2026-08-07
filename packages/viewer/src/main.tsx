@@ -19,6 +19,9 @@ createRoot(document.getElementById("root")!).render(
     <Canvas
       style={{ position: "fixed", inset: 0 }}
       camera={{ position: [0, 0, 80], fov: 60 }}
+      // a settled graph is a still image: draw on change, not 60 times a second.
+      // Anything that animates asks for the next frame with invalidate().
+      frameloop="demand"
       onPointerMissed={() => useGraphStore.getState().clear()}
       gl={async (props) => {
         const renderer = new WebGPURenderer({
