@@ -10,6 +10,8 @@ export const EDITOR_LABEL: Record<EditorScheme, string> = {
   zed: "Zed",
 }
 
+export const EDITORS: EditorScheme[] = ["vscode", "cursor", "windsurf", "zed"]
+
 export function getEditor(): EditorScheme {
   const v = localStorage.getItem(EDITOR_KEY)
   return v === "cursor" || v === "windsurf" || v === "zed" ? v : "vscode"
@@ -19,9 +21,9 @@ export function setEditor(scheme: EditorScheme): void {
   localStorage.setItem(EDITOR_KEY, scheme)
 }
 
+/** "Try the next one" — the right affordance for the toast's recovery button. */
 export function cycleEditor(): EditorScheme {
-  const order: EditorScheme[] = ["vscode", "cursor", "windsurf", "zed"]
-  const next = order[(order.indexOf(getEditor()) + 1) % order.length]!
+  const next = EDITORS[(EDITORS.indexOf(getEditor()) + 1) % EDITORS.length]!
   setEditor(next)
   return next
 }

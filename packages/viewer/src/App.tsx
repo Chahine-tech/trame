@@ -130,7 +130,9 @@ export function AppUI() {
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <GooeyToaster
         key={palette.base}
-        position="bottom-right"
+        // bottom-left: the inspector owns the right edge, and two floating
+        // surfaces overlapping reads as broken
+        position="bottom-left"
         theme={isDarkGround() ? "dark" : "light"}
         preset="subtle"
         bounce={0.08}

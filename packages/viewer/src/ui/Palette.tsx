@@ -1,7 +1,7 @@
 import { Command } from "cmdk"
 import { exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
-import { EDITOR_LABEL, cycleEditor, getEditor, openInEditor } from "../editor"
+import { EDITORS, EDITOR_LABEL, getEditor, openInEditor, setEditor } from "../editor"
 import { toastEditorSwitched, toastExported, toastOpeningEditor } from "./toast"
 
 /**
@@ -78,12 +78,6 @@ export function Palette({
               <span className="path">O</span>
             </Command.Item>
             <Command.Item
-              value="switch editor vscode cursor zed"
-              onSelect={() => toastEditorSwitched(EDITOR_LABEL[cycleEditor()])}
-            >
-              <span className="lbl">Switch editor (now: {EDITOR_LABEL[getEditor()]})</span>
-            </Command.Item>
-            <Command.Item
               value="reset camera center"
               onSelect={() => {
                 resetCamera()
@@ -141,6 +135,29 @@ export function Palette({
               <span className="lbl">Show keyboard shortcuts</span>
               <span className="path">?</span>
             </Command.Item>
+          </Command.Group>
+          <Command.Group heading="editor">
+            {EDITORS.map((scheme) => {
+              const active = scheme === getEditor()
+              return (
+                <Command.Item
+                  key={scheme}
+                  value={`set editor ${scheme} ${EDITOR_LABEL[scheme]}`}
+                  onSelect={() => {
+                    setEditor(scheme)
+                    toastEditorSwitched(EDITOR_LABEL[scheme])
+                    onClose()
+                  }}
+                >
+                  <span
+                    className="g"
+                    style={{ background: active ? palette.lav : "transparent" }}
+                  />
+                  <span className="lbl">{EDITOR_LABEL[scheme]}</span>
+                  {active && <span className="path">current</span>}
+                </Command.Item>
+              )
+            })}
           </Command.Group>
         </Command.List>
         <div className="palette-foot">
