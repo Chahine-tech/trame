@@ -198,10 +198,10 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     color = isLit ? typeColor : palette.surface1
     opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
   } else {
-    // on paper a live edge is darker ink, not brighter light, and it stays
-    // opaque — a translucent line on white simply vanishes
-    color = isLit || isSelected ? mix(typeColor, palette.text, 0.3) : palette.surface1
-    opacity = isLit || isSelected ? 0.95 : hasActive ? 0.14 : 0.45
+    // on paper a live edge is darker ink, not brighter light. Dimmed lines keep
+    // a floor: the structure has to stay readable while part of it is lit.
+    color = isLit || isSelected ? mix(typeColor, palette.text, 0.3) : palette.overlay
+    opacity = isLit || isSelected ? 0.95 : hasActive ? 0.3 : 0.6
   }
 
   return (

@@ -28,12 +28,17 @@ function FocusDepth() {
   const attentive = useGraphStore((s) => s.litSet.size > 0 || s.selectedEdgeId !== null)
   const scene = useThree((s) => s.scene)
   const invalidate = useThree((s) => s.invalidate)
+  const dark = isDarkGround()
 
   useFrame((_, dt) => {
     const fog = scene.fog as THREE.Fog | null
     if (!fog) return
-    const near = attentive ? 26 : 60
-    const far = attentive ? 96 : 150
+    // Only on dark. Fog is the colour of the ground, so tightening it makes
+    // things sink into the void — but on paper it bleaches them into the page,
+    // on top of the dimming the ink language already does. Two washes, and the
+    // scene faded out about a second after every hover.
+    const near = dark && attentive ? 26 : dark ? 60 : 120
+    const far = dark && attentive ? 96 : dark ? 150 : 320
     const nextNear = THREE.MathUtils.damp(fog.near, near, 4, dt)
     const nextFar = THREE.MathUtils.damp(fog.far, far, 4, dt)
     if (Math.abs(nextFar - fog.far) < 0.05 && Math.abs(nextNear - fog.near) < 0.05) return

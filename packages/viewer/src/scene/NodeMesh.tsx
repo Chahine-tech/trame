@@ -36,18 +36,19 @@ interface Surface {
 }
 
 /**
- * Two grounds, two languages.
+ * Two grounds, two selected sets of steps — not one flipped into the other.
  *
- * On dark, attention adds light and what is unlit fades toward the void.
- * On paper it inverts: what matters is denser ink, and what recedes is washed
- * toward the page — still opaque, just pale. Fading by opacity on a light
- * ground pushes a node *into* the background instead of behind it, which is
- * how the lit/unlit hierarchy used to collapse.
+ * Each mode picks its neutrals against its own surface. On dark, resting ink
+ * is `overlay` and dimming drops opacity toward the void. On paper the same
+ * roles need *darker* steps, because washing a light grey toward a light page
+ * puts it below any usable contrast — that is how the graph vanished at rest.
+ * Dimming still stops at a visible floor: losing the map is too high a price
+ * for highlighting part of it.
  */
 function recede(dark: boolean, p: Palette, amount: number): Surface {
   return dark
     ? { color: p.overlay, emissiveIntensity: 0, opacity: 1 - amount * 0.84 }
-    : { color: mix(p.overlay, p.base, amount * 0.86), emissiveIntensity: 0, opacity: 1 }
+    : { color: mix(p.overlay, p.base, amount * 0.5), emissiveIntensity: 0, opacity: 1 }
 }
 
 function press(dark: boolean, p: Palette, ink: string, strength: number): Surface {
@@ -154,10 +155,11 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     }
     if (isLit) return press(dark, palette, typeColor, isHovered || isSelected ? 0.7 : 0.4)
     if (hasActive) return recede(dark, palette, 1)
-    // at rest: neutral ink, present but quiet
+    // at rest: neutral ink, present but quiet. On paper that is a pencil
+    // construction line — grey, but unmistakably drawn.
     return dark
       ? { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
-      : { color: mix(palette.overlay, palette.base, 0.42), emissiveIntensity: 0, opacity: 1 }
+      : { color: palette.subtext, emissiveIntensity: 0, opacity: 1 }
   }, [node.diff, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark])
 
   // Hover growth eased per-frame (interruptible), never snapped

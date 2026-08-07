@@ -17,7 +17,10 @@
   --peach: #fe640b;
   --pink: #ea76cb;
   --yellow: #df8e1d;
-  --teal: #179299;
+  /* re-stepped from Latte's teal: the original #179299 sits at OKLCH chroma
+     0.098, under the 0.10 floor, so it reads as grey and stops carrying
+     identity. Same hue family, one step out. */
+  --teal: #00969e;
   --lav: #7287fd;
   --red: #d20f39;
 
@@ -58,7 +61,7 @@
   --crust: #dce0e8; --mantle: #e6e9ef; --base: #eff1f5; --surface0: #ccd0da;
   --surface1: #bcc0cc; --overlay: #8c8fa1; --subtext: #6c6f85; --text: #4c4f69;
   --blue: #1e66f5; --green: #40a02b; --mauve: #8839ef; --peach: #fe640b;
-  --pink: #ea76cb; --yellow: #df8e1d; --teal: #179299; --lav: #7287fd;
+  --pink: #ea76cb; --yellow: #df8e1d; --teal: #00969e; --lav: #7287fd;
   --red: #d20f39;
 }
 :root[data-theme="dark"] {
