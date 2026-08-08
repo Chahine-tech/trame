@@ -26,7 +26,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
-    "@trame/parser": "workspace:*",
+    "trame": "workspace:*",
     "cmdk": "^1.1.1",
     "d3-force-3d": "^3.0.6",
     "framer-motion": "^13.0.0",

@@ -1,5 +1,5 @@
 {
-  "name": "@trame/parser",
+  "name": "trame",
   "version": "0.1.0",
   "type": "module",
   "bin": {
@@ -16,7 +16,8 @@
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "node scripts/stage-viewer.mjs"
   },
   "dependencies": {
     "ts-morph": "^28.0.0"
@@ -26,5 +27,37 @@
     "tsx": "^4.20.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "description": "Google Maps for your frontend architecture \u2014 parse a TypeScript codebase and explore it as an interactive 3D map.",
+  "keywords": [
+    "architecture",
+    "dependency-graph",
+    "typescript",
+    "react",
+    "visualization",
+    "3d",
+    "ts-morph",
+    "mermaid",
+    "codebase",
+    "cli"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chahine-tech/trame.git",
+    "directory": "packages/parser"
+  },
+  "homepage": "https://github.com/Chahine-tech/trame#readme",
+  "bugs": {
+    "url": "https://github.com/Chahine-tech/trame/issues"
+  },
+  "files": [
+    "dist",
+    "viewer",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
   }
 }

@@ -50,6 +50,22 @@ function defaultOut(format: Args["format"]): string {
 
 const FORMATS = ["json", "mermaid", "dot", "markdown"] as const
 
+/**
+ * Where the built viewer lives, which differs between the two ways trame runs.
+ *
+ * Installed from npm the viewer ships inside the package, beside dist/. Inside
+ * this repository it is another workspace, two levels up. Checking for the
+ * bundled copy first means a published install never reaches for a monorepo
+ * path that is not there — and an explicit --dist always wins, for anyone
+ * serving a viewer they built themselves.
+ */
+function viewerDist(override: string | undefined): string {
+  if (override) return path.resolve(override)
+  const bundled = path.resolve(import.meta.dirname, "../viewer")
+  if (fs.existsSync(path.join(bundled, "index.html"))) return bundled
+  return path.resolve(import.meta.dirname, "../../viewer/dist")
+}
+
 const DEFAULT_EXCLUDE = ["node_modules", "dist", ".test.", ".spec.", ".stories.", "__tests__", "__mocks__"]
 
 const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture graph
@@ -369,10 +385,7 @@ async function main() {
   }
 
   if (args.command === "serve") {
-    const distDir = args.dist
-      ? path.resolve(args.dist)
-      : path.resolve(import.meta.dirname, "../../viewer/dist")
-    serve({ dataFile: path.resolve(args.data), distDir, port: args.port })
+    serve({ dataFile: path.resolve(args.data), distDir: viewerDist(args.dist), port: args.port })
     return
   }
 

@@ -44,28 +44,26 @@ of, and hold to a set of rules.
 ## Quickstart
 
 ```bash
-pnpm install
-pnpm build
-
-# parse a project
-pnpm --filter @trame/parser dev -- \
-  --src ./path/to/your/src \
-  --out ./packages/viewer/public/trame.json
-
-# open the viewer
-pnpm dev            # → http://localhost:5173
+npx trame --src ./src          # parse — writes trame.json
+npx trame serve                # explore it in the browser
 ```
 
-Or serve the built viewer standalone:
+Two commands, nothing to clone, and your code never leaves the machine: the
+parser reads it locally and the viewer is a static bundle served from your own
+disk.
 
 ```bash
-pnpm --filter @trame/parser dev -- serve --data ./trame.json --port 3000
+npx trame watch --src ./src    # re-parse on save, the viewer follows
+npx trame check --src ./src    # exit 1 if an architecture rule broke
 ```
 
-The landing page is a second app, run on its own:
+### Working on trame itself
 
 ```bash
-pnpm dev:site       # → http://localhost:5174
+pnpm install && pnpm build
+pnpm dev            # viewer   → http://localhost:5173
+pnpm dev:site       # landing  → http://localhost:5174
+pnpm parse -- --src ./path/to/src --out ./packages/viewer/public/trame.json
 ```
 
 ## Tests

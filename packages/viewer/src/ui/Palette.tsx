@@ -1,5 +1,5 @@
 import { Command } from "cmdk"
-import { toDot, toMermaid } from "@trame/parser/export"
+import { toDot, toMermaid } from "trame/export"
 import { currentGraph, exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
 import { EDITORS, EDITOR_LABEL, getEditor, openInEditor, setEditor } from "../editor"
