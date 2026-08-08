@@ -11,14 +11,14 @@ export interface CameraPose {
 
 /** The hero's camera pose, in one place so nothing can drift from it. */
 export const HERO_CAMERA = {
-  position: [0, 14, 78] as [number, number, number],
+  position: [0, 11, 61] as [number, number, number],
   fov: 55,
   /** Orbit radius at the reference aspect — the z of the initial position. */
-  distance: 78,
+  distance: 61,
 }
 
 /** The pose the page opens on, before any section has claimed the viewport. */
-export const HERO_POSE: CameraPose = { distance: HERO_CAMERA.distance, height: 14 }
+export const HERO_POSE: CameraPose = { distance: HERO_CAMERA.distance, height: 11 }
 
 /**
  * The canvas shape this framing was tuned against (a wide window, where the

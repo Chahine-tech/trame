@@ -6,6 +6,7 @@ import { LENSES } from "@trame/viewer/store/lens"
 import type { GraphData } from "@trame/viewer/types"
 import { GraphScene } from "./GraphScene"
 import { useHeroScript } from "./hero-script"
+import { useLensStatus } from "./lens-status"
 import { HERO_CAMERA, type CameraPose } from "./camera"
 
 /** Everything that pulls in Three.js lives behind this module boundary. */
@@ -34,6 +35,16 @@ export function Stage({
 
   useHeroScript(ready && scripted, setCaption)
 
+  /**
+   * The hero narrates itself; a section is narrated by what its lens found.
+   *
+   * Same bubble, same place, two sources — because the visitor is watching one
+   * continuous thing and a second widget appearing lower down would say the
+   * page had changed mode.
+   */
+  const status = useLensStatus()
+  const line = scripted ? caption : status
+
   return (
     <div className="stage">
       <Canvas
@@ -57,9 +68,9 @@ export function Stage({
        * that amber means impact.
        *
        * Keyed on the text so each beat re-enters instead of mutating in place. */}
-      {caption && (
+      {line && (
         <div
-          key={caption}
+          key={line}
           className="status"
           style={
             {
@@ -67,7 +78,7 @@ export function Stage({
             } as React.CSSProperties
           }
         >
-          {caption}
+          {line}
         </div>
       )}
     </div>

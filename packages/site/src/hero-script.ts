@@ -1,117 +1,103 @@
 import { useEffect, useRef } from "react"
 import { useGraphStore } from "@trame/viewer/store/graph"
-import { farthestFrom, subjectOf } from "./subject"
 
 /**
- * The hero performs, then hands over.
+ * The hero proves the graph is alive. It does not teach.
  *
- * It drives the product through the very same store actions a visitor would
- * trigger — hover, select, impact — so the landing cannot drift from the tool
- * it is advertising. Each beat also narrates itself: a first-time visitor has
- * no way of knowing that an amber wave is an impact analysis unless the page
- * says so while it happens.
+ * It used to run the whole product — select, impact, path — because the page
+ * was one screen and there was nowhere else to show anything. Now the scrolled
+ * sections own the lenses, each with a heading and a paragraph to make sense
+ * of it, and the hero playing them first meant every visitor met the amber
+ * wave twice: once unexplained, then again properly. The worse version came
+ * first, which is the wrong way round.
  *
- * The moment anyone touches the page the script stops for good on that
- * gesture — an interface that keeps moving under your cursor is a demo, not
- * a product.
+ * So what is left here names no feature. The arrival cascade is the spectacle;
+ * a wandering hover keeps the graph from settling into a photograph; and one
+ * caption states a fact — how many files, how many connections — which tells a
+ * visitor what they are looking at without spending a lens on it.
+ *
+ * The first time anyone sees an overlay is in the section built to explain it.
  */
 
-/** Idle time before the performance starts over. Short: a grey graph sells nothing. */
-const REPLAY_AFTER = 15_000
+/** How long each node holds the hover before the attention moves on. */
+const HOVER_EVERY = 2800
+
+/** Nodes worth pausing on: enough neighbours that lighting them shows something. */
+const MIN_DEGREE = 3
+
+function wanderOrder(): string[] {
+  const { data, adjacency } = useGraphStore.getState()
+  if (!data) return []
+  return data.nodes
+    .filter((n) => (adjacency.get(n.id)?.size ?? 0) >= MIN_DEGREE)
+    .map((n) => n.id)
+    // sorted, so the tour is the same on every visit — like the cascade
+    .sort()
+}
 
 export function useHeroScript(
   enabled: boolean,
   onCaption: (text: string | null) => void,
 ): void {
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  const stopped = useRef(false)
+  // one holds the delay before the tour starts, the other the tour itself —
+  // they are different kinds of handle and stashing both in one ref only
+  // worked because browsers happen to share an id space
+  const delay = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const tick = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    if (!enabled) return
-    const store = () => useGraphStore.getState()
-
-    const clearTimers = () => {
-      for (const t of timers.current) clearTimeout(t)
-      timers.current = []
+    /**
+     * Leaving the hero must take the caption with it.
+     *
+     * Gating on `enabled` stopped the timers but left the last line it had
+     * written on screen, so scrolling into a section kept a bubble describing
+     * the hero over a graph showing something else entirely.
+     */
+    if (!enabled) {
+      onCaption(null)
+      return
     }
 
-    const play = () => {
-      if (stopped.current) return
-      clearTimers()
-      const hub = subjectOf()
-      if (!hub) return
-      const far = farthestFrom(hub.id)
+    const store = () => useGraphStore.getState()
+    const { nodes, edges } = store().data ?? { nodes: [], edges: [] }
+    // a fact, not a feature: it stays up rather than flashing for one beat
+    onCaption(`${nodes.length} files, ${edges.length} connections`)
 
-      const { nodes, edges } = store().data ?? { nodes: [], edges: [] }
+    const tour = wanderOrder()
+    let i = 0
+    const step = () => {
+      const id = tour[i % tour.length]
+      if (id) store().setHover(id)
+      i++
+    }
+    const stop = () => {
+      if (delay.current) clearTimeout(delay.current)
+      if (tick.current) clearInterval(tick.current)
+    }
 
-      // tight enough that a visitor landing at any moment sees something lit
-      const beats: { at: number; caption: string | null; run: () => void }[] = [
-        {
-          // named while it is happening: a graph assembling itself is striking
-          // but meaningless until someone says what the shapes stand for
-          at: 350,
-          caption: `${nodes.length} files, ${edges.length} connections`,
-          run: () => {},
-        },
-        {
-          at: 1500,
-          caption: `hovering ${hub.label} — its neighbourhood lights up`,
-          run: () => store().setHover(hub.id),
-        },
-        {
-          at: 3600,
-          caption: `${hub.label} selected — what depends on it?`,
-          run: () => store().select(hub.id),
-        },
-        {
-          at: 5000,
-          caption: "impact: everything that would break, ring by ring",
-          run: () => store().toggleImpact(),
-        },
-        {
-          // a second question, and a second lens: one overlay is a trick, two
-          // read as a tool. It also gives the bubble's dot a reason to change
-          // colour — amber for impact, lavender for path.
-          at: 8200,
-          caption: far
-            ? `path: how ${hub.label} reaches ${far.label}`
-            : "path: the chain between two files",
-          run: () => far && store().tracePathTo(far.id),
-        },
-        { at: 12_000, caption: null, run: () => store().clear() },
-      ]
-      for (const beat of beats) {
-        timers.current.push(
-          setTimeout(() => {
-            beat.run()
-            onCaption(beat.caption)
-          }, beat.at),
-        )
-      }
-      timers.current.push(setTimeout(play, REPLAY_AFTER))
+    if (tour.length > 0) {
+      // the cascade needs the screen to itself before attention lands anywhere
+      delay.current = setTimeout(() => {
+        step()
+        tick.current = setInterval(step, HOVER_EVERY)
+      }, 1800)
     }
 
     /**
-     * A hand on the graph ends the performance, permanently.
+     * A hand on the graph ends the wandering, permanently.
      *
-     * Scrolling used to end it too, which was right when the page was one
-     * screen: the wheel could only mean "I am done watching". Now the wheel is
-     * how you move through the page, and killing the demo for using the page
-     * would punish exactly the behaviour we are asking for. Only a pointer on
-     * the scene counts — that is someone reaching for the graph itself.
+     * Only a pointer on the scene counts — the wheel is how you move through
+     * the page now, and stopping the demo for scrolling would punish exactly
+     * the gesture the page is asking for.
      */
     const surrender = () => {
-      stopped.current = true
-      clearTimers()
+      stop()
       store().clear()
-      onCaption(null)
     }
     window.addEventListener("pointerdown", surrender, { once: true })
 
-    play()
-
     return () => {
-      clearTimers()
+      stop()
       window.removeEventListener("pointerdown", surrender)
     }
   }, [enabled, onCaption])

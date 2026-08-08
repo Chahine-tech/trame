@@ -317,14 +317,30 @@ html {
   transform: none;
 }
 
+/* The label wears its lens' colour, so the word and the wave crossing the
+   graph are one statement. It was lavender for every section — which is the
+   *path* lens' colour, announcing the wrong feature while impact ran amber.
+   The -ink variants are the same hues corrected for small-text contrast. */
 .eyebrow {
   display: block;
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--lav);
+  color: var(--subtext);
   margin-bottom: 14px;
+}
+.beat[data-lens="impact"] .eyebrow {
+  color: var(--yellow-ink);
+}
+.beat[data-lens="path"] .eyebrow {
+  color: var(--lav-ink);
+}
+.beat[data-lens="whatif"] .eyebrow {
+  color: var(--peach-ink);
+}
+.beat[data-lens="replay"] .eyebrow {
+  color: var(--lav-ink);
 }
 
 .beat h2 {

@@ -51,11 +51,13 @@ export interface LayoutOptions {
 export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<string, Vec3> {
   const { previous, pinned } = options
   let hadPrevious = false
+  let unseeded = 0
 
   const nodes: SimNode[] = data.nodes.map((n) => {
     const node: SimNode = { id: n.id, cluster: n.cluster }
     // positions persisted in the file win, then the live previous layout
     const seed = previous?.get(n.id) ?? (n.x !== undefined ? ([n.x, n.y!, n.z!] as Vec3) : undefined)
+    if (!seed) unseeded++
     if (seed) {
       hadPrevious = true
       node.x = seed[0]
@@ -84,8 +86,19 @@ export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<str
     .force("center", forceCenter(0, 0, 0))
     .force("cluster", forceCluster())
 
-  // a warm start only needs to place the newcomers, not redraw the world
-  sim.tick(hadPrevious ? 60 : 300)
+  /**
+   * A file where every node already carries a position *is* the layout.
+   *
+   * The warm start exists to place newcomers among nodes that are already
+   * settled; with no newcomer there is nothing to place, and ticking anyway
+   * walks the whole graph away from the coordinates it was given. Measured on
+   * the landing's baked file: every node moved 14 units on average and the
+   * graph inflated 28% (p90 radius 33.7 → 43.1), which is what kept pushing
+   * nodes out of frame. It also ran synchronously in the effect that mounts
+   * the scene, while the renderer was compiling shaders.
+   */
+  const settled = data.nodes.length > 0 && unseeded === 0 && !previous
+  sim.tick(settled ? 0 : hadPrevious ? 60 : 300)
   sim.stop()
 
   const positions = new Map<string, Vec3>()

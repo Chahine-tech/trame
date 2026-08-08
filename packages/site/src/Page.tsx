@@ -3,6 +3,7 @@ import type { GraphData } from "@trame/viewer/types"
 import { Hero } from "./Hero"
 import { SECTIONS } from "./sections"
 import { useActiveSection } from "./useActiveSection"
+import { useReplay } from "./useReplay"
 import { HERO_POSE } from "./camera"
 import { subjectOf, farthestFrom } from "./subject"
 
@@ -66,6 +67,10 @@ export function Page() {
    * derived from the graph rather than hard-coded, so this survives a change of
    * demo codebase.
    */
+  const replayIndex = SECTIONS.findIndex((s) => s.lens === "replay")
+  // armed one section early so 222 kB has landed before the visitor arrives
+  useReplay(active === replayIndex, active >= replayIndex - 1)
+
   useEffect(() => {
     if (!data || active < 0) return
     const subject = subjectOf()
@@ -90,6 +95,7 @@ export function Page() {
           key={section.id}
           ref={register(i)}
           className={`beat${active === i ? " on" : ""}`}
+          data-lens={section.lens ?? "none"}
           aria-labelledby={`${section.id}-title`}
         >
           <div className="beat-copy">

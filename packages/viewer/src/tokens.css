@@ -31,6 +31,19 @@
   --lav: #5a71f0;
   --red: #d20f39;
 
+  /* Accents as small text on paper.
+   *
+   * The accents are tuned as *fills* — a node's face, an edge's ink — where a
+   * large area carries the hue at 3:1. Set in 0.68rem letter-spaced capitals
+   * they fall far below the 4.5:1 that small text needs: --lav sat at 2.81:1.
+   * These are the same hues walked toward --text until they clear it, so a
+   * label naming a lens can be that lens' colour and still be readable.
+   * On the dark ground the plain accents already reach 9:1, so there they are
+   * simply themselves. */
+  --yellow-ink: #8d642f;
+  --lav-ink: #5565c2;
+  --peach-ink: #ac522b;
+
   /* Emil Kowalski easing tokens — built-in curves are too weak */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -61,6 +74,11 @@
     --teal: #94e2d5;
     --lav: #b4befe;
     --red: #f38ba8;
+
+    /* on near-black the accents clear 9:1 unaided — nothing to correct */
+    --yellow-ink: #f9e2af;
+    --lav-ink: #b4befe;
+    --peach-ink: #fab387;
   }
 }
 
@@ -70,6 +88,7 @@
   --blue: #1e66f5; --green: #2f8a1f; --mauve: #8839ef; --peach: #e0530a;
   --pink: #d4529f; --yellow: #b0700f; --teal: #00969e; --lav: #5a71f0;
   --red: #d20f39;
+  --yellow-ink: #8d642f; --lav-ink: #5565c2; --peach-ink: #ac522b;
 }
 :root[data-theme="dark"] {
   --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
@@ -77,5 +96,6 @@
   --blue: #89b4fa; --green: #a6e3a1; --mauve: #cba6f7; --peach: #fab387;
   --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
   --red: #f38ba8;
+  --yellow-ink: #f9e2af; --lav-ink: #b4befe; --peach-ink: #fab387;
 }
 
