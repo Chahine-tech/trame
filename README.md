@@ -1,25 +1,45 @@
 # trame_
 
-> Interactive 3D frontend architecture visualizer — parse your codebase, explore it as a force-directed graph with hand-controllable Bézier edges.
+> **Google Maps for your frontend architecture.**
 
-Mermaid and existing tools generate diagrams where you can't control arrow routing. **trame** parses your TypeScript/React code with `ts-morph`, renders it in real 3D (WebGPU), and gives you full manual control over every edge curve — plus an architectural rules engine that fails your CI when constraints break.
+Parse any TypeScript codebase and explore it as an interactive 3D map. Trace how
+two files got connected, see what breaks before you touch it, test an
+architectural decision before you make it, and fail CI when the architecture
+drifts.
 
-## What you get
+## Why
+
+Architecture diagrams are drawn by hand, stale the week after, and unreadable
+past fifty nodes. The ones that generate themselves route their arrows for you
+and give you no say in the result.
+
+trame doesn't ask you to draw a diagram. It reads your source with `ts-morph`
+and makes the codebase itself the map — one you can walk through, ask questions
+of, and hold to a set of rules.
+
+## Explore
 
 - **Auto-parsed graph** — components, pages, hooks, API endpoints, TanStack Query keys, Zustand stores, React contexts, extracted straight from your source. No hand-written diagrams.
 - **Controllable Bézier edges** — click an edge, drag its two lavender control points in 3D space, curves persist to JSON. The thing no other tool does.
 - **Folders as neighbourhoods** — a clustering force pulls each folder's files into a compact district; semantic zoom fades folder labels in as you zoom out, like a map.
-- **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
 - **Path tracing** — shift-click a second node to light the dependency chain between them. *"Why does LoginPage depend on Chart?"*
-- **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
-- **Constraint rules** — declare architecture rules in `trame.config.ts`; violations glow red in the graph and `trame check` exits 1 for CI.
-- **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
 - **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
-- **Exports where people actually read diagrams** — PNG, `trame.json`, and **Mermaid or Graphviz DOT**. GitHub renders Mermaid natively, so a generated diagram drops straight into a PR, an issue or a README.
-- **What if?** — select a node, press `W`: what would break, what would be stranded, which cycles it would resolve. An architectural decision, tested before it is made.
-- **Replay** — `trame replay` walks your git history and lets you scrub the architecture as it grew. Surviving files keep their position between frames, so the eye can follow what appeared and what went away.
 - **Live pipeline** — `trame watch` re-parses on save, the viewer hot-swaps the graph.
-- **Calm by design** — nodes rest grey; color only lands with your attention (hover/selection lights the neighbourhood). Catppuccin Mocha/Latte, matching your terminal.
+
+## Understand
+
+- **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
+- **What if?** — select a node, press `W`: what would break, what would be stranded, which cycles it would resolve. An architectural decision, tested before it is made.
+- **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
+- **Replay** — `trame replay` walks your git history and lets you scrub the architecture as it grew. Surviving files keep their position between frames, so the eye can follow what appeared and what went away.
+- **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
+
+## Enforce
+
+- **Constraint rules** — declare architecture rules in `trame.config.ts`; violations glow red in the graph and `trame check` exits 1 for CI.
+- **A comment on every pull request** — what the branch did to the architecture, with a Mermaid diagram of just the changed neighbourhood. [Details below](#in-ci).
+
+**Calm by design** — nodes rest grey; colour only lands with your attention. Catppuccin Mocha/Latte, matching your terminal.
 
 ## Quickstart
 
