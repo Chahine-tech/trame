@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei"
 type OrbitControlsImpl = ComponentRef<typeof OrbitControls>
 import { useGraphStore } from "../store/graph"
 import { isDarkGround, usePalette } from "../theme"
+import { Lighting } from "./Lighting"
 import { NodeMesh } from "./NodeMesh"
 import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
@@ -126,7 +127,6 @@ export function Scene() {
   )
   const introSpin = useIntroSpin()
   const districtMode = useGraphStore((s) => s.districtMode)
-  const dark = isDarkGround()
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
 
@@ -147,21 +147,7 @@ export function Scene() {
       <fog attach="fog" args={[palette.base, 60, 150]} />
       <FocusDepth />
 
-      {/* Dark: a lit space — key light and a cool rim sculpt the facets.
-          Light: a printed plate — strong lights would blow every colour toward
-          white, so the material colour carries and shading only hints at form. */}
-      {dark ? (
-        <>
-          <hemisphereLight args={[palette.text, palette.crust, 0.55]} />
-          <directionalLight position={[35, 45, 50]} intensity={1.3} />
-          <directionalLight position={[-40, -15, -35]} intensity={0.45} color={palette.lav} />
-        </>
-      ) : (
-        <>
-          <ambientLight intensity={2.1} />
-          <directionalLight position={[30, 45, 40]} intensity={0.35} />
-        </>
-      )}
+      <Lighting />
 
       <ZoomDirector />
 

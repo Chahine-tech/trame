@@ -126,6 +126,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const tracePathTo = useGraphStore((s) => s.tracePathTo)
   const justAdded = useGraphStore((s) => s.frameAdded.has(node.id))
   const arrivedAt = useGraphStore((s) => s.arrivedAt)
+  const landed = useRef(false)
   const whatIfOn = useGraphStore((s) => s.whatIf !== null)
   const isDoomed = useGraphStore((s) => s.whatIf?.nodeId === node.id)
   const isStranded = useGraphStore((s) => s.whatIfOrphaned.has(node.id))
@@ -215,7 +216,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
      * the reason to keep watching. Nodes come in on a deterministic stagger so
      * every visitor sees the same cascade.
      */
-    if (arrivedAt > 0) {
+    if (arrivedAt > 0 && !landed.current) {
       const t = nodeProgress(arrivedAt, node.id, performance.now())
       if (t < 1) {
         m.scale.setScalar(baseScale * overshoot(t))
@@ -223,6 +224,10 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         invalidate()
         return
       }
+      // latched, as the edge draw-in already was. Nothing resets arrivedAt, so
+      // without this every node re-hashes its id and rewrites `visible` on
+      // every frame for the rest of the session.
+      landed.current = true
       m.visible = true
     }
 

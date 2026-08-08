@@ -4,6 +4,7 @@ import { OrbitControls } from "@react-three/drei"
 import { useGraphStore } from "@trame/viewer/store/graph"
 import { isDarkGround, usePalette } from "@trame/viewer/theme"
 import { HERO_CAMERA, REFERENCE_ASPECT, type CameraPose } from "./camera"
+import { Lighting } from "@trame/viewer/scene/Lighting"
 import { NodeMesh } from "@trame/viewer/scene/NodeMesh"
 import { EdgeMesh } from "@trame/viewer/scene/EdgeMesh"
 
@@ -31,20 +32,10 @@ export function GraphScene({ pose }: { pose: CameraPose }) {
           before anything has been asked of it. */}
       <fog attach="fog" args={[palette.base, dark ? 95 : 150, dark ? 260 : 360]} />
 
-      {dark ? (
-        <>
-          {/* brighter than the tool's rig: on the landing a resting node has
-              to read on near-black before the script ever lights one up */}
-          <hemisphereLight args={[palette.text, palette.crust, 0.95]} />
-          <directionalLight position={[35, 45, 50]} intensity={1.9} />
-          <directionalLight position={[-40, -15, -35]} intensity={0.8} color={palette.lav} />
-        </>
-      ) : (
-        <>
-          <ambientLight intensity={2.1} />
-          <directionalLight position={[30, 45, 40]} intensity={0.35} />
-        </>
-      )}
+      {/* brighter than the tool's: on a landing a resting node has to read on
+          near-black before anything lights it up. Same values as before, now
+          stated as arguments instead of a second copy of the rig. */}
+      <Lighting hemisphere={0.95} key={1.9} rim={0.8} />
 
       {data.edges.map((e) => (
         <EdgeMesh key={e.id} edge={e} />
@@ -107,11 +98,22 @@ function StartArrival() {
  * from, so moving down the page reads as moving through the graph rather than
  * as a slideshow of overlays laid over a fixed picture.
  */
+const REDUCE_MOTION =
+  typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
+
 function SlowDrift({ pose }: { pose: CameraPose }) {
   const camera = useThree((s) => s.camera)
   const invalidate = useThree((s) => s.invalidate)
   const size = useThree((s) => s.size)
-  const taken = useRef(false)
+  /**
+   * Someone who asked for less motion gets a still graph, not a slower orbit.
+   *
+   * The page's argument is motion, so the sections still change what is lit and
+   * the copy still appears — but a camera that never stops turning is exactly
+   * the sustained movement this preference is about. Starting in the "taken"
+   * state reuses the path that already exists for a visitor who grabbed it.
+   */
+  const taken = useRef(REDUCE_MOTION)
   const angle = useRef(0)
   const radius = useRef(HERO_CAMERA.distance)
   const height = useRef(HERO_CAMERA.position[1])

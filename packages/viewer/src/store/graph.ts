@@ -20,6 +20,40 @@ function toast(show: (m: typeof import("../ui/toast")) => void): void {
 }
 
 /**
+ * Everything that transitively reaches `from`, with the number of hops.
+ *
+ * The blast radius of a change: what would have to be recompiled, and how far
+ * each file sits from the edit. Exported because the answer is wanted outside
+ * the lens too — anything choosing a file to demonstrate on should choose it by
+ * the very walk the amber wave will draw, and two walks that can drift apart
+ * are one walk too many.
+ *
+ * `neighbours` is a direction, not a fixed map: pass `importers` for "what
+ * depends on this", `adjacency` for "what is near this".
+ */
+export function reachable(
+  neighbours: Map<string, Set<string>>,
+  from: string,
+): Map<string, number> {
+  const depth = new Map<string, number>([[from, 0]])
+  let frontier = [from]
+  let d = 0
+  while (frontier.length > 0) {
+    d++
+    const next: string[] = []
+    for (const id of frontier) {
+      for (const n of neighbours.get(id) ?? []) {
+        if (depth.has(n)) continue
+        depth.set(n, d)
+        next.push(n)
+      }
+    }
+    frontier = next
+  }
+  return depth
+}
+
+/**
  * Every lens off. Each activator spreads this first, so mutual exclusion is
  * stated once instead of being re-derived (and quietly forgotten) in each one.
  */
@@ -212,22 +246,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       toast((t) => t.toastNeedsSelection("Impact"))
       return
     }
-    // BFS up the importer graph — everything that would break
-    const depth = new Map<string, number>([[selectedId, 0]])
-    let frontier = [selectedId]
-    let d = 0
-    while (frontier.length > 0) {
-      d++
-      const next: string[] = []
-      for (const id of frontier) {
-        for (const importer of importers.get(id) ?? []) {
-          if (depth.has(importer)) continue
-          depth.set(importer, d)
-          next.push(importer)
-        }
-      }
-      frontier = next
-    }
+    // everything that would break, and how far from the change it sits
+    const depth = reachable(importers, selectedId)
     set({
       ...noLens(),
       lens: "impact",

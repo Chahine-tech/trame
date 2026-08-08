@@ -6,6 +6,7 @@
   "exports": {
     "./scene/NodeMesh": "./src/scene/NodeMesh.tsx",
     "./scene/EdgeMesh": "./src/scene/EdgeMesh.tsx",
+    "./scene/Lighting": "./src/scene/Lighting.tsx",
     "./scene/Clusters": "./src/scene/Clusters.tsx",
     "./scene/Layout": "./src/scene/Layout.ts",
     "./store/graph": "./src/store/graph.ts",

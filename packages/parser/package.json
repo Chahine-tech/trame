@@ -2,17 +2,21 @@
   "name": "@trame/parser",
   "version": "0.1.0",
   "type": "module",
-  "bin": { "trame": "./dist/index.js" },
+  "bin": {
+    "trame": "./dist/index.js"
+  },
   "exports": {
     "./export": "./src/export.ts",
     "./analysis": "./src/analysis.ts",
     "./rules": "./src/rules.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./replay": "./src/replay.ts"
   },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "ts-morph": "^28.0.0"
@@ -20,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "tsx": "^4.20.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   }
 }

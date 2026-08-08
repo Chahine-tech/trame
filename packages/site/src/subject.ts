@@ -1,4 +1,4 @@
-import { useGraphStore } from "@trame/viewer/store/graph"
+import { reachable, useGraphStore } from "@trame/viewer/store/graph"
 
 /**
  * Who the demo is about.
@@ -33,22 +33,9 @@ export function subjectOf(): { id: string; label: string } | null {
   if (!data || data.nodes.length === 0) return null
   const total = data.nodes.length
 
-  const blastRadius = (id: string): number => {
-    const seen = new Set([id])
-    let frontier = [id]
-    while (frontier.length > 0) {
-      const next: string[] = []
-      for (const x of frontier) {
-        for (const importer of importers.get(x) ?? []) {
-          if (seen.has(importer)) continue
-          seen.add(importer)
-          next.push(importer)
-        }
-      }
-      frontier = next
-    }
-    return seen.size / total
-  }
+  // the very walk the impact lens will draw, so the file chosen for its blast
+  // radius and the wave the visitor sees can never disagree
+  const blastRadius = (id: string): number => reachable(importers, id).size / total
 
   let best: { id: string; label: string } | null = null
   let bestScore = -Infinity
@@ -77,23 +64,15 @@ export function farthestFrom(id: string): { id: string; label: string } | null {
   if (!data) return null
   const labels = new Map(data.nodes.map((n) => [n.id, n.label]))
 
-  const seen = new Set([id])
-  let frontier = [id]
-  let last: string[] = []
-  while (frontier.length > 0) {
-    last = frontier
-    const next: string[] = []
-    for (const from of frontier) {
-      for (const to of adjacency.get(from) ?? []) {
-        if (seen.has(to)) continue
-        seen.add(to)
-        next.push(to)
-      }
-    }
-    frontier = next
-  }
+  // undirected this time — a path may run with or against the imports
+  const hops = reachable(adjacency, id)
+  let furthest = 0
+  for (const d of hops.values()) if (d > furthest) furthest = d
   // the last ring reached, sorted so the pick is the same on every visit
-  const pick = last.sort()[0]
+  const pick = [...hops]
+    .filter(([, d]) => d === furthest)
+    .map(([n]) => n)
+    .sort()[0]
   if (!pick || pick === id) return null
   return { id: pick, label: labels.get(pick) ?? pick }
 }

@@ -75,7 +75,19 @@ export function sampleCommits(repo: string, since: string, maxFrames: number): C
       return { sha: sha!, date: date!, subject: subject ?? "", author: author ?? "" }
     })
 
+  return pickEvenly(all, maxFrames)
+}
+
+/**
+ * At most `maxFrames` commits, evenly spread, first and last always kept.
+ *
+ * Separated from the git call so the arithmetic can be exercised without a
+ * repository: this is the part that decides whether a replay reads as growth
+ * or as a slideshow, and it is entirely a function of a list and a budget.
+ */
+export function pickEvenly(all: Commit[], maxFrames: number): Commit[] {
   if (all.length === 0) return []
+  if (maxFrames < 2) return all.slice(-1)
   if (all.length <= maxFrames) return all
 
   // even stride over the commit list, first and last always kept
