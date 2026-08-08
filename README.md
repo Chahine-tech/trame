@@ -4,8 +4,6 @@
 
 Mermaid and existing tools generate diagrams where you can't control arrow routing. **trame** parses your TypeScript/React code with `ts-morph`, renders it in real 3D (WebGPU), and gives you full manual control over every edge curve — plus an architectural rules engine that fails your CI when constraints break.
 
-![trame viewer](docs/trame.png)
-
 ## What you get
 
 - **Auto-parsed graph** — components, pages, hooks, API endpoints, TanStack Query keys, Zustand stores, React contexts, extracted straight from your source. No hand-written diagrams.
@@ -43,6 +41,24 @@ Or serve the built viewer standalone:
 ```bash
 pnpm --filter @trame/parser dev -- serve --data ./trame.json --port 3000
 ```
+
+The landing page is a second app, run on its own:
+
+```bash
+pnpm dev:site       # → http://localhost:5174
+```
+
+## Tests
+
+```bash
+pnpm test
+```
+
+29 tests, on the parts where being wrong is silent: Tarjan's SCC detection
+(including a 20 000-node chain, since the implementation promises to be
+iterative), the three constraint rules `trame check` exits on, the commit
+sampler that decides whether a replay reads as growth or as a slideshow, and
+the viewer's lens mutual exclusion.
 
 ## Diagrams for docs and PRs
 
@@ -98,11 +114,17 @@ trame serve --data ./trame.json [--port]   serve the built viewer
 trame diff --base a.json --head b.json       what a branch did to the architecture
 trame replay --src ./src [--since --max-frames]  how the architecture grew, across git history
 
---format json|mermaid|dot     output shape (default json)
+--format json|mermaid|dot|markdown   output shape (default json)
 --tsconfig ./tsconfig.json    resolve paths through a tsconfig
---config ./trame.config.ts  constraint rules (auto-detected in cwd)
+--config ./trame.config.ts    constraint rules (auto-detected in cwd)
 --project name                project name in meta
 --exclude a,b,c               extra path patterns to skip
+--data ./trame.json           (serve) graph file to serve
+--port 3000                   (serve) port
+--dist ./path                 (serve) viewer build override
+--since "6 months ago"        (replay) how far back to walk
+--max-frames 40               (replay) frame budget — the stride follows from it
+--repo .                      (replay) repository root
 ```
 
 ## Keyboard
@@ -187,7 +209,16 @@ Violations show up red in the graph (with the message in the inspector) and make
 ```
 packages/
 ├── parser/    # CLI — AST parsing, graph build, rules, watch, serve
-└── viewer/    # Browser — 3D scene, inspector, command palette
+├── viewer/    # Browser — 3D scene, inspector, command palette
+└── site/      # Landing — the viewer's own meshes, no chrome
 ```
 
-Dogfooded: the demo graph you see is trame's own viewer source, parsed by its own parser.
+The landing imports the viewer's meshes and store rather than describing them,
+so it cannot advertise a behaviour the tool does not have: scrolling a section
+calls the same store action a keystroke would. It ships separately — set
+`VITE_VIEWER_URL` to point its CTA at wherever the viewer is deployed.
+
+Dogfooded, and checkable: every node in the graph on the landing is a real file
+in `packages/viewer/src`, parsed by the real parser. `NodeMesh.tsx` and
+`EdgeMesh.tsx` are in there — the code drawing the graph is part of what it
+draws.

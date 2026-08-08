@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "turbo dev --filter=@trame/viewer",
+    "dev:site": "turbo dev --filter=@trame/site",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "parse": "pnpm --filter @trame/parser dev --",
