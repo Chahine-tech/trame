@@ -9,6 +9,7 @@
     "./scene/Clusters": "./src/scene/Clusters.tsx",
     "./scene/Layout": "./src/scene/Layout.ts",
     "./store/graph": "./src/store/graph.ts",
+    "./store/lens": "./src/store/lens.ts",
     "./theme": "./src/theme.ts",
     "./types": "./src/types.ts",
     "./styles.css": "./src/styles.css",

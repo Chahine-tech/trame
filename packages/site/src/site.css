@@ -6,38 +6,67 @@ html,
 body,
 #root {
   margin: 0;
-  height: 100%;
+  /* min-height, not height, and nothing hidden: the page is taller than the
+     viewport now. It used to be exactly one screen, where `height: 100%` plus
+     `overflow: hidden` was a cheap way to forbid a stray scrollbar — carried
+     forward unchanged it forbade scrolling itself. */
+  min-height: 100%;
   background: var(--base);
   color: var(--text);
   /* the tokens define the faces; something has to apply them, and the viewer's
      own stylesheet — which used to do it — is deliberately not imported here */
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+}
+
+/* The canvas is pinned, so only the copy ever moves. Nothing wide enough to
+   scroll sideways should exist; if it does, that is the bug, not the axis. */
+html {
+  overflow-x: hidden;
+}
+
+/* Where the canvas starts. Declared once on the page because three things
+   depend on it: the canvas, the status bubble that has to ignore it, and the
+   width of every copy column that must not sit under it. */
+.page {
+  position: relative;
+  --canvas-left: 38vw;
 }
 
 .hero {
   position: relative;
   height: 100vh;
   width: 100%;
-  /* Where the canvas starts. Declared once because two things depend on it:
-     the canvas itself, and the status line that has to ignore it. */
-  --canvas-left: 38vw;
 }
 
-/* The canvas owns the right side, and only the right side.
+/* Each scrolled section is a screen of its own, so exactly one holds the
+   viewport at a time and the observer has an unambiguous answer. */
+.beat {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* One canvas, pinned, owning the right side of every screen.
  *
- * Aiming the camera off-centre looked equivalent but wasn't: a world-space
+ * Pinned rather than per-section: the graph is never rebuilt, never crossfaded,
+ * never swapped for a screenshot. Scrolling only changes the question being
+ * asked of it, and that argument holds only if what is on screen never resets.
+ *
+ * Bounded to the right side rather than aimed off-centre — a world-space camera
  * offset rotates with the orbit, so the graph swung back across the headline
- * every half turn. Bounding the element instead is fixed in screen space by
- * construction — and since the scene's background is the very same token as
- * the page's, the seam is invisible. Smaller canvas, less GPU, nothing to drift.
+ * every half turn. An element boundary is fixed in screen space by construction,
+ * and since the scene's background is the page's own token, the seam is invisible.
+ *
+ * No fade-in: the graph builds itself on arrival, and cross-fading a build-in
+ * decorates the wait twice.
  */
-/* No fade. The graph now builds itself on arrival, and cross-fading a
-   build-in is decorating the wait twice — the entrance is the animation. */
-.hero-canvas {
-  position: absolute;
+.stage {
+  position: fixed;
   inset: 0 0 0 var(--canvas-left);
+  z-index: 0;
 }
 /* The graph dissolves as it approaches the text instead of stopping at an
  * invisible edge. The canvas starts where the copy ends, so anything drifting
@@ -54,8 +83,14 @@ body,
  * Masked on the <canvas>, not the wrapper: the bubble is a sibling and stays
  * fully opaque. The band is wide enough to still cover the copy column at its
  * widest (46vw) on narrow windows. */
-.hero-canvas canvas {
+.stage canvas {
   display: block;
+  /* Three's OrbitControls stamps `touch-action: none` inline on connect, which
+     on a phone means a finger on the graph cannot scroll the page — the same
+     bug as the wheel, one input device further. pan-y hands vertical gestures
+     back to the document and keeps horizontal ones for the camera. Inline
+     styles win, so this has to shout. */
+  touch-action: pan-y !important;
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16%);
   mask-image: linear-gradient(to right, transparent 0, black 16%);
 }
@@ -136,47 +171,44 @@ body,
 .cta:active {
   transform: scale(0.97);
 }
-@media (hover: hover) and (pointer: fine) {
-  .cta:hover {
-    border-color: var(--lav);
-  }
-}
 
 .hero-hint {
   font-family: var(--font-mono);
   font-size: 0.72rem;
+  line-height: 1.7;
   color: var(--overlay);
   margin-top: 4px;
+  max-width: 34em;
 }
 
-@media (max-width: 820px) {
-  .hero {
-    --canvas-left: 0px;
-  }
-  .hero-canvas {
-    inset: 0;
-  }
-  .hero-copy {
-    width: 100%;
-    padding-right: 28px;
-  }
-  /* On one column the graph sits behind the whole text, so the fade runs
-     bottom-up instead of left-to-right. */
-  .hero-canvas canvas {
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 34%);
-    mask-image: linear-gradient(to bottom, transparent 0, black 34%);
-  }
+/* The status marker, not a decoration: it asserts the graph is live data.
+ *
+ * The dot does not pulse. A blinking indicator is the convention, but this
+ * page already has a graph assembling itself and a camera in slow orbit — one
+ * more permanent motion would be noise, and the moving graph is the proof of
+ * liveness anyway. */
+.hero-hint .live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 10px;
+  padding: 2px 8px 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--surface0);
+  color: var(--subtext);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+  vertical-align: 1px;
+}
+.hero-hint .live::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cta {
-    transition: none;
-  }
-}
-
-/* The running commentary. A first-time visitor cannot know that an amber wave
-   is an impact analysis unless the page says so while it happens — this is
-   what separates a demo from a screensaver. */
 /* Both worlds are on offer, because both ship in the product: the observatory
    and the technical plate. Switching them is itself an argument for the craft. */
 .theme-toggle {
@@ -195,9 +227,6 @@ body,
   transition: transform 140ms var(--ease-out), border-color 140ms ease;
 }
 .theme-toggle:active { transform: scale(0.96); }
-@media (hover: hover) and (pointer: fine) {
-  .theme-toggle:hover { border-color: var(--lav); }
-}
 
 /* Centred on the page, not on the canvas.
  *
@@ -209,7 +238,7 @@ body,
  *
  * It still lives inside the canvas element, so `left` is measured from the
  * canvas's left edge: subtracting that offset lands it on the page centre. */
-.hero-caption {
+.status {
   position: absolute;
   left: calc(50vw - var(--canvas-left));
   bottom: 46px;
@@ -235,12 +264,17 @@ body,
   pointer-events: none;
   animation: caption-in 320ms var(--ease-out) both;
 }
-.hero-caption::before {
+/* A legend, not an ornament: --dot is set to the active lens' own accent, so
+   the dot is amber exactly while amber propagates through the graph. Falls
+   back to a neutral when no lens is on and there is no colour to echo. The
+   colour eases rather than snapping — the lens it reports fades in too. */
+.status::before {
   content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--lav);
+  background: var(--dot, var(--overlay));
+  transition: background-color 260ms var(--ease-out);
   flex: none;
 }
 
@@ -255,13 +289,115 @@ body,
   }
 }
 
+/* ── Scrolled sections ───────────────────────────────────────────────────
+ *
+ * The copy sits in the same column as the hero's, so the eye keeps one axis
+ * for the whole page and the graph keeps the other. Dissolving the text and
+ * letting the graph go full-bleed was the obvious move and the wrong one: a
+ * graph with no reading anchor is where a visitor loses the thread.
+ */
+.beat-copy {
+  width: min(520px, var(--canvas-left));
+  padding: 0 40px 0 clamp(28px, 6vw, 92px);
+  /* above the scene's DOM labels (drei Html goes up to 5) */
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  /* The copy arrives with its section rather than being there all along —
+     it is the answer to a question the graph is being asked at that moment.
+     Cheap and interruptible: opacity and transform only, no layout. */
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 520ms var(--ease-out),
+    transform 520ms var(--ease-out);
+}
+.beat.on .beat-copy {
+  opacity: 1;
+  transform: none;
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lav);
+  margin-bottom: 14px;
+}
+
+.beat h2 {
+  margin: 0 0 18px;
+  font-family: var(--font-mono);
+  font-size: clamp(1.45rem, 2.3vw, 2.05rem);
+  line-height: 1.15;
+  letter-spacing: -0.028em;
+  color: var(--text);
+}
+
+.beat p {
+  margin: 0;
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--subtext);
+}
+
+/* Motion is the page's argument, so it is not removed here — it is reduced to
+   what carries meaning. The copy still appears, without travelling. */
+
+
+/* ── One column: the graph moves behind the whole page ──────────────────────────────────────────── */
 @media (max-width: 820px) {
-  .hero-caption { display: none; }
+  /* the variable lives on .page — the canvas is its child, not the hero's */
+  .page {
+    --canvas-left: 0px;
+  }
+  .stage {
+    inset: 0;
+  }
+  .hero-copy {
+    width: 100%;
+    padding-right: 28px;
+  }
+  /* On one column the graph sits behind the whole text, so the fade runs
+     bottom-up instead of left-to-right. */
+  .stage canvas {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 34%);
+    mask-image: linear-gradient(to bottom, transparent 0, black 34%);
+  }
+  .status { display: none; }
+  .beat {
+    align-items: flex-start;
+    padding-top: 12vh;
+  }
+  .beat-copy {
+    width: 100%;
+    padding: 0 28px;
+  }
 }
 
+
+/* ── Hover, for devices that actually have one ──────────────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover {
+    border-color: var(--lav);
+  }
+  .theme-toggle:hover { border-color: var(--lav); }
+}
+
+
+/* ── Reduced motion. Motion is this page's argument, so it is not removed —
+ * it is reduced to what carries meaning: things still appear, they stop travelling ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .hero-caption { animation: none; }
+  .cta {
+    transition: none;
+  }
+  .status { animation: none; }
   .theme-toggle { transition: none; }
+  .beat-copy {
+    transition: opacity 200ms linear;
+    transform: none;
+  }
 }
-
-

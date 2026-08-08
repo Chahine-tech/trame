@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import { useGraphStore } from "@trame/viewer/store/graph"
+import { farthestFrom, subjectOf } from "./subject"
 
 /**
  * The hero performs, then hands over.
@@ -15,62 +16,8 @@ import { useGraphStore } from "@trame/viewer/store/graph"
  * a product.
  */
 
-/**
- * The subject has to work for *both* beats, which pull in opposite directions.
- *
- * Hover shows a neighbourhood: it only reads if it is clearly a subset. The
- * busiest file here touches 16 of the other 23, so hovering it lit 71% of the
- * graph — no figure left against the ground.
- *
- * Impact shows transitive dependents, and there the point is that it is large:
- * "everything that would break" has to look like a wave. Optimising for a small
- * neighbourhood alone picks a leaf, whose impact set is two nodes and whose
- * amber wave shows nothing at all.
- *
- * So: score the neighbourhood toward a readable fraction, and reward a wide
- * blast radius. Derived from the graph, never a hard-coded filename, so this
- * survives a change of demo codebase.
- */
-const IDEAL_NEIGHBOURHOOD = 0.3
-
-function subjectOf(): { id: string; label: string } | null {
-  const { data, adjacency, importers } = useGraphStore.getState()
-  if (!data || data.nodes.length === 0) return null
-  const total = data.nodes.length
-
-  const blastRadius = (id: string): number => {
-    const seen = new Set([id])
-    let frontier = [id]
-    while (frontier.length > 0) {
-      const next: string[] = []
-      for (const x of frontier) {
-        for (const importer of importers.get(x) ?? []) {
-          if (seen.has(importer)) continue
-          seen.add(importer)
-          next.push(importer)
-        }
-      }
-      frontier = next
-    }
-    return seen.size / total
-  }
-
-  let best: { id: string; label: string } | null = null
-  let bestScore = -Infinity
-  for (const node of data.nodes) {
-    const neighbourhood = ((adjacency.get(node.id)?.size ?? 0) + 1) / total
-    // distance from a readable neighbourhood dominates; blast radius breaks ties
-    const score = -Math.abs(neighbourhood - IDEAL_NEIGHBOURHOOD) * 3 + blastRadius(node.id)
-    if (score > bestScore) {
-      bestScore = score
-      best = { id: node.id, label: node.label }
-    }
-  }
-  return best
-}
-
 /** Idle time before the performance starts over. Short: a grey graph sells nothing. */
-const REPLAY_AFTER = 12_500
+const REPLAY_AFTER = 15_000
 
 export function useHeroScript(
   enabled: boolean,
@@ -93,6 +40,7 @@ export function useHeroScript(
       clearTimers()
       const hub = subjectOf()
       if (!hub) return
+      const far = farthestFrom(hub.id)
 
       const { nodes, edges } = store().data ?? { nodes: [], edges: [] }
 
@@ -120,7 +68,17 @@ export function useHeroScript(
           caption: "impact: everything that would break, ring by ring",
           run: () => store().toggleImpact(),
         },
-        { at: 9500, caption: null, run: () => store().clear() },
+        {
+          // a second question, and a second lens: one overlay is a trick, two
+          // read as a tool. It also gives the bubble's dot a reason to change
+          // colour — amber for impact, lavender for path.
+          at: 8200,
+          caption: far
+            ? `path: how ${hub.label} reaches ${far.label}`
+            : "path: the chain between two files",
+          run: () => far && store().tracePathTo(far.id),
+        },
+        { at: 12_000, caption: null, run: () => store().clear() },
       ]
       for (const beat of beats) {
         timers.current.push(
@@ -133,7 +91,15 @@ export function useHeroScript(
       timers.current.push(setTimeout(play, REPLAY_AFTER))
     }
 
-    // the visitor taking the mouse ends the performance, permanently
+    /**
+     * A hand on the graph ends the performance, permanently.
+     *
+     * Scrolling used to end it too, which was right when the page was one
+     * screen: the wheel could only mean "I am done watching". Now the wheel is
+     * how you move through the page, and killing the demo for using the page
+     * would punish exactly the behaviour we are asking for. Only a pointer on
+     * the scene counts — that is someone reaching for the graph itself.
+     */
     const surrender = () => {
       stopped.current = true
       clearTimers()
@@ -141,14 +107,12 @@ export function useHeroScript(
       onCaption(null)
     }
     window.addEventListener("pointerdown", surrender, { once: true })
-    window.addEventListener("wheel", surrender, { once: true, passive: true })
 
     play()
 
     return () => {
       clearTimers()
       window.removeEventListener("pointerdown", surrender)
-      window.removeEventListener("wheel", surrender)
     }
   }, [enabled, onCaption])
 }

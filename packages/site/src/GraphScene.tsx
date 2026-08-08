@@ -3,18 +3,18 @@ import { useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { useGraphStore } from "@trame/viewer/store/graph"
 import { isDarkGround, usePalette } from "@trame/viewer/theme"
-import { HERO_CAMERA, REFERENCE_ASPECT } from "./camera"
+import { HERO_CAMERA, REFERENCE_ASPECT, type CameraPose } from "./camera"
 import { NodeMesh } from "@trame/viewer/scene/NodeMesh"
 import { EdgeMesh } from "@trame/viewer/scene/EdgeMesh"
 
 /**
  * The product's own meshes, without the tool's chrome.
  *
- * No inspector, no palette, no top bar — the hero is the graph and nothing
+ * No inspector, no palette, no top bar — the page is the graph and nothing
  * else. Everything you see here is the code that ships in the viewer, so a
  * visitor who clicks through finds exactly what they were just watching.
  */
-export function HeroScene() {
+export function GraphScene({ pose }: { pose: CameraPose }) {
   const palette = usePalette()
   const data = useGraphStore((s) => s.data)
   const controlsEnabled = useGraphStore((s) => s.controlsEnabled)
@@ -59,10 +59,23 @@ export function HeroScene() {
         enableDamping
         dampingFactor={0.08}
         enablePan={false}
+        /**
+         * The wheel belongs to the page, not to the camera.
+         *
+         * enableZoom defaults to true, and three's OrbitControls then attaches
+         * a wheel listener that calls preventDefault — so with the canvas
+         * pinned across most of the viewport, scrolling anywhere over the
+         * graph zoomed the camera and never reached the document. The page
+         * simply would not scroll unless the pointer sat in the copy column.
+         *
+         * Dragging still takes the camera, which is the gesture that was
+         * always meant to mean "I want to look around".
+         */
+        enableZoom={false}
         minDistance={30}
         maxDistance={140}
       />
-      <SlowDrift />
+      <SlowDrift pose={pose} />
       <StartArrival />
     </>
   )
@@ -87,51 +100,75 @@ function StartArrival() {
 }
 
 /**
- * A continuous slow orbit — unlike the tool, where the spin is an arrival that
- * stops. A landing has to catch the eye of someone who has not asked for
- * anything, so here the motion is the invitation and it never fully settles.
+ * A continuous slow orbit whose radius and height follow the section on screen.
+ *
+ * Unlike the tool, where the spin is an arrival that stops, here the motion is
+ * the invitation and it never fully settles. Scrolling changes where it orbits
+ * from, so moving down the page reads as moving through the graph rather than
+ * as a slideshow of overlays laid over a fixed picture.
  */
-function SlowDrift() {
+function SlowDrift({ pose }: { pose: CameraPose }) {
   const camera = useThree((s) => s.camera)
   const invalidate = useThree((s) => s.invalidate)
   const size = useThree((s) => s.size)
   const taken = useRef(false)
   const angle = useRef(0)
+  const radius = useRef(HERO_CAMERA.distance)
+  const height = useRef(HERO_CAMERA.position[1])
 
   /**
-   * The orbit radius follows the canvas shape instead of being a fixed number.
+   * The requested distance, widened for narrow canvases.
    *
-   * The canvas owns only the right 62% of the page, so a narrower window turns
-   * it portrait and the horizontal field collapses — at a 0.80 aspect five
-   * nodes fell outside the frame, clipped mid-label, which reads as broken
-   * rather than as "there is more". Distance is scaled by the aspect so every
-   * width shows the same horizontal span.
-   *
-   * REFERENCE_ASPECT is the wide layout, which already frames well: at or above
-   * it nothing changes at all. The camera only ever pulls back, never closer.
+   * The canvas owns only the right part of the page, so a narrower window
+   * turns it portrait and the horizontal field collapses — nodes fell outside
+   * the frame, clipped mid-label, which reads as broken rather than as "there
+   * is more". Scaling by the aspect makes every width show the same span.
    */
-  const radius = Math.min(
-    Math.max(HERO_CAMERA.distance * (REFERENCE_ASPECT / (size.width / size.height)), HERO_CAMERA.distance),
+  const target = Math.min(
+    Math.max(pose.distance * (REFERENCE_ASPECT / (size.width / size.height)), pose.distance),
     130,
   )
 
   useFrame((_, dt) => {
     if (taken.current) return
     angle.current += dt * 0.08
+
+    /**
+     * The pose is eased, never snapped.
+     *
+     * A camera that teleports on a scroll boundary announces "a section
+     * changed", which is exactly the seam a continuous experience must not
+     * have. Exponential approach: the shape of a spring coming to rest, in one
+     * line, and frame-rate independent — a 120 Hz display and a struggling
+     * laptop take the same wall-clock time to arrive.
+     */
+    const k = 1 - Math.exp(-dt / 0.55)
+    radius.current += (target - radius.current) * k
+    height.current += (pose.height - height.current) * k
+
+    const r = radius.current
     camera.position.set(
-      Math.sin(angle.current) * radius,
-      (radius / HERO_CAMERA.distance) * (14 + Math.sin(angle.current * 0.6) * 8),
-      Math.cos(angle.current) * radius,
+      Math.sin(angle.current) * r,
+      height.current + Math.sin(angle.current * 0.6) * 8 * (r / HERO_CAMERA.distance),
+      Math.cos(angle.current) * r,
     )
     camera.lookAt(0, 0, 0)
     invalidate()
   })
 
   useFrame(() => {
-    // the moment the visitor drags, the drift yields the camera for good
+    // dragging a Bézier handle disables the controls — that counts as taking it
     if (!useGraphStore.getState().controlsEnabled) taken.current = true
   })
 
+  /**
+   * Taking the camera is permanent, and scrolling never takes it back.
+   *
+   * Sections keep narrating with colour afterwards — the lens still changes as
+   * you scroll — but the viewpoint stays where the visitor put it. Fighting
+   * someone for control of a camera they just grabbed is the worst thing a
+   * scroll-driven page can do, and it is why most of them feel cheap.
+   */
   const stop = () => {
     taken.current = true
   }

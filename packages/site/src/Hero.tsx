@@ -1,47 +1,26 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { useState } from "react"
 import { cycleThemePref, getThemePref } from "@trame/viewer/theme"
-import type { GraphData } from "@trame/viewer/types"
 
 const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 
 /**
- * The engine is code-split so the headline paints on its own, and requested
- * immediately so it does not queue behind anything.
+ * Where the tool lives. It is a separate application with its own deployment,
+ * so this is the one place that knows about it.
  *
- * Three.js is ~300 kB gzip whatever we do; blocking the first paint on it
- * would mean a second of empty page for someone arriving from a link — the
- * worst possible first impression for a page that promises something visual.
- *
- * The import starts here, at module scope, rather than being left to `lazy` to
- * trigger on first render. Render is gated on the graph having arrived, so
- * leaving it to `lazy` put 1.1 MB of renderer *behind* a 16 kB fetch that has
- * nothing to do with it. Started here the two race instead of queueing, and
- * the browser still paints the copy while the chunk lands.
+ * Set VITE_VIEWER_URL at build time to the viewer's own URL. Locally it falls
+ * back to the port `pnpm --filter @trame/viewer dev` listens on, so the link
+ * works during development with nothing to configure.
  */
-const enginePromise = import("./HeroCanvas")
-const HeroCanvas = lazy(() => enginePromise.then((m) => ({ default: m.HeroCanvas })))
+const DEMO_URL = import.meta.env.VITE_VIEWER_URL ?? "http://localhost:5173/"
 
+/**
+ * The first screen: the promise, and the graph proving it behind.
+ *
+ * It owns no canvas of its own — the page pins one behind every section, so
+ * scrolling never restarts the graph. This is only the copy.
+ */
 export function Hero() {
-  const [data, setData] = useState<GraphData | null>(null)
   const [theme, setTheme] = useState(getThemePref)
-
-  /**
-   * The data is fetched here, in the light chunk, not inside the engine.
-   *
-   * It used to live in HeroCanvas — which meant 16 kB of graph queued behind
-   * 300 kB of renderer for no reason. Preloaded from the HTML and read here,
-   * it arrives long before the engine and can already be drawn flat.
-   */
-  useEffect(() => {
-    const controller = new AbortController()
-    fetch("/demo.json", { signal: controller.signal })
-      .then((r) => r.json() as Promise<GraphData>)
-      .then(setData)
-      .catch(() => {
-        /* the copy stands on its own */
-      })
-    return () => controller.abort()
-  }, [])
 
   return (
     <section className="hero">
@@ -54,12 +33,6 @@ export function Hero() {
       >
         {THEME_ICON[theme]} {theme}
       </button>
-
-      {data && (
-        <Suspense fallback={null}>
-          <HeroCanvas data={data} />
-        </Suspense>
-      )}
 
       <div className="hero-copy">
         <span className="wordmark">
@@ -79,7 +52,7 @@ export function Hero() {
         </p>
 
         <div className="hero-actions">
-          <a className="cta primary" href="/demo">
+          <a className="cta primary" href={DEMO_URL}>
             Explore a real codebase
           </a>
           <a className="cta" href="https://github.com/Chahine-tech/trame">
@@ -87,7 +60,19 @@ export function Hero() {
           </a>
         </div>
 
-        <p className="hero-hint">This is the tool itself, running. Drag to take the camera.</p>
+        {/* The strongest claim on the page, and it costs a sentence.
+         *
+         * The graph is not a mock-up: every one of its nodes is a real file in
+         * packages/viewer/src, parsed by the real parser. NodeMesh and EdgeMesh
+         * are in there — so the code drawing this graph is part of what it
+         * draws. "This is the tool itself, running" said the same thing and
+         * asked to be taken on trust; this version can be checked by clicking
+         * a node. */}
+        <p className="hero-hint">
+          <span className="live">live</span>
+          trame parsed its own source — the files drawing this graph are in it. Scroll
+          to see it answer questions.
+        </p>
       </div>
     </section>
   )

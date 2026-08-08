@@ -1,3 +1,14 @@
+/**
+ * Where the orbit sits. Each scroll section names one of these, and the camera
+ * eases between them, so scrolling reads as moving through the graph.
+ */
+export interface CameraPose {
+  /** orbit radius: how far back the viewpoint stands */
+  distance: number
+  /** how high it rides — a change of angle, not only of zoom */
+  height: number
+}
+
 /** The hero's camera pose, in one place so nothing can drift from it. */
 export const HERO_CAMERA = {
   position: [0, 14, 78] as [number, number, number],
@@ -5,6 +16,9 @@ export const HERO_CAMERA = {
   /** Orbit radius at the reference aspect — the z of the initial position. */
   distance: 78,
 }
+
+/** The pose the page opens on, before any section has claimed the viewport. */
+export const HERO_POSE: CameraPose = { distance: HERO_CAMERA.distance, height: 14 }
 
 /**
  * The canvas shape this framing was tuned against (a wide window, where the
