@@ -1,0 +1,70 @@
+@import "./tokens.css";
+
+/* Styles for the DOM the 3D scene itself renders through drei's <Html> —
+ * node labels, folder labels, district weights.
+ *
+ * These belong to the scene, not to the tool's chrome: anything embedding
+ * NodeMesh or Districts needs them, and the landing embeds exactly those
+ * without ever rendering a top bar or an inspector.
+ */
+
+.cluster-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 4px var(--crust);
+}
+.cluster-label .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+.node-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  transform: translate(-50%, -180%);
+  pointer-events: none;
+  text-shadow: 0 1px 4px var(--crust);
+}
+.node-label.dim { color: var(--subtext); }
+.district-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  pointer-events: none;
+  /* a halo, not a drop shadow: the label sits on its own region and has to
+     stay readable whatever colour ends up behind it */
+  paint-order: stroke fill;
+  -webkit-text-stroke: 3px var(--base);
+}
+.district-label .name {
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+.district-label .count {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--subtext);
+}
+.district-weight {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--subtext);
+  background: color-mix(in srgb, var(--base) 80%, transparent);
+  border: 1px solid var(--surface0);
+  border-radius: 999px;
+  padding: 1px 6px;
+  pointer-events: none;
+}

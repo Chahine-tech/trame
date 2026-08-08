@@ -3,6 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./scene/NodeMesh": "./src/scene/NodeMesh.tsx",
+    "./scene/EdgeMesh": "./src/scene/EdgeMesh.tsx",
+    "./scene/Clusters": "./src/scene/Clusters.tsx",
+    "./scene/Layout": "./src/scene/Layout.ts",
+    "./store/graph": "./src/store/graph.ts",
+    "./theme": "./src/theme.ts",
+    "./types": "./src/types.ts",
+    "./styles.css": "./src/styles.css",
+    "./tokens.css": "./src/tokens.css",
+    "./scene.css": "./src/scene.css"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

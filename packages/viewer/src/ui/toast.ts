@@ -99,11 +99,19 @@ export function toastExported(what: string): void {
   gooeyToast.success(`${what} exported`, { ...tinted(p.green) })
 }
 
-export function toastCopied(what: string): void {
+/**
+ * Says *which* state was copied. While a replay is on screen the diagram is
+ * history, and pasting a three-week-old architecture into a PR believing it
+ * is today is a mistake the toast can prevent.
+ */
+export function toastCopied(what: string, state?: string): void {
   const p = getPalette()
   gooeyToast.success(`${what} copied`, {
     ...tinted(p.green),
-    description: "Paste it into a PR, an issue or a README",
+    description: state
+      ? `The architecture at ${state} — not the present`
+      : "Paste it into a PR, an issue or a README",
+    duration: state ? 5000 : 3200,
   })
 }
 

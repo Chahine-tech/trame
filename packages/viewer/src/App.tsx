@@ -125,8 +125,9 @@ export function AppUI() {
       } else if (e.key.toLowerCase() === "l") {
         const s = useGraphStore.getState()
         s.toggleLabels()
-        // labels only draw on lit nodes, so the toggle can look like a no-op
-        toastToggled("Labels", !s.showLabels)
+        // at file level labels only draw on a lit node, so the toggle can look
+        // like a no-op; in district mode the effect is immediate and obvious
+        if (!s.districtMode) toastToggled("Labels", !s.showLabels)
       } else if (e.key.toLowerCase() === "e") {
         useGraphStore.getState().cycleEdgeFilter()
       } else if (e.key.toLowerCase() === "i") {

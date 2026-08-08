@@ -1,76 +1,5 @@
 @import "tailwindcss";
-
-:root {
-  /* ---- Catppuccin Latte (light) ---- */
-  --crust: #dce0e8;
-  --mantle: #e6e9ef;
-  --base: #eff1f5;
-  --surface0: #ccd0da;
-  --surface1: #bcc0cc;
-  --overlay: #8c8fa1;
-  --subtext: #6c6f85;
-  --text: #4c4f69;
-
-  --blue: #1e66f5;
-  --green: #40a02b;
-  --mauve: #8839ef;
-  --peach: #fe640b;
-  --pink: #ea76cb;
-  --yellow: #df8e1d;
-  /* re-stepped from Latte's teal: the original #179299 sits at OKLCH chroma
-     0.098, under the 0.10 floor, so it reads as grey and stops carrying
-     identity. Same hue family, one step out. */
-  --teal: #00969e;
-  --lav: #7287fd;
-  --red: #d20f39;
-
-  /* Emil Kowalski easing tokens — built-in curves are too weak */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* ---- Catppuccin Mocha (dark) ---- */
-    --crust: #11111b;
-    --mantle: #181825;
-    --base: #1e1e2e;
-    --surface0: #313244;
-    --surface1: #45475a;
-    --overlay: #6c7086;
-    --subtext: #a6adc8;
-    --text: #cdd6f4;
-
-    --blue: #89b4fa;
-    --green: #a6e3a1;
-    --mauve: #cba6f7;
-    --peach: #fab387;
-    --pink: #f5c2e7;
-    --yellow: #f9e2af;
-    --teal: #94e2d5;
-    --lav: #b4befe;
-    --red: #f38ba8;
-  }
-}
-
-:root[data-theme="light"] {
-  --crust: #dce0e8; --mantle: #e6e9ef; --base: #eff1f5; --surface0: #ccd0da;
-  --surface1: #bcc0cc; --overlay: #8c8fa1; --subtext: #6c6f85; --text: #4c4f69;
-  --blue: #1e66f5; --green: #40a02b; --mauve: #8839ef; --peach: #fe640b;
-  --pink: #ea76cb; --yellow: #df8e1d; --teal: #00969e; --lav: #7287fd;
-  --red: #d20f39;
-}
-:root[data-theme="dark"] {
-  --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
-  --surface1: #45475a; --overlay: #6c7086; --subtext: #a6adc8; --text: #cdd6f4;
-  --blue: #89b4fa; --green: #a6e3a1; --mauve: #cba6f7; --peach: #fab387;
-  --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
-  --red: #f38ba8;
-}
+@import "./scene.css";
 
 * { box-sizing: border-box; }
 
@@ -269,34 +198,7 @@ html, body, #root {
   border-radius: 0 6px 6px 0;
 }
 
-.cluster-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  pointer-events: none;
-  text-shadow: 0 1px 4px var(--crust);
-}
-.cluster-label .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-}
 
-.node-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text);
-  white-space: nowrap;
-  transform: translate(-50%, -180%);
-  pointer-events: none;
-  text-shadow: 0 1px 4px var(--crust);
-}
-.node-label.dim { color: var(--subtext); }
 
 .palette-overlay {
   position: fixed;
@@ -445,39 +347,6 @@ html, body, #root {
   white-space: nowrap;
 }
 
-.district-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  font-family: var(--font-mono);
-  white-space: nowrap;
-  pointer-events: none;
-  /* a halo, not a drop shadow: the label sits on its own region and has to
-     stay readable whatever colour ends up behind it */
-  paint-order: stroke fill;
-  -webkit-text-stroke: 3px var(--base);
-}
-.district-label .name {
-  font-size: 15px;
-  letter-spacing: -0.01em;
-  font-weight: 500;
-}
-.district-label .count {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--subtext);
-}
-.district-weight {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--subtext);
-  background: color-mix(in srgb, var(--base) 80%, transparent);
-  border: 1px solid var(--surface0);
-  border-radius: 999px;
-  padding: 1px 6px;
-  pointer-events: none;
-}
 
 /* mono type so notifications belong to the same product as the graph */
 .gt-title {

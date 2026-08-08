@@ -5,6 +5,26 @@ import { useGraphStore } from "../store/graph"
 import { EDGE_COLOR, isDarkGround, mix, usePalette } from "../theme"
 import type { GraphEdge, Vec3 } from "../types"
 import { useDisposable } from "./useDisposable"
+import { edgeProgress, easeOut } from "./arrival"
+
+/** Sides of the extruded tube. Named because the draw-in steps by whole rings. */
+const RADIAL_SEGMENTS = 6
+
+/**
+ * How present an edge stays once a lens has pushed it into the background.
+ *
+ * It used to be 0.03 — effectively deleted — while dimmed *nodes* stayed fully
+ * opaque and merely turned pale. That asymmetry is what made a lens look
+ * cloudy: the background kept its dots and lost its lines, and dots without
+ * lines read as dirt on the screen rather than as distance.
+ *
+ * Low enough that the lit answer still shouts, high enough that the map
+ * survives underneath it — losing the structure is too high a price for
+ * highlighting part of it.
+ */
+function dimmedEdge(dark: boolean): number {
+  return dark ? 0.09 : 0.2
+}
 
 const UP = new THREE.Vector3(0, 1, 0)
 
@@ -136,6 +156,42 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     [edited, p0, p3, edge.id],
   )
 
+  const arrivedAt = useGraphStore((s) => s.arrivedAt)
+  const tubeRef = useRef<THREE.Mesh>(null)
+  const arrowRef = useRef<THREE.Mesh>(null)
+  const drawn = useRef(false)
+
+  /**
+   * The edge draws itself from source to target rather than fading in.
+   *
+   * TubeGeometry indexes its triangles ring after ring along the curve, so a
+   * draw range is a length: the tube genuinely grows toward its target instead
+   * of appearing whole at low opacity. The arrowhead waits for it to land,
+   * because an arrow ahead of its own line reads as a rendering glitch.
+   */
+  useFrame(({ invalidate }) => {
+    // once drawn it stays drawn: without this every edge would keep paying for
+    // a per-frame no-op for the rest of the session
+    if (drawn.current) return
+    const tube = tubeRef.current
+    if (!tube) return
+    const t = edgeProgress(arrivedAt, edge.source, edge.target, performance.now())
+    const total = tube.geometry.index?.count ?? 0
+    if (t >= 1) {
+      tube.geometry.setDrawRange(0, Infinity)
+      tube.visible = true
+      if (arrowRef.current) arrowRef.current.visible = true
+      drawn.current = true
+      return
+    }
+    // rings are 6 indices per radial segment — keep the range on a ring boundary
+    const ring = RADIAL_SEGMENTS * 6
+    tube.geometry.setDrawRange(0, Math.floor((total * easeOut(t)) / ring) * ring)
+    tube.visible = t > 0
+    if (arrowRef.current) arrowRef.current.visible = false
+    invalidate()
+  })
+
   const isLit = isSelected || (litSet.has(edge.source) && litSet.has(edge.target) && hasActive)
 
   const { geometry, arrowPos, arrowQuat } = useMemo(() => {
@@ -148,7 +204,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     )
     // thickens on hover so "this edge is clickable" needs no explaining
     const radius = isSelected ? 0.16 : hovered ? 0.17 : isLit ? 0.12 : 0.045
-    const geometry = new THREE.TubeGeometry(curve, 40, radius, 6)
+    const geometry = new THREE.TubeGeometry(curve, 40, radius, RADIAL_SEGMENTS)
     // arrowhead just before the target node's surface
     const t = 0.93
     const arrowPos = curve.getPoint(t)
@@ -171,6 +227,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
 
   const typeColor = palette[EDGE_COLOR[edge.type]]
   const dark = isDarkGround()
+  const DIMMED_EDGE = dimmedEdge(dark)
 
   // analysis overlays win over the resting language
   let color: string
@@ -183,11 +240,11 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     opacity = 0.3
   } else if (pathOn) {
     color = onPath ? palette.lav : palette.surface1
-    opacity = onPath ? 0.95 : 0.03
+    opacity = onPath ? 0.95 : DIMMED_EDGE
   } else if (impactOn) {
     const both = impactHasSource && impactHasTarget
     color = both ? palette.yellow : palette.surface1
-    opacity = both ? 0.6 : 0.03
+    opacity = both ? 0.6 : DIMMED_EDGE
   } else if (isViolated) {
     color = palette.red
     opacity = isSelected || isLit ? 0.95 : 0.55
@@ -207,6 +264,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   return (
     <group>
       <mesh
+        ref={tubeRef}
         geometry={geometry}
         onPointerOver={(e) => {
           e.stopPropagation()
@@ -229,7 +287,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
         <meshBasicMaterial color={color} transparent opacity={opacity} />
       </mesh>
 
-      <mesh position={arrowPos} quaternion={arrowQuat}>
+      <mesh ref={arrowRef} position={arrowPos} quaternion={arrowQuat}>
         <coneGeometry args={[0.32, 0.9, 10]} />
         <meshBasicMaterial color={color} transparent opacity={opacity} />
       </mesh>

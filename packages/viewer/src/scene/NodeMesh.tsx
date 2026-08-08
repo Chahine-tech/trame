@@ -5,6 +5,7 @@ import { Billboard, Html } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js"
 import { useGraphStore } from "../store/graph"
 import { isDarkGround, mix, NODE_COLOR, usePalette, type Palette } from "../theme"
+import { nodeProgress, overshoot } from "./arrival"
 import type { GraphNode } from "../types"
 
 /**
@@ -48,7 +49,10 @@ interface Surface {
 function recede(dark: boolean, p: Palette, amount: number): Surface {
   return dark
     ? { color: p.overlay, emissiveIntensity: 0, opacity: 1 - amount * 0.84 }
-    : { color: mix(p.overlay, p.base, amount * 0.5), emissiveIntensity: 0, opacity: 1 }
+    : // washed further toward the page than it used to be: a receded node was
+      // staying fully solid while its edges all but vanished, so the background
+      // of a lens kept its dots and lost its structure
+      { color: mix(p.overlay, p.base, amount * 0.68), emissiveIntensity: 0, opacity: 1 }
 }
 
 function press(dark: boolean, p: Palette, ink: string, strength: number): Surface {
@@ -121,6 +125,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
   const tracePathTo = useGraphStore((s) => s.tracePathTo)
   const justAdded = useGraphStore((s) => s.frameAdded.has(node.id))
+  const arrivedAt = useGraphStore((s) => s.arrivedAt)
   const whatIfOn = useGraphStore((s) => s.whatIf !== null)
   const isDoomed = useGraphStore((s) => s.whatIf?.nodeId === node.id)
   const isStranded = useGraphStore((s) => s.whatIfOrphaned.has(node.id))
@@ -201,6 +206,26 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   useFrame(({ invalidate }, dt) => {
     const m = meshRef.current
     if (!m) return
+
+    /**
+     * The arrival is the show, so it owns the scale until it lands.
+     *
+     * Filling the wait with something flat sold the product short; letting the
+     * graph assemble itself when the engine appears turns the same moment into
+     * the reason to keep watching. Nodes come in on a deterministic stagger so
+     * every visitor sees the same cascade.
+     */
+    if (arrivedAt > 0) {
+      const t = nodeProgress(arrivedAt, node.id, performance.now())
+      if (t < 1) {
+        m.scale.setScalar(baseScale * overshoot(t))
+        m.visible = t > 0
+        invalidate()
+        return
+      }
+      m.visible = true
+    }
+
     const current = m.scale.x
     // damp approaches asymptotically and never lands: settle explicitly, then
     // do nothing. One subscriber per node runs every frame, and the scale is
@@ -298,9 +323,15 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         // hollow: dead code, or a node this branch removed (a ghost)
         wireframe={(isOrphan && !isLit) || node.diff === "removed" || isDoomed}
       />
-      {/* On dark this is a glow: light added to the void. On paper the same
-          shape becomes a shadow — importance reads as elevation, not emission. */}
-      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
+      {/* Light added to the void — dark ground only.
+       *
+       * It used to render on paper too, tinted with the accent, and that was a
+       * bloom: a 4.4-unit coloured cloud at 1.5:1 sitting over the page. Paper
+       * does not emit. The marker for "this one" on a light ground is the
+       * inverted hull just below, which was written to replace this and ended
+       * up doubling it instead. */}
+      {dark &&
+        (isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
         (() => {
           const accent = onPath
             ? palette.lav
@@ -311,13 +342,13 @@ export function NodeMesh({ node }: { node: GraphNode }) {
                 : typeColor
           const strong = isHovered || isSelected
           return (
-            <sprite scale={dark ? [5.2, 5.2, 1] : [4.4, 4.4, 1]} raycast={() => null}>
+            <sprite scale={[5.2, 5.2, 1]} raycast={() => null}>
               <spriteMaterial
                 map={getGlowTexture()}
-                color={dark ? accent : mix(accent, palette.text, 0.55)}
+                color={accent}
                 transparent
-                opacity={dark ? (strong ? 0.55 : 0.32) : strong ? 0.3 : 0.16}
-                blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
+                opacity={strong ? 0.55 : 0.32}
+                blending={THREE.AdditiveBlending}
                 depthWrite={false}
               />
             </sprite>

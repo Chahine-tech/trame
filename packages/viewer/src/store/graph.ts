@@ -1,9 +1,23 @@
 import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
-import { toastNeedsSelection, toastNoPath } from "../ui/toast"
 import { simulateDelete, type WhatIfReport } from "./whatif"
 import type { LensKind } from "./lens"
+
+/**
+ * Toasts, fetched at the moment one is needed rather than up front.
+ *
+ * The toast library pulls in framer-motion — 55 kB gzip that the landing was
+ * shipping in its critical chunk for messages it never shows, because the
+ * store is the only thing it imports from the tool. The viewer keeps paying
+ * nothing: App.tsx imports the module statically, so by the time anyone can
+ * click, it is already there and this resolves from cache.
+ *
+ * Both call sites are user gestures, never first paint.
+ */
+function toast(show: (m: typeof import("../ui/toast")) => void): void {
+  void import("../ui/toast").then(show)
+}
 
 /**
  * Every lens off. Each activator spreads this first, so mutual exclusion is
@@ -101,6 +115,16 @@ interface GraphState {
   /** true when no trame.json was served and the demo graph stands in */
   isDemo: boolean
 
+  /**
+   * When the current graph started arriving, or 0 to skip the entrance.
+   *
+   * The landing turns this on so the graph assembles itself in front of the
+   * visitor; the tool leaves it off, because someone who just saved a file
+   * wants their architecture back, not a performance.
+   */
+  arrivedAt: number
+  playArrival: () => void
+
   /** zoomed out far enough that folders stand in for their files */
   districtMode: boolean
   setDistrictMode: (v: boolean) => void
@@ -185,7 +209,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       return
     }
     if (!selectedId) {
-      toastNeedsSelection("Impact")
+      toast((t) => t.toastNeedsSelection("Impact"))
       return
     }
     // BFS up the importer graph — everything that would break
@@ -244,7 +268,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }
     if (!found) {
       const label = (id: string) => data?.nodes.find((n) => n.id === id)?.label ?? id
-      toastNoPath(label(selectedId), label(targetId))
+      toast((t) => t.toastNoPath(label(selectedId), label(targetId)))
       set(noLens())
       return
     }
@@ -297,6 +321,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   pinned: new Set(),
   isDemo: false,
 
+  arrivedAt: 0,
+  playArrival: () => set({ arrivedAt: performance.now() }),
+
   timeline: null,
   frameIndex: 0,
   present: null,
@@ -347,7 +374,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       return
     }
     if (!selectedId || !data) {
-      toastNeedsSelection("What if")
+      toast((t) => t.toastNeedsSelection("What if"))
       return
     }
     const report = simulateDelete(data, selectedId, data.rules)

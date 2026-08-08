@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>trame — Google Maps for your frontend architecture</title>
+    <meta
+      name="description"
+      content="Parse any TypeScript codebase and explore it as an interactive 3D map. See impact, trace paths, detect cycles, enforce architecture rules in CI."
+    />
+    <meta property="og:title" content="trame" />
+    <meta
+      property="og:description"
+      content="Google Maps for your frontend architecture. Explore, understand, enforce."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- the graph is 16 kB and used on first paint; without this it would queue
+         behind the renderer chunk that does not need to block anything -->
+    <link rel="preload" href="/demo.json" as="fetch" crossorigin />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

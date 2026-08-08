@@ -24,9 +24,14 @@ async function copyDiagram(label: string, serialize: (g: GraphData) => string): 
   // the filter you are looking at is the diagram you meant to share
   const filter = useGraphStore.getState().edgeFilter
   const scoped = filter ? { ...graph, edges: graph.edges.filter((e) => e.type === filter) } : graph
+  // a replay frame is history: name it, or it gets pasted as the present
+  const s = useGraphStore.getState()
+  const frame = s.lens === "replay" ? s.timeline?.frames[s.frameIndex] : undefined
+  const state = frame ? `${frame.sha} · ${new Date(frame.date).toLocaleDateString()}` : undefined
+
   try {
     await navigator.clipboard.writeText(serialize(scoped))
-    toastCopied(label)
+    toastCopied(label, state)
   } catch {
     toastCopyFailed(label)
   }

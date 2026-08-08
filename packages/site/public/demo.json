@@ -1,0 +1,712 @@
+{
+  "meta": {
+    "project": "trame",
+    "generated": "2026-08-07T15:49:30.007Z",
+    "nodeCount": 24,
+    "edgeCount": 58
+  },
+  "nodes": [
+    {
+      "id": "App.tsx",
+      "label": "App",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/App.tsx",
+      "line": 22,
+      "cluster": "src",
+      "x": 1.85,
+      "y": -5.49,
+      "z": 24.03
+    },
+    {
+      "id": "demo-data.ts",
+      "label": "demo-data",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/demo-data.ts",
+      "line": 4,
+      "cluster": "src",
+      "x": -51.05,
+      "y": 7.37,
+      "z": 16.96
+    },
+    {
+      "id": "editor.ts",
+      "label": "editor",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/editor.ts",
+      "line": 2,
+      "cluster": "src",
+      "x": 3.23,
+      "y": -33.26,
+      "z": 27.96
+    },
+    {
+      "id": "graph-feed.ts",
+      "label": "graph-feed",
+      "type": "api",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/graph-feed.ts",
+      "line": 7,
+      "cluster": "src",
+      "x": -29.82,
+      "y": 2.34,
+      "z": 28.05
+    },
+    {
+      "id": "main.tsx",
+      "label": "main",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/main.tsx",
+      "line": 1,
+      "cluster": "src",
+      "x": 16.22,
+      "y": 15.12,
+      "z": 3.74
+    },
+    {
+      "id": "theme.ts",
+      "label": "theme",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/theme.ts",
+      "line": 4,
+      "cluster": "src",
+      "x": -1.43,
+      "y": 7.23,
+      "z": 4.35
+    },
+    {
+      "id": "types.ts",
+      "label": "types",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/types.ts",
+      "line": 1,
+      "cluster": "src",
+      "x": -25.22,
+      "y": 4.19,
+      "z": -1.96
+    },
+    {
+      "id": "scene/CaptureFrame.tsx",
+      "label": "CaptureFrame",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/CaptureFrame.tsx",
+      "line": 13,
+      "cluster": "scene",
+      "x": 24.33,
+      "y": -16.82,
+      "z": -22.24
+    },
+    {
+      "id": "scene/Clusters.tsx",
+      "label": "Clusters",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Clusters.tsx",
+      "line": 55,
+      "cluster": "scene",
+      "x": 32.4,
+      "y": 5.52,
+      "z": -31.62
+    },
+    {
+      "id": "scene/Districts.tsx",
+      "label": "Districts",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Districts.tsx",
+      "line": 160,
+      "cluster": "scene",
+      "x": -7.91,
+      "y": 4.96,
+      "z": -25.14
+    },
+    {
+      "id": "scene/EdgeMesh.tsx",
+      "label": "EdgeMesh",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/EdgeMesh.tsx",
+      "line": 120,
+      "cluster": "scene",
+      "x": -2.91,
+      "y": 25.45,
+      "z": -12.28
+    },
+    {
+      "id": "scene/Layout.ts",
+      "label": "Layout",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Layout.ts",
+      "line": 38,
+      "cluster": "scene",
+      "x": -26.6,
+      "y": -4.05,
+      "z": -28.63
+    },
+    {
+      "id": "scene/NodeMesh.tsx",
+      "label": "NodeMesh",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/NodeMesh.tsx",
+      "line": 88,
+      "cluster": "scene",
+      "x": -10.09,
+      "y": 15.91,
+      "z": -17.53
+    },
+    {
+      "id": "scene/Scene.tsx",
+      "label": "Scene",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Scene.tsx",
+      "line": 120,
+      "cluster": "scene",
+      "x": 14.55,
+      "y": 13.89,
+      "z": -23.24
+    },
+    {
+      "id": "scene/useDisposable.ts",
+      "label": "useDisposable",
+      "type": "hook",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/useDisposable.ts",
+      "line": 14,
+      "cluster": "scene",
+      "x": -2.34,
+      "y": 54.56,
+      "z": -29.54
+    },
+    {
+      "id": "scene/ZoomDirector.tsx",
+      "label": "ZoomDirector",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/ZoomDirector.tsx",
+      "line": 12,
+      "cluster": "scene",
+      "x": 14.39,
+      "y": -1.28,
+      "z": -44.18
+    },
+    {
+      "id": "store/graph.ts",
+      "label": "graph",
+      "type": "store",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/graph.ts",
+      "line": 117,
+      "cluster": "store",
+      "x": 2.97,
+      "y": -7.5,
+      "z": -10.09
+    },
+    {
+      "id": "store/whatif.ts",
+      "label": "whatif",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/whatif.ts",
+      "line": 5,
+      "cluster": "store",
+      "x": -25.3,
+      "y": -22.21,
+      "z": -18.15
+    },
+    {
+      "id": "ui/FirstRunHint.tsx",
+      "label": "FirstRunHint",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/FirstRunHint.tsx",
+      "line": 10,
+      "cluster": "ui",
+      "x": 23.67,
+      "y": -16.03,
+      "z": 51.93
+    },
+    {
+      "id": "ui/Inspector.tsx",
+      "label": "Inspector",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Inspector.tsx",
+      "line": 5,
+      "cluster": "ui",
+      "x": 18.62,
+      "y": -15.49,
+      "z": 16.65
+    },
+    {
+      "id": "ui/Palette.tsx",
+      "label": "Palette",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Palette.tsx",
+      "line": 38,
+      "cluster": "ui",
+      "x": -10.14,
+      "y": -16.86,
+      "z": 10.68
+    },
+    {
+      "id": "ui/Shortcuts.tsx",
+      "label": "Shortcuts",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Shortcuts.tsx",
+      "line": 57,
+      "cluster": "ui",
+      "x": 7.89,
+      "y": 2.53,
+      "z": 58.03
+    },
+    {
+      "id": "ui/toast.ts",
+      "label": "toast",
+      "type": "module",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/toast.ts",
+      "line": 28,
+      "cluster": "ui",
+      "x": 9.87,
+      "y": -24.36,
+      "z": 5.45
+    },
+    {
+      "id": "ui/TopBar.tsx",
+      "label": "TopBar",
+      "type": "component",
+      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/TopBar.tsx",
+      "line": 7,
+      "cluster": "ui",
+      "x": 22.78,
+      "y": 4.26,
+      "z": 16.78
+    }
+  ],
+  "edges": [
+    {
+      "id": "App.tsx->store/graph.ts",
+      "source": "App.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->theme.ts",
+      "source": "App.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->ui/toast.ts",
+      "source": "App.tsx",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "App.tsx->ui/TopBar.tsx",
+      "source": "App.tsx",
+      "target": "ui/TopBar.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Inspector.tsx",
+      "source": "App.tsx",
+      "target": "ui/Inspector.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Palette.tsx",
+      "source": "App.tsx",
+      "target": "ui/Palette.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Shortcuts.tsx",
+      "source": "App.tsx",
+      "target": "ui/Shortcuts.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/FirstRunHint.tsx",
+      "source": "App.tsx",
+      "target": "ui/FirstRunHint.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->graph-feed.ts",
+      "source": "App.tsx",
+      "target": "graph-feed.ts",
+      "type": "api-call"
+    },
+    {
+      "id": "App.tsx->editor.ts",
+      "source": "App.tsx",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "demo-data.ts->types.ts",
+      "source": "demo-data.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "graph-feed.ts->demo-data.ts",
+      "source": "graph-feed.ts",
+      "target": "demo-data.ts",
+      "type": "import"
+    },
+    {
+      "id": "graph-feed.ts->types.ts",
+      "source": "graph-feed.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "main.tsx->scene/Scene.tsx",
+      "source": "main.tsx",
+      "target": "scene/Scene.tsx",
+      "type": "component"
+    },
+    {
+      "id": "main.tsx->App.tsx",
+      "source": "main.tsx",
+      "target": "App.tsx",
+      "type": "component"
+    },
+    {
+      "id": "main.tsx->store/graph.ts",
+      "source": "main.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "main.tsx->theme.ts",
+      "source": "main.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "theme.ts->types.ts",
+      "source": "theme.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CaptureFrame.tsx->store/graph.ts",
+      "source": "scene/CaptureFrame.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CaptureFrame.tsx->ui/toast.ts",
+      "source": "scene/CaptureFrame.tsx",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Clusters.tsx->store/graph.ts",
+      "source": "scene/Clusters.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Districts.tsx->store/graph.ts",
+      "source": "scene/Districts.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Districts.tsx->theme.ts",
+      "source": "scene/Districts.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Districts.tsx->types.ts",
+      "source": "scene/Districts.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->store/graph.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->theme.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->types.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->scene/useDisposable.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "scene/useDisposable.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Layout.ts->types.ts",
+      "source": "scene/Layout.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->store/graph.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->theme.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->types.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->store/graph.ts",
+      "source": "scene/Scene.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->theme.ts",
+      "source": "scene/Scene.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/NodeMesh.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/NodeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/EdgeMesh.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/EdgeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/Clusters.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Clusters.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/Districts.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Districts.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/ZoomDirector.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/ZoomDirector.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/CaptureFrame.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/CaptureFrame.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/ZoomDirector.tsx->store/graph.ts",
+      "source": "scene/ZoomDirector.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->types.ts",
+      "source": "store/graph.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->scene/Layout.ts",
+      "source": "store/graph.ts",
+      "target": "scene/Layout.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->ui/toast.ts",
+      "source": "store/graph.ts",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->store/whatif.ts",
+      "source": "store/graph.ts",
+      "target": "store/whatif.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/whatif.ts->types.ts",
+      "source": "store/whatif.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Inspector.tsx->store/graph.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Inspector.tsx->theme.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Inspector.tsx->editor.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->store/graph.ts",
+      "source": "ui/Palette.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->theme.ts",
+      "source": "ui/Palette.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->editor.ts",
+      "source": "ui/Palette.tsx",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->types.ts",
+      "source": "ui/Palette.tsx",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->ui/toast.ts",
+      "source": "ui/Palette.tsx",
+      "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/toast.ts->editor.ts",
+      "source": "ui/toast.ts",
+      "target": "editor.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/toast.ts->theme.ts",
+      "source": "ui/toast.ts",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/TopBar.tsx->store/graph.ts",
+      "source": "ui/TopBar.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/TopBar.tsx->theme.ts",
+      "source": "ui/TopBar.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    }
+  ],
+  "clusters": [
+    {
+      "id": "scene",
+      "label": "scene",
+      "color": "#89b4fa",
+      "nodeIds": [
+        "scene/CaptureFrame.tsx",
+        "scene/Clusters.tsx",
+        "scene/Districts.tsx",
+        "scene/EdgeMesh.tsx",
+        "scene/Layout.ts",
+        "scene/NodeMesh.tsx",
+        "scene/Scene.tsx",
+        "scene/useDisposable.ts",
+        "scene/ZoomDirector.tsx"
+      ]
+    },
+    {
+      "id": "src",
+      "label": "src",
+      "color": "#a6e3a1",
+      "nodeIds": [
+        "App.tsx",
+        "demo-data.ts",
+        "editor.ts",
+        "graph-feed.ts",
+        "main.tsx",
+        "theme.ts",
+        "types.ts"
+      ]
+    },
+    {
+      "id": "ui",
+      "label": "ui",
+      "color": "#cba6f7",
+      "nodeIds": [
+        "ui/FirstRunHint.tsx",
+        "ui/Inspector.tsx",
+        "ui/Palette.tsx",
+        "ui/Shortcuts.tsx",
+        "ui/toast.ts",
+        "ui/TopBar.tsx"
+      ]
+    },
+    {
+      "id": "store",
+      "label": "store",
+      "color": "#fab387",
+      "nodeIds": [
+        "store/graph.ts",
+        "store/whatif.ts"
+      ]
+    }
+  ],
+  "analysis": {
+    "orphans": [],
+    "cycles": []
+  },
+  "violations": [],
+  "rules": [
+    {
+      "type": "unique-caller",
+      "match": {
+        "edgeType": "api-call",
+        "targetType": "api"
+      },
+      "message": "API endpoint called from multiple hooks — extract a shared hook"
+    },
+    {
+      "type": "unique-caller",
+      "match": {
+        "edgeType": "query-key"
+      },
+      "message": "Query key used in multiple queries — consolidate"
+    },
+    {
+      "type": "no-direct-import",
+      "match": {
+        "sourceType": "page",
+        "targetType": "page"
+      },
+      "message": "Pages should not import each other directly"
+    },
+    {
+      "type": "no-cycles",
+      "message": "Circular dependency"
+    }
+  ]
+}

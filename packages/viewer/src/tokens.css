@@ -1,0 +1,81 @@
+/* Design tokens — the palette, easings and type that define trame.
+ *
+ * Kept apart from the tool's own UI so the landing can adopt the identity
+ * without carrying a stylesheet full of panels it never renders. The 3D scene
+ * reads these at runtime through getComputedStyle, which is why they have to
+ * be real custom properties rather than a JS object.
+ */
+:root {
+  /* ---- Catppuccin Latte (light) ---- */
+  --crust: #dce0e8;
+  --mantle: #e6e9ef;
+  --base: #eff1f5;
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --overlay: #8c8fa1;
+  --subtext: #6c6f85;
+  --text: #4c4f69;
+
+  /* Marks, not text. Catppuccin Latte's accents are tuned for syntax on its
+     own background; as filled 3D marks on our surface, five of them sat under
+     the 3:1 floor and teal fell under the chroma floor (it read as grey).
+     Each is re-stepped inside its own hue family until the validator passes:
+     lightness band, chroma, CVD separation, and contrast. Measured, not eyed. */
+  --blue: #1e66f5;
+  --green: #2f8a1f;
+  --mauve: #8839ef;
+  --peach: #e0530a;
+  --pink: #d4529f;
+  --yellow: #b0700f;
+  --teal: #00969e;
+  --lav: #5a71f0;
+  --red: #d20f39;
+
+  /* Emil Kowalski easing tokens — built-in curves are too weak */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ---- Catppuccin Mocha (dark) ---- */
+    --crust: #11111b;
+    --mantle: #181825;
+    --base: #1e1e2e;
+    --surface0: #313244;
+    --surface1: #45475a;
+    --overlay: #6c7086;
+    --subtext: #a6adc8;
+    --text: #cdd6f4;
+
+    --blue: #89b4fa;
+    --green: #a6e3a1;
+    --mauve: #cba6f7;
+    --peach: #fab387;
+    --pink: #f5c2e7;
+    --yellow: #f9e2af;
+    --teal: #94e2d5;
+    --lav: #b4befe;
+    --red: #f38ba8;
+  }
+}
+
+:root[data-theme="light"] {
+  --crust: #dce0e8; --mantle: #e6e9ef; --base: #eff1f5; --surface0: #ccd0da;
+  --surface1: #bcc0cc; --overlay: #8c8fa1; --subtext: #6c6f85; --text: #4c4f69;
+  --blue: #1e66f5; --green: #2f8a1f; --mauve: #8839ef; --peach: #e0530a;
+  --pink: #d4529f; --yellow: #b0700f; --teal: #00969e; --lav: #5a71f0;
+  --red: #d20f39;
+}
+:root[data-theme="dark"] {
+  --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
+  --surface1: #45475a; --overlay: #6c7086; --subtext: #a6adc8; --text: #cdd6f4;
+  --blue: #89b4fa; --green: #a6e3a1; --mauve: #cba6f7; --peach: #fab387;
+  --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
+  --red: #f38ba8;
+}
+

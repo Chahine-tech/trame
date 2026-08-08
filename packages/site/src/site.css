@@ -1,0 +1,267 @@
+/* The viewer's tokens carry over untouched: same palette, same easings, same
+   type. The landing is not "inspired by" the product — it is the product with
+   a different tempo. */
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--base);
+  color: var(--text);
+  /* the tokens define the faces; something has to apply them, and the viewer's
+     own stylesheet — which used to do it — is deliberately not imported here */
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  /* Where the canvas starts. Declared once because two things depend on it:
+     the canvas itself, and the status line that has to ignore it. */
+  --canvas-left: 38vw;
+}
+
+/* The canvas owns the right side, and only the right side.
+ *
+ * Aiming the camera off-centre looked equivalent but wasn't: a world-space
+ * offset rotates with the orbit, so the graph swung back across the headline
+ * every half turn. Bounding the element instead is fixed in screen space by
+ * construction — and since the scene's background is the very same token as
+ * the page's, the seam is invisible. Smaller canvas, less GPU, nothing to drift.
+ */
+/* No fade. The graph now builds itself on arrival, and cross-fading a
+   build-in is decorating the wait twice — the entrance is the animation. */
+.hero-canvas {
+  position: absolute;
+  inset: 0 0 0 var(--canvas-left);
+}
+/* The graph dissolves as it approaches the text instead of stopping at an
+ * invisible edge. The canvas starts where the copy ends, so anything drifting
+ * into that band lands in the whitespace the composition depends on — and a
+ * distant node there reads as a smudge, not as depth.
+ *
+ * This is the only fade at that boundary. A scrim used to do the same job from
+ * the other side, painting page colour over the seam, but it lived inside the
+ * copy column's stacking context (z-index 10) and so painted over anything
+ * below it too — it was washing out the left third of the status bubble. A
+ * mask attenuates the renderer's own output and can only ever affect the
+ * graph, which is what was wanted in the first place.
+ *
+ * Masked on the <canvas>, not the wrapper: the bubble is a sibling and stays
+ * fully opaque. The band is wide enough to still cover the copy column at its
+ * widest (46vw) on narrow windows. */
+.hero-canvas canvas {
+  display: block;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16%);
+  mask-image: linear-gradient(to right, transparent 0, black 16%);
+}
+
+/* Copy sits on the left, the graph breathes on the right — nothing is centred
+   over the thing it is meant to let you see. */
+.hero-copy {
+  position: relative;
+  /* above the scene's DOM labels (drei Html goes up to 5): a node name
+     rendered through the headline reads as broken, not as depth */
+  z-index: 10;
+  height: 100%;
+  width: min(560px, 46vw);
+  padding: 0 0 0 clamp(28px, 6vw, 92px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  pointer-events: none;
+}
+.hero-copy > * {
+  pointer-events: auto;
+}
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  letter-spacing: -0.02em;
+  color: var(--subtext);
+}
+.wordmark .cursor {
+  color: var(--lav);
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 500;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--subtext);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.cta {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--text);
+  padding: 10px 18px;
+  border: 1px solid var(--surface0);
+  border-radius: 9px;
+  background: var(--mantle);
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 160ms ease;
+}
+.cta.primary {
+  background: var(--lav);
+  border-color: var(--lav);
+  color: var(--base);
+}
+.cta:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover {
+    border-color: var(--lav);
+  }
+}
+
+.hero-hint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--overlay);
+  margin-top: 4px;
+}
+
+@media (max-width: 820px) {
+  .hero {
+    --canvas-left: 0px;
+  }
+  .hero-canvas {
+    inset: 0;
+  }
+  .hero-copy {
+    width: 100%;
+    padding-right: 28px;
+  }
+  /* On one column the graph sits behind the whole text, so the fade runs
+     bottom-up instead of left-to-right. */
+  .hero-canvas canvas {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 34%);
+    mask-image: linear-gradient(to bottom, transparent 0, black 34%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+}
+
+/* The running commentary. A first-time visitor cannot know that an amber wave
+   is an impact analysis unless the page says so while it happens — this is
+   what separates a demo from a screensaver. */
+/* Both worlds are on offer, because both ship in the product: the observatory
+   and the technical plate. Switching them is itself an argument for the craft. */
+.theme-toggle {
+  position: absolute;
+  top: 26px;
+  right: 28px;
+  z-index: 10;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--subtext);
+  background: var(--mantle);
+  border: 1px solid var(--surface0);
+  border-radius: 8px;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), border-color 140ms ease;
+}
+.theme-toggle:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  .theme-toggle:hover { border-color: var(--lav); }
+}
+
+/* Centred on the page, not on the canvas.
+ *
+ * It reads as a label but behaves as a status bar: it never points at a
+ * particular node, it says what the page is doing. That belongs on the page's
+ * own axis — bottom centre, where every interface puts this kind of message.
+ * Anchored to the canvas it sat at 69% of the width, and drifted further right
+ * every time the window widened.
+ *
+ * It still lives inside the canvas element, so `left` is measured from the
+ * canvas's left edge: subtracting that offset lands it on the page centre. */
+.hero-caption {
+  position: absolute;
+  left: calc(50vw - var(--canvas-left));
+  bottom: 46px;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--surface0);
+  background: color-mix(in srgb, var(--mantle) 88%, transparent);
+  backdrop-filter: blur(12px) saturate(160%);
+  /* On paper the fill cannot carry it: --mantle sits at 1.07:1 against --base,
+     so the pill had no body and only its text read. A light ground conveys
+     elevation with a cast shadow, not with a lighter fill — and on the dark
+     ground this is black on near-black, so it simply does not show. */
+  box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.22);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--subtext);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: caption-in 320ms var(--ease-out) both;
+}
+.hero-caption::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lav);
+  flex: none;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 820px) {
+  .hero-caption { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-caption { animation: none; }
+  .theme-toggle { transition: none; }
+}
+
+

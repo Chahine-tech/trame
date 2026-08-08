@@ -37,8 +37,15 @@ function centroidOf(ids: string[], positions: Map<string, Vec3>): THREE.Vector3 
   return c.divideScalar(found.length)
 }
 
-function DistrictBody({ district, appear }: { district: District; appear: React.RefObject<number> }) {
-  const palette = usePalette()
+function DistrictBody({
+  district,
+  appear,
+  showLabel,
+}: {
+  district: District
+  appear: React.RefObject<number>
+  showLabel: boolean
+}) {
   const focus = useGraphStore((s) => s.focus)
   const meshRef = useRef<THREE.Mesh>(null)
   const matRef = useRef<THREE.MeshStandardMaterial>(null)
@@ -95,6 +102,7 @@ function DistrictBody({ district, appear }: { district: District; appear: React.
       {/* the name sits on the region and always faces you, the way a map
           labels a district — an offset label gets swallowed by the body as
           soon as the camera orbits */}
+      {showLabel && (
       <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
         <div className="district-label">
           <span className="name" style={{ color: district.color }}>
@@ -105,6 +113,7 @@ function DistrictBody({ district, appear }: { district: District; appear: React.
           </span>
         </div>
       </Html>
+      )}
 
       {/* a faint shell so the body reads as a region, not a planet */}
       <mesh raycast={() => null}>
@@ -160,6 +169,11 @@ function DistrictEdge({ link, appear }: { link: DistrictLink; appear: React.RefO
 export function Districts() {
   const data = useGraphStore((s) => s.data)
   const positions = useGraphStore((s) => s.positions)
+  // the display toggles mean the same thing at both map levels; a key that
+  // answers without acting is worse than a key that does nothing
+  const edgeFilter = useGraphStore((s) => s.edgeFilter)
+  const showLabels = useGraphStore((s) => s.showLabels)
+  const showClusters = useGraphStore((s) => s.showClusters)
   const invalidate = useThree((s) => s.invalidate)
   // 0 → 1 entrance, driven imperatively so the crossfade costs no re-renders
   const appear = useRef(0)
@@ -188,6 +202,8 @@ export function Districts() {
     for (const node of data.nodes) folderOf.set(node.id, node.cluster)
     const weights = new Map<string, number>()
     for (const edge of data.edges) {
+      // "show me only the API calls between my folders" is a real question
+      if (edgeFilter && edge.type !== edgeFilter) continue
       const a = folderOf.get(edge.source)
       const b = folderOf.get(edge.target)
       if (!a || !b || a === b) continue
@@ -204,7 +220,7 @@ export function Districts() {
     }
 
     return { districts, links }
-  }, [data, positions])
+  }, [data, positions, edgeFilter])
 
   useFrame((_, dt) => {
     if (appear.current >= 1) return
@@ -220,7 +236,12 @@ export function Districts() {
         <DistrictEdge key={link.id} link={link} appear={appear} />
       ))}
       {districts.map((district) => (
-        <DistrictBody key={district.id} district={district} appear={appear} />
+        <DistrictBody
+          key={district.id}
+          district={district}
+          appear={appear}
+          showLabel={showLabels && showClusters}
+        />
       ))}
     </>
   )
