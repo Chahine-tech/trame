@@ -75,9 +75,6 @@ Nodes keep their shape-per-type and Catppuccin colour, and folders become
 subgraphs. From the viewer, `⌘K → Copy as Mermaid` puts the diagram on your
 clipboard — scoped to the edge filter you are currently looking at.
 
-See [`docs/architecture.mmd`](docs/architecture.mmd) — trame's own viewer,
-parsed by trame.
-
 ## In CI
 
 [`.github/workflows/trame.yml`](.github/workflows/trame.yml) comments on every
@@ -222,3 +219,7 @@ Dogfooded, and checkable: every node in the graph on the landing is a real file
 in `packages/viewer/src`, parsed by the real parser. `NodeMesh.tsx` and
 `EdgeMesh.tsx` are in there — the code drawing the graph is part of what it
 draws.
+
+## License
+
+MIT
