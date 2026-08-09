@@ -36,7 +36,7 @@ jobs:
 
       - name: Parse the head of the pull request
         run: |
-          pnpm --filter trame dev -- \
+          pnpm --filter tramejs dev -- \
             --src "$PWD/$TRAME_SRC" \
             --config "$PWD/$TRAME_CONFIG" \
             --out "$RUNNER_TEMP/head.json"
@@ -44,14 +44,14 @@ jobs:
       - name: Parse the base branch
         run: |
           git worktree add "$RUNNER_TEMP/base" "${{ github.event.pull_request.base.sha }}"
-          pnpm --filter trame dev -- \
+          pnpm --filter tramejs dev -- \
             --src "$RUNNER_TEMP/base/$TRAME_SRC" \
             --config "$PWD/$TRAME_CONFIG" \
             --out "$RUNNER_TEMP/base.json"
 
       - name: Build the report
         run: |
-          pnpm --filter trame dev -- diff \
+          pnpm --filter tramejs dev -- diff \
             --base "$RUNNER_TEMP/base.json" \
             --head "$RUNNER_TEMP/head.json" \
             --format markdown \
@@ -75,6 +75,6 @@ jobs:
 
       - name: Fail if the architecture rules are broken
         run: |
-          pnpm --filter trame dev -- check \
+          pnpm --filter tramejs dev -- check \
             --src "$PWD/$TRAME_SRC" \
             --config "$PWD/$TRAME_CONFIG"

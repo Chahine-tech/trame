@@ -1,5 +1,5 @@
-import { findCycles, findOrphans } from "trame/analysis"
-import { evaluateRules } from "trame/rules"
+import { findCycles, findOrphans } from "tramejs/analysis"
+import { evaluateRules } from "tramejs/rules"
 import type { GraphData, Rule } from "../types"
 
 export interface WhatIfReport {

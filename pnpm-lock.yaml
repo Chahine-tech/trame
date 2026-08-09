@@ -103,7 +103,7 @@ importers:
       three:
         specifier: ^0.185.1
         version: 0.185.1
-      trame:
+      tramejs:
         specifier: workspace:*
         version: link:../parser
       zustand:

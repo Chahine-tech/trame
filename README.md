@@ -44,17 +44,21 @@ of, and hold to a set of rules.
 ## Quickstart
 
 ```bash
-npx trame --src ./src          # parse — writes trame.json
-npx trame serve                # explore it in the browser
+npm i -g tramejs
+
+trame --src ./src              # parse — writes trame.json
+trame serve                    # explore it in the browser
 ```
+
+Or without installing: `npx tramejs --src ./src`.
 
 Two commands, nothing to clone, and your code never leaves the machine: the
 parser reads it locally and the viewer is a static bundle served from your own
 disk.
 
 ```bash
-npx trame watch --src ./src    # re-parse on save, the viewer follows
-npx trame check --src ./src    # exit 1 if an architecture rule broke
+trame watch --src ./src        # re-parse on save, the viewer follows
+trame check --src ./src        # exit 1 if an architecture rule broke
 ```
 
 ### Working on trame itself

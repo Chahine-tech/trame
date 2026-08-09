@@ -18,6 +18,7 @@ interface Args {
   src: string
   out: string
   tsconfig?: string
+  noTsconfig: boolean
   config?: string
   project?: string
   exclude: string[]
@@ -78,7 +79,8 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
   trame replay --src ./src [--since --max-frames]  how the architecture grew, across git history
 
   options:
-    --tsconfig ./tsconfig.json   resolve paths through a tsconfig
+    --tsconfig ./tsconfig.json   resolve path aliases through a specific tsconfig
+    --no-tsconfig                ignore the tsconfig found next to --src
     --config ./trame.config.ts constraint rules (auto-detected in cwd)
     --project name               project name in meta
     --exclude a,b,c              extra path patterns to skip
@@ -105,6 +107,7 @@ function parseArgs(argv: string[]): Args {
     since: "1 year ago",
     maxFrames: 40,
     repo: ".",
+    noTsconfig: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
@@ -156,6 +159,9 @@ function parseArgs(argv: string[]): Args {
       case "--out":
         args.out = next()
         break
+      case "--no-tsconfig":
+        args.noTsconfig = true
+        break
       case "--tsconfig":
         args.tsconfig = next()
         break
@@ -182,9 +188,44 @@ function parseArgs(argv: string[]): Args {
   return args
 }
 
+/**
+ * The nearest tsconfig.json at or above the source root.
+ *
+ * Without one, every `@/thing` import resolves to nothing — and since that is
+ * how most React projects have been written since roughly 2022, the default
+ * run produced a graph with no edges and called it a success. Measured on one
+ * ordinary portfolio: 1 edge and 13 orphans out of 19 files, against 19 edges
+ * and 1 orphan with the flag. A cloud of dots that claims to be an
+ * architecture is worse than an error.
+ *
+ * Found rather than required, because a tool whose first run is wrong unless
+ * you knew to pass a flag has already lost the person who ran it.
+ */
+function findTsconfig(from: string): string | undefined {
+  let dir = from
+  for (;;) {
+    const candidate = path.join(dir, "tsconfig.json")
+    if (fs.existsSync(candidate)) return candidate
+    const parent = path.dirname(dir)
+    if (parent === dir) return undefined
+    dir = parent
+  }
+}
+
 function parseOnce(args: Args, srcRoot: string): GraphData {
-  const project = args.tsconfig
-    ? new Project({ tsConfigFilePath: path.resolve(args.tsconfig), skipAddingFilesFromTsConfig: true })
+  const tsconfig = args.noTsconfig
+    ? undefined
+    : args.tsconfig
+      ? path.resolve(args.tsconfig)
+      : findTsconfig(srcRoot)
+
+  // said out loud: silent resolution is how the missing one went unnoticed
+  if (tsconfig && !args.tsconfig) {
+    console.log(`  tsconfig: ${path.relative(process.cwd(), tsconfig) || tsconfig}`)
+  }
+
+  const project = tsconfig
+    ? new Project({ tsConfigFilePath: tsconfig, skipAddingFilesFromTsConfig: true })
     : new Project({ compilerOptions: { allowJs: false, jsx: 4 /* react-jsx */ } })
 
   project.addSourceFilesAtPaths([`${srcRoot}/**/*.ts`, `${srcRoot}/**/*.tsx`])

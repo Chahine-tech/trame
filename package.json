@@ -7,7 +7,7 @@
     "dev:site": "turbo dev --filter=@trame/site",
     "build": "turbo build",
     "typecheck": "turbo typecheck",
-    "parse": "pnpm --filter trame dev --",
+    "parse": "pnpm --filter tramejs dev --",
     "test": "turbo test"
   },
   "devDependencies": {

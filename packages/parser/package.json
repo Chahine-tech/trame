@@ -1,9 +1,9 @@
 {
-  "name": "trame",
+  "name": "tramejs",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "trame": "./dist/index.js"
+    "trame": "dist/index.js"
   },
   "exports": {
     "./export": "./src/export.ts",
@@ -28,7 +28,7 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
-  "description": "Google Maps for your frontend architecture \u2014 parse a TypeScript codebase and explore it as an interactive 3D map.",
+  "description": "Google Maps for your frontend architecture — parse a TypeScript codebase and explore it as an interactive 3D map.",
   "keywords": [
     "architecture",
     "dependency-graph",
