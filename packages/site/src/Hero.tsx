@@ -3,15 +3,21 @@ import { cycleThemePref, getThemePref } from "@trame/viewer/theme"
 
 const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 
+const REPO = "https://github.com/Chahine-tech/trame"
+
 /**
  * Where the tool lives. It is a separate application with its own deployment,
  * so this is the one place that knows about it.
  *
- * Set VITE_VIEWER_URL at build time to the viewer's own URL. Locally it falls
- * back to the port `pnpm --filter @trame/viewer dev` listens on, so the link
- * works during development with nothing to configure.
+ * Set VITE_VIEWER_URL at build time to the hosted viewer's URL. The fallbacks
+ * differ by environment on purpose: locally it points at the port the viewer's
+ * dev server uses, so the link works with nothing configured — but shipping
+ * that same localhost URL to production would put a dead link on the page's
+ * primary call to action, silently, on every visitor's machine but the
+ * author's. Unset in a production build, it sends people somewhere real.
  */
-const DEMO_URL = import.meta.env.VITE_VIEWER_URL ?? "http://localhost:5173/"
+const DEMO_URL =
+  import.meta.env.VITE_VIEWER_URL ?? (import.meta.env.DEV ? "http://localhost:5173/" : REPO)
 
 /**
  * The first screen: the promise, and the graph proving it behind.
@@ -55,7 +61,7 @@ export function Hero() {
           <a className="cta primary" href={DEMO_URL}>
             Explore a real codebase
           </a>
-          <a className="cta" href="https://github.com/Chahine-tech/trame">
+          <a className="cta" href={REPO}>
             GitHub
           </a>
         </div>
