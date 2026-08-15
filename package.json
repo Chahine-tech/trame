@@ -1,7 +1,7 @@
 {
   "name": "trame",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "dev": "turbo dev --filter=@trame/viewer",
     "dev:site": "turbo dev --filter=@trame/site",
