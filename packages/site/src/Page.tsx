@@ -6,6 +6,7 @@ import { useActiveSection } from "./useActiveSection"
 import { useReplay } from "./useReplay"
 import { HERO_POSE } from "./camera"
 import { subjectOf, farthestFrom } from "./subject"
+import { SceneBoundary } from "./SceneBoundary"
 
 /**
  * The engine is code-split so the headline paints on its own, and requested
@@ -83,9 +84,11 @@ export function Page() {
   return (
     <main className="page">
       {data && (
-        <Suspense fallback={null}>
-          <Stage data={data} pose={pose} scripted={active < 0} />
-        </Suspense>
+        <SceneBoundary>
+          <Suspense fallback={null}>
+            <Stage data={data} pose={pose} scripted={active < 0} />
+          </Suspense>
+        </SceneBoundary>
       )}
 
       <Hero />

@@ -35,7 +35,13 @@ html {
 
 .hero {
   position: relative;
+  /* dvh, with vh as the fallback for browsers that predate it.
+     On iOS Safari and Chrome Android, 100vh measures the viewport as if the
+     collapsing address bar were not there, so every section ends up taller
+     than what is actually on screen. Across six of them the drift is enough
+     to push the observer's band off the section it is meant to be watching. */
   height: 100vh;
+  height: 100dvh;
   width: 100%;
 }
 
@@ -44,6 +50,7 @@ html {
 .beat {
   position: relative;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   pointer-events: none;
