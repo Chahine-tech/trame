@@ -27,6 +27,7 @@ questions of, and hold to a set of rules.
 - **Folders as neighbourhoods** — a clustering force pulls each folder's files into a compact district; semantic zoom fades folder labels in as you zoom out, like a map.
 - **Path tracing** — shift-click a second node to light the dependency chain between them. *"Why does LoginPage depend on Chart?"*
 - **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
+- **Shareable views** — `⌘K → Copy link to this view` puts the selection and the active lens in the URL. Send it and your colleague opens on the same file, with the same question already asked.
 - **Live pipeline** — `trame watch` re-parses on save, the viewer hot-swaps the graph.
 
 ## Understand
@@ -188,6 +189,9 @@ Nodes are sized by connectivity. At rest everything is grey — color is informa
 ```ts
 // trame.config.ts
 export default {
+  // paths to keep off the map, on top of node_modules, dist, tests and stories
+  exclude: ["src/generated", ".gen.ts"],
+
   rules: [
     {
       type: "unique-caller",

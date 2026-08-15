@@ -93,6 +93,16 @@ export interface Rule {
 
 export interface TrameConfig {
   rules?: Rule[]
+  /**
+   * Extra path fragments to skip, on top of the built-in defaults.
+   *
+   * Substring matches, not globs: `"generated"` skips anything whose path
+   * contains it, which is what people reach for and is predictable without
+   * having to reason about a pattern language. Lives here rather than in a
+   * second dotfile — the config is already found automatically, and two files
+   * describing one project is two files that can disagree.
+   */
+  exclude?: string[]
 }
 
 export interface Violation {

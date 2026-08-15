@@ -19,9 +19,13 @@ import { Shortcuts } from "./ui/Shortcuts"
 import { FirstRunHint } from "./ui/FirstRunHint"
 import { Timeline as TimelineBar } from "./ui/Timeline"
 import { subscribeToGraph, subscribeToTimeline } from "./graph-feed"
+import { useShareLink } from "./share"
 import { EDITOR_LABEL, getEditor, openInEditor } from "./editor"
 
 export function AppUI() {
+  // the address bar follows the view, and an incoming link restores one
+  useShareLink()
+
   const palette = usePalette()
   const load = useGraphStore((s) => s.load)
   const clear = useGraphStore((s) => s.clear)

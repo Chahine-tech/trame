@@ -2,6 +2,7 @@ import { Command } from "cmdk"
 import { toDot, toMermaid } from "tramejs/export"
 import { currentGraph, exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
+import { shareUrl } from "../share"
 import { EDITORS, EDITOR_LABEL, getEditor, openInEditor, setEditor } from "../editor"
 import type { GraphData } from "../types"
 import {
@@ -109,6 +110,20 @@ export function Palette({
             >
               <span className="lbl">Open selection in {EDITOR_LABEL[getEditor()]}</span>
               <span className="path">O</span>
+            </Command.Item>
+            <Command.Item
+              value="share link url copy view"
+              onSelect={() => {
+                onClose()
+                const url = shareUrl()
+                navigator.clipboard
+                  .writeText(url)
+                  .then(() => toastCopied("Link to this view"))
+                  .catch(() => toastCopyFailed("link"))
+              }}
+            >
+              <span className="lbl">Copy link to this view</span>
+              <span className="path">selection + lens</span>
             </Command.Item>
             <Command.Item
               value="reset camera center"

@@ -11,7 +11,7 @@ import { diffGraphs } from "./diff.js"
 import { toDot, toMarkdown, toMermaid } from "./export.js"
 import { serve } from "./serve.js"
 import { buildTimeline, forEachCommit, sampleCommits } from "./replay.js"
-import type { GraphData, Violation } from "./types.js"
+import type { GraphData, TrameConfig, Violation } from "./types.js"
 
 interface Args {
   command: "parse" | "check" | "watch" | "serve" | "diff" | "replay"
@@ -31,6 +31,20 @@ interface Args {
   since: string
   maxFrames: number
   repo: string
+}
+
+/**
+ * Command-line exclusions plus whatever the config adds.
+ *
+ * The flag stays the escape hatch for a one-off run; the config is where a
+ * project states, once, which of its folders are not architecture — generated
+ * clients, vendored code, a legacy corner nobody wants on the map. Before this
+ * the only way to say it was to retype the flag on every invocation, which
+ * stopped being tolerable the moment the tool started being run through npx
+ * instead of a wrapper script.
+ */
+function resolveExclude(args: Args, config: TrameConfig | null): string[] {
+  return config?.exclude ? [...args.exclude, ...config.exclude] : args.exclude
 }
 
 /** Serialize the graph in whichever shape the caller asked for. */
@@ -212,7 +226,7 @@ function findTsconfig(from: string): string | undefined {
   }
 }
 
-function parseOnce(args: Args, srcRoot: string): GraphData {
+function parseOnce(args: Args, srcRoot: string, exclude: string[] = args.exclude): GraphData {
   const tsconfig = args.noTsconfig
     ? undefined
     : args.tsconfig
@@ -231,7 +245,7 @@ function parseOnce(args: Args, srcRoot: string): GraphData {
   project.addSourceFilesAtPaths([`${srcRoot}/**/*.ts`, `${srcRoot}/**/*.tsx`])
   for (const file of project.getSourceFiles()) {
     const p = file.getFilePath()
-    if (args.exclude.some((pattern) => p.includes(pattern))) project.removeSourceFile(file)
+    if (exclude.some((pattern) => p.includes(pattern))) project.removeSourceFile(file)
   }
 
   const projectName = args.project ?? path.basename(path.dirname(srcRoot))
@@ -271,8 +285,8 @@ function summarize(graph: GraphData, outPath: string, ms: number): void {
 
 async function runParse(args: Args, srcRoot: string, quiet = false): Promise<GraphData> {
   const started = Date.now()
-  const graph = parseOnce(args, srcRoot)
   const config = await loadConfig(args.config)
+  const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
   if (config) {
     graph.violations = evaluateRules(graph, config)
     graph.rules = config.rules
@@ -285,8 +299,8 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
 }
 
 async function runCheck(args: Args, srcRoot: string): Promise<void> {
-  const graph = parseOnce(args, srcRoot)
   const config = await loadConfig(args.config)
+  const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
   if (!config?.rules?.length) {
     console.error("error: no rules found — create trame.config.ts or pass --config")
     process.exit(1)
@@ -377,7 +391,7 @@ async function runReplay(args: Args, srcRoot: string): Promise<void> {
     (checkoutRoot) => {
       const at = path.join(checkoutRoot, relSrc)
       if (!fs.existsSync(at)) return null // the folder did not exist yet
-      const graph = parseOnce({ ...args, src: at }, at)
+      const graph = parseOnce({ ...args, src: at }, at, resolveExclude(args, config))
       graph.analysis = { orphans: findOrphans(graph), cycles: findCycles(graph) }
       if (config) graph.violations = evaluateRules(graph, config)
       return graph
