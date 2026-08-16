@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import type { SourceFile } from "ts-morph"
 import type { NodeType } from "../types.js"
 
@@ -67,6 +68,43 @@ export function firstExportLine(file: SourceFile): number {
  * directory under src. Files sitting at the src root belong to "src" —
  * a name the user recognizes, never parser jargon like "root".
  */
+/**
+ * The package a file belongs to, when the codebase is a workspace.
+ *
+ * Found by walking up to the nearest package.json, which is what a package
+ * actually is — no list of blessed container names to keep current. Cached per
+ * directory because thousands of files share a handful of answers.
+ *
+ * Without it, clustering falls back to the first path segment, and pointing
+ * --src at a monorepo root put 2576 of cal.com's 5032 files in one cluster
+ * called "packages". Districts, community detection and every folder
+ * comparison were reading a container as if it were a module.
+ */
+const packageCache = new Map<string, string | null>()
+
+export function packageFor(absPath: string, srcRoot: string): string | null {
+  let dir = absPath.slice(0, absPath.lastIndexOf("/"))
+  const seen: string[] = []
+  while (dir.startsWith(srcRoot) && dir.length >= srcRoot.length) {
+    const hit = packageCache.get(dir)
+    if (hit !== undefined) {
+      for (const d of seen) packageCache.set(d, hit)
+      return hit
+    }
+    seen.push(dir)
+    if (fs.existsSync(`${dir}/package.json`) && dir !== srcRoot) {
+      const name = dir.slice(dir.lastIndexOf("/") + 1)
+      for (const d of seen) packageCache.set(d, name)
+      return name
+    }
+    const parent = dir.slice(0, dir.lastIndexOf("/"))
+    if (parent === dir || parent.length < srcRoot.length) break
+    dir = parent
+  }
+  for (const d of seen) packageCache.set(d, null)
+  return null
+}
+
 export function clusterFor(relPath: string): string {
   const parts = relPath.split("/")
   const featIdx = parts.findIndex((p) => p === "features" || p === "modules")

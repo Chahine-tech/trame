@@ -1,7 +1,7 @@
 import path from "node:path"
 import type { Project } from "ts-morph"
 import type { EdgeType, GraphCluster, GraphData, GraphEdge, GraphNode, NodeType } from "./types.js"
-import { classify, clusterFor, firstExportLine, labelFor } from "./parsers/classify.js"
+import { classify, clusterFor, firstExportLine, labelFor, packageFor } from "./parsers/classify.js"
 import { extractImports } from "./parsers/imports.js"
 import { extractApiCalls } from "./parsers/api-calls.js"
 import { extractQueryKeys } from "./parsers/query-keys.js"
@@ -52,7 +52,8 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
       type: classify(file),
       file: abs,
       line: firstExportLine(file),
-      cluster: clusterFor(rel),
+      // the package it belongs to when there is one, the folder shape otherwise
+      cluster: packageFor(abs, srcRoot) ?? clusterFor(rel),
     }
     nodes.push(node)
     byPath.set(abs, node)

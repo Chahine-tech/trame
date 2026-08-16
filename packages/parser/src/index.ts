@@ -235,7 +235,77 @@ function findTsconfig(from: string): string | undefined {
   }
 }
 
+/**
+ * Every .ts/.tsx under a root, pruning excluded directories before entering.
+ *
+ * The glob used to be handed straight to ts-morph, with the exclusions applied
+ * to the result. Pointing --src at a repository root — the obvious first
+ * thing anyone tries — therefore walked node_modules in full: a 4 GB heap and
+ * a fatal out-of-memory crash before a single line of the codebase was read.
+ * Negative globs did not help, because the traversal itself is what dies.
+ *
+ * Deciding not to descend is the only thing that works, and it has to be
+ * decided about the directory, not about the files inside it.
+ */
+function sourceFilesUnder(root: string, exclude: string[]): string[] {
+  const found: string[] = []
+  const walk = (dir: string): void => {
+    let entries
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return // unreadable directory: skipped, not fatal
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name)
+      if (exclude.some((pattern) => full.includes(pattern))) continue
+      // real directories only — following symlinks invites a loop
+      if (entry.isDirectory()) walk(full)
+      else if (entry.isFile() && /\.tsx?$/.test(entry.name)) found.push(full)
+    }
+  }
+  walk(root)
+  return found
+}
+
+/**
+ * Warn when a workspace monorepo has not been installed.
+ *
+ * Packages like `@scope/thing` in a pnpm or npm workspace resolve through the
+ * symlinks `install` puts in node_modules, not through tsconfig paths — cal.com
+ * maps `~/*` and `@components/*` in its tsconfig and leaves `@calcom/*` to the
+ * workspace. Without node_modules those imports cannot be resolved by anything,
+ * `tsc` included, and the graph comes out as one island per package: on cal.com,
+ * 200 cross-package edges where there should be thousands.
+ *
+ * A wrong graph delivered in silence is the worst outcome. Saying so costs a
+ * line and turns "this tool is broken" into "run install first".
+ */
+function warnIfUninstalledWorkspace(srcRoot: string): void {
+  let dir = srcRoot
+  for (;;) {
+    const pkg = path.join(dir, "package.json")
+    const isWorkspace =
+      fs.existsSync(path.join(dir, "pnpm-workspace.yaml")) ||
+      (fs.existsSync(pkg) && Boolean(JSON.parse(fs.readFileSync(pkg, "utf8")).workspaces))
+    if (isWorkspace) {
+      if (!fs.existsSync(path.join(dir, "node_modules"))) {
+        console.warn(
+          `  \x1b[33m!\x1b[0m workspace monorepo with no node_modules — imports between packages will not resolve,
+` +
+            `    and each package will look like an island. Run your package manager's install first.`,
+        )
+      }
+      return
+    }
+    const parent = path.dirname(dir)
+    if (parent === dir) return
+    dir = parent
+  }
+}
+
 function parseOnce(args: Args, srcRoot: string, exclude: string[] = args.exclude): GraphData {
+  warnIfUninstalledWorkspace(srcRoot)
   const tsconfig = args.noTsconfig
     ? undefined
     : args.tsconfig
@@ -251,11 +321,7 @@ function parseOnce(args: Args, srcRoot: string, exclude: string[] = args.exclude
     ? new Project({ tsConfigFilePath: tsconfig, skipAddingFilesFromTsConfig: true })
     : new Project({ compilerOptions: { allowJs: false, jsx: 4 /* react-jsx */ } })
 
-  project.addSourceFilesAtPaths([`${srcRoot}/**/*.ts`, `${srcRoot}/**/*.tsx`])
-  for (const file of project.getSourceFiles()) {
-    const p = file.getFilePath()
-    if (exclude.some((pattern) => p.includes(pattern))) project.removeSourceFile(file)
-  }
+  project.addSourceFilesAtPaths(sourceFilesUnder(srcRoot, exclude))
 
   const projectName = args.project ?? path.basename(path.dirname(srcRoot))
   const graph = buildGraph(project, srcRoot, projectName)
@@ -352,7 +418,12 @@ async function runModules(args: Args, srcRoot: string): Promise<void> {
 
   for (const s of split) {
     console.log(`  \x1b[33m${s.folder}/\x1b[0m holds ${s.parts.length} groups that barely touch:`)
-    for (const part of s.parts) console.log(`    \x1b[90m· ${part.map(short).join(", ")}\x1b[0m`)
+    for (const part of s.parts) {
+      // enough to recognise the group, not the whole census
+      const head = part.slice(0, 6).map(short).join(", ")
+      const more = part.length > 6 ? ` … +${part.length - 6}` : ""
+      console.log(`    \x1b[90m· ${head}${more}\x1b[0m`)
+    }
     console.log()
   }
   for (const m of merged) {
@@ -441,11 +512,24 @@ async function runDoctor(args: Args, srcRoot: string): Promise<void> {
     orphan: "\x1b[90m○\x1b[0m",
     violation: "\x1b[31m✗\x1b[0m",
   }
-  console.log(`${findings.length} thing${findings.length > 1 ? "s" : ""} worth fixing, worst first:\n`)
-  for (const f of findings) {
+  /**
+   * A wall of findings is a list, not advice.
+   *
+   * On a real 412-file project this produced 104 items, and past the first
+   * dozen nobody reads any of them — the ranking exists precisely so the tail
+   * can be left out. The count is still reported, so nothing is hidden.
+   */
+  const SHOWN = 12
+  const shown = findings.slice(0, SHOWN)
+  const rest = findings.length - shown.length
+  console.log(
+    `${findings.length} thing${findings.length > 1 ? "s" : ""} worth fixing${rest > 0 ? `, top ${SHOWN}` : ""}:\n`,
+  )
+  for (const f of shown) {
     console.log(`  ${ICON[f.kind]} ${f.title}`)
     console.log(`    \x1b[90m→ ${f.fix}\x1b[0m\n`)
   }
+  if (rest > 0) console.log(`  \x1b[90m… and ${rest} more, lower impact\x1b[0m`)
 }
 
 async function runCheck(args: Args, srcRoot: string): Promise<void> {

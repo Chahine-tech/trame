@@ -149,7 +149,19 @@ export interface Communities {
   folderQuality: number
 }
 
+/**
+ * Endpoints and query keys are not files.
+ *
+ * They are synthetic nodes trame adds to show what the code talks to, and they
+ * are leaves by construction — every one of them pulls its callers toward a
+ * community of its own and reports "api/ holds two groups" about things that
+ * were never in a folder. Module boundaries are a question about source files.
+ */
+const SYNTHETIC = new Set(["api", "query-key"])
+
 export function findCommunities(graph: GraphData): Communities {
+  const real = graph.nodes.filter((n) => !SYNTHETIC.has(n.type))
+  graph = { ...graph, nodes: real, edges: graph.edges }
   const index = new Map(graph.nodes.map((n, i) => [n.id, i]))
   const links: { a: number; b: number; w: number }[] = []
   for (const e of graph.edges) {
@@ -207,6 +219,7 @@ export interface Disagreement {
  * two folders are one".
  */
 export function disagreements(graph: GraphData, found: Communities): Disagreement {
+  graph = { ...graph, nodes: graph.nodes.filter((n) => found.of.has(n.id)) }
   const folderOf = new Map(graph.nodes.map((n) => [n.id, n.cluster]))
   const byFolder = new Map<string, string[]>()
   const byCommunity = new Map<number, string[]>()
@@ -226,8 +239,17 @@ export function disagreements(graph: GraphData, found: Communities): Disagreemen
       if (!groups.has(c)) groups.set(c, [])
       groups.get(c)!.push(f)
     }
-    // a stray single file is noise; two real groups is a claim
-    const parts = [...groups.values()].filter((g) => g.length > 1)
+    /**
+     * A part has to be substantial in both senses before it counts.
+     *
+     * Three files, and a real share of the folder. On cal.com's 607-file `v2`
+     * package the loose threshold reported 28 groups, twenty-four of which
+     * were pairs — technically separate communities, and worthless as advice.
+     * A claim that a folder holds two things has to survive being read.
+     */
+    const parts = [...groups.values()].filter(
+      (g) => g.length >= 3 && g.length >= files.length * 0.15,
+    )
     if (parts.length > 1) split.push({ folder, parts: parts.map((p) => p.sort()) })
   }
 
@@ -243,5 +265,12 @@ export function disagreements(graph: GraphData, found: Communities): Disagreemen
     if (substantial.length > 1) merged.push({ folders: substantial.sort(), files: files.sort() })
   }
 
+  /**
+   * Ranked, because the folder that alphabetically comes first is not the one
+   * worth reading. A split is as strong as its *second* part: a package cut
+   * 219/246 is two packages wearing one name, while 400/4 is a stray file.
+   */
+  split.sort((a, b) => (b.parts[1]?.length ?? 0) - (a.parts[1]?.length ?? 0))
+  merged.sort((a, b) => b.files.length - a.files.length)
   return { split, merged }
 }
