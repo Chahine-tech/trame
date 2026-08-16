@@ -8,6 +8,9 @@
   "exports": {
     "./export": "./src/export.ts",
     "./analysis": "./src/analysis.ts",
+    "./doctor": "./src/doctor.ts",
+    "./blame": "./src/blame.ts",
+    "./communities": "./src/communities.ts",
     "./rules": "./src/rules.ts",
     "./types": "./src/types.ts",
     "./replay": "./src/replay.ts"

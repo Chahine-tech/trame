@@ -24,7 +24,10 @@ export function useLensStatus(): string | null {
   const data = useGraphStore((s) => s.data)
 
   if (!data) return null
-  const label = (id: string) => data.nodes.find((n) => n.id === id)?.label ?? id
+  // a Map, not a scan per hop: a traced path can be long and this runs on
+  // every frame the bubble is on screen
+  const names = new Map(data.nodes.map((n) => [n.id, n.label]))
+  const label = (id: string) => names.get(id) ?? id
 
   if (lens === "impact") {
     // the selection counts itself, and it is not something that "would break"

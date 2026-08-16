@@ -59,7 +59,14 @@ function git(repo: string, args: string[]): string {
  * explodes a five-year history into hundreds. The budget is what the reader
  * can watch; the stride follows from it.
  */
-export function sampleCommits(repo: string, since: string, maxFrames: number): Commit[] {
+/**
+ * Every commit in the window, oldest first.
+ *
+ * Separated from the sampling because they serve opposite needs: a replay has
+ * to fit a viewer's patience and takes a budget, while a bisection probes
+ * log₂(n) commits and is only made less precise by thinning the list first.
+ */
+export function listCommits(repo: string, since: string): Commit[] {
   const raw = git(repo, [
     "log",
     "--reverse",
@@ -75,7 +82,12 @@ export function sampleCommits(repo: string, since: string, maxFrames: number): C
       return { sha: sha!, date: date!, subject: subject ?? "", author: author ?? "" }
     })
 
-  return pickEvenly(all, maxFrames)
+  return all
+}
+
+/** At most `maxFrames` of them, evenly spread — what a replay can sit through. */
+export function sampleCommits(repo: string, since: string, maxFrames: number): Commit[] {
+  return pickEvenly(listCommits(repo, since), maxFrames)
 }
 
 /**
@@ -107,6 +119,36 @@ export function pickEvenly(all: Commit[], maxFrames: number): Commit[] {
  * caller's parser. A worktree leaves the working copy untouched, so this is
  * safe to run while you keep editing.
  */
+/**
+ * Run something against a throwaway checkout of one commit.
+ *
+ * A worktree rather than a checkout, so the copy you are editing is never
+ * touched — this is safe to run while you keep working. Returns null when the
+ * commit does not parse: history contains broken states, and refusing to walk
+ * past them would make every history feature useless on a real repository.
+ */
+export function atCommit<T>(
+  repo: string,
+  commit: Commit,
+  fn: (checkoutRoot: string) => T | null,
+): T | null {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "trame-at-"))
+  const dir = path.join(tmp, commit.sha.slice(0, 12))
+  try {
+    git(repo, ["worktree", "add", "--detach", dir, commit.sha])
+    return fn(dir)
+  } catch {
+    return null
+  } finally {
+    try {
+      git(repo, ["worktree", "remove", "--force", dir])
+    } catch {
+      /* already gone */
+    }
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
+
 export function forEachCommit(
   repo: string,
   commits: Commit[],
@@ -114,28 +156,11 @@ export function forEachCommit(
   onProgress?: (index: number, total: number, commit: Commit) => void,
 ): { commit: Commit; graph: GraphData }[] {
   const results: { commit: Commit; graph: GraphData }[] = []
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "trame-replay-"))
-
   for (const [index, commit] of commits.entries()) {
-    const dir = path.join(tmp, commit.sha.slice(0, 12))
     onProgress?.(index, commits.length, commit)
-    try {
-      git(repo, ["worktree", "add", "--detach", dir, commit.sha])
-      const graph = parseAt(dir, commit, index)
-      if (graph) results.push({ commit, graph })
-    } catch {
-      // a commit that doesn't parse is skipped, not fatal: history contains
-      // broken states and the timeline should survive them
-    } finally {
-      try {
-        git(repo, ["worktree", "remove", "--force", dir])
-      } catch {
-        /* already gone */
-      }
-    }
+    const graph = atCommit(repo, commit, (dir) => parseAt(dir, commit, index))
+    if (graph) results.push({ commit, graph })
   }
-
-  fs.rmSync(tmp, { recursive: true, force: true })
   return results
 }
 

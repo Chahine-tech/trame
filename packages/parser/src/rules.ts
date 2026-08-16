@@ -1,24 +1,43 @@
 import { findCycles } from "./analysis.js"
-import type { TrameConfig, GraphData, GraphEdge, Rule, RuleMatch, Violation } from "./types.js"
+import type { TrameConfig, GraphData, GraphEdge, GraphNode, Rule, RuleMatch, Violation } from "./types.js"
 
-function edgeMatches(edge: GraphEdge, match: RuleMatch | undefined, graph: GraphData): boolean {
+/**
+ * Indexes built once per evaluation, instead of a linear scan per lookup.
+ *
+ * Every one of these lookups used to be `graph.nodes.find(...)` inside a loop
+ * over the edges, which makes the rule engine quadratic in the size of the
+ * codebase — measured at ×9.9 for a ×4 graph, where linear would be ×4. It ran
+ * in CI on every pull request, so the cost fell on the repositories least able
+ * to afford it: the big ones.
+ */
+interface Index {
+  node: Map<string, GraphNode>
+  /** an edge by "source→target", for reconstructing the loop a cycle walks */
+  edge: Map<string, GraphEdge>
+}
+
+function indexOf(graph: GraphData): Index {
+  const node = new Map(graph.nodes.map((n) => [n.id, n]))
+  const edge = new Map<string, GraphEdge>()
+  for (const e of graph.edges) {
+    const key = `${e.source}\u0000${e.target}`
+    if (!edge.has(key)) edge.set(key, e)
+  }
+  return { node, edge }
+}
+
+function edgeMatches(edge: GraphEdge, match: RuleMatch | undefined, index: Index): boolean {
   if (!match) return true
   if (match.edgeType && edge.type !== match.edgeType) return false
-  if (match.sourceType) {
-    const source = graph.nodes.find((n) => n.id === edge.source)
-    if (source?.type !== match.sourceType) return false
-  }
-  if (match.targetType) {
-    const target = graph.nodes.find((n) => n.id === edge.target)
-    if (target?.type !== match.targetType) return false
-  }
+  if (match.sourceType && index.node.get(edge.source)?.type !== match.sourceType) return false
+  if (match.targetType && index.node.get(edge.target)?.type !== match.targetType) return false
   return true
 }
 
-function checkUniqueCaller(rule: Rule, graph: GraphData): Violation[] {
+function checkUniqueCaller(rule: Rule, graph: GraphData, index: Index): Violation[] {
   const byTarget = new Map<string, GraphEdge[]>()
   for (const edge of graph.edges) {
-    if (!edgeMatches(edge, rule.match, graph)) continue
+    if (!edgeMatches(edge, rule.match, index)) continue
     const list = byTarget.get(edge.target) ?? []
     list.push(edge)
     byTarget.set(edge.target, list)
@@ -26,7 +45,7 @@ function checkUniqueCaller(rule: Rule, graph: GraphData): Violation[] {
   const violations: Violation[] = []
   for (const [target, edges] of byTarget) {
     if (edges.length <= 1) continue
-    const label = graph.nodes.find((n) => n.id === target)?.label ?? target
+    const label = index.node.get(target)?.label ?? target
     violations.push({
       rule: rule.type,
       message: `${rule.message} (${label}: ${edges.length} callers)`,
@@ -37,12 +56,12 @@ function checkUniqueCaller(rule: Rule, graph: GraphData): Violation[] {
   return violations
 }
 
-function checkNoDirectImport(rule: Rule, graph: GraphData): Violation[] {
+function checkNoDirectImport(rule: Rule, graph: GraphData, index: Index): Violation[] {
   const violations: Violation[] = []
   for (const edge of graph.edges) {
-    if (!edgeMatches(edge, rule.match, graph)) continue
-    const source = graph.nodes.find((n) => n.id === edge.source)
-    const target = graph.nodes.find((n) => n.id === edge.target)
+    if (!edgeMatches(edge, rule.match, index)) continue
+    const source = index.node.get(edge.source)
+    const target = index.node.get(edge.target)
     violations.push({
       rule: rule.type,
       message: `${rule.message} (${source?.label} → ${target?.label})`,
@@ -53,15 +72,15 @@ function checkNoDirectImport(rule: Rule, graph: GraphData): Violation[] {
   return violations
 }
 
-function checkNoCycles(rule: Rule, graph: GraphData): Violation[] {
+function checkNoCycles(rule: Rule, graph: GraphData, index: Index): Violation[] {
   return findCycles(graph).map((cycle) => {
-    const labels = cycle.map((id) => graph.nodes.find((n) => n.id === id)?.label ?? id)
+    const labels = cycle.map((id) => index.node.get(id)?.label ?? id)
     // edges that close the loop, including the wrap-around back to the start
     const edgeIds: string[] = []
     for (let i = 0; i < cycle.length; i++) {
       const from = cycle[i]!
       const to = cycle[(i + 1) % cycle.length]!
-      const edge = graph.edges.find((e) => e.source === from && e.target === to)
+      const edge = index.edge.get(`${from}\u0000${to}`)
       if (edge) edgeIds.push(edge.id)
     }
     return {
@@ -75,10 +94,12 @@ function checkNoCycles(rule: Rule, graph: GraphData): Violation[] {
 
 export function evaluateRules(graph: GraphData, config: TrameConfig): Violation[] {
   const violations: Violation[] = []
+  // built once for the whole evaluation, not once per rule and never per edge
+  const index = indexOf(graph)
   for (const rule of config.rules ?? []) {
-    if (rule.type === "unique-caller") violations.push(...checkUniqueCaller(rule, graph))
-    else if (rule.type === "no-direct-import") violations.push(...checkNoDirectImport(rule, graph))
-    else if (rule.type === "no-cycles") violations.push(...checkNoCycles(rule, graph))
+    if (rule.type === "unique-caller") violations.push(...checkUniqueCaller(rule, graph, index))
+    else if (rule.type === "no-direct-import") violations.push(...checkNoDirectImport(rule, graph, index))
+    else if (rule.type === "no-cycles") violations.push(...checkNoCycles(rule, graph, index))
   }
   return violations
 }

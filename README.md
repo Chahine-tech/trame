@@ -35,6 +35,9 @@ questions of, and hold to a set of rules.
 - **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
 - **What if?** — select a node, press `W`: what would break, what would be stranded, which cycles it would resolve, all without touching the codebase on disk.
 - **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
+- **`trame modules`** — Louvain community detection on the import graph, then compared against your directories. It reports only the disagreements: a folder holding three groups that never touch, or two folders that are one module in practice. Both partitions are scored with Newman's modularity, so "your tree explains 0.05 of this graph, the real structure explains 0.27" is a measurement rather than an opinion.
+- **`trame doctor`** — everything worth fixing, ordered by what it buys. For a cycle it names the one import to remove, chosen by cutting each candidate and recomputing, so the advice is measured rather than guessed. For dead code it counts the private helpers that would go with it.
+- **`trame blame`** — which commit introduced a cycle, and who wrote it. `git blame` answers that for a line; a cycle is not written on any line, it emerges from imports spread across the files it joins. Found by bisecting the history, so five thousand commits cost about thirteen checkouts.
 - **Replay** — `trame replay` walks your git history and lets you scrub the architecture as it grew. Surviving files keep their position between frames, so the eye can follow what appeared and what went away.
 - **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
 
@@ -132,6 +135,9 @@ Point `TRAME_SRC` and `TRAME_CONFIG` at your own paths and it works on any repo.
 ```
 trame --src ./src [--out ./trame.json]     parse and write the graph
 trame check --src ./src                      evaluate rules, exit 1 on violations
+trame doctor --src ./src                     what to fix, worst first
+trame blame --src ./src [--since]            which commit introduced each problem
+trame modules --src ./src                    where the real module boundaries are
 trame watch --src ./src [--out ...]          re-parse on file changes
 trame serve --data ./trame.json [--port]   serve the built viewer
 trame diff --base a.json --head b.json       what a branch did to the architecture

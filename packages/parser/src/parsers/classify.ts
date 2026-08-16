@@ -33,12 +33,23 @@ export function classify(file: SourceFile): NodeType {
   return "module"
 }
 
-/** Display label — "index" files take their folder's name. */
+/**
+ * Display label. Files whose own name says nothing borrow their folder's.
+ *
+ * `index` can take the folder name outright: there is only one per folder, so
+ * nothing collides. `page` and `layout` cannot — the Next.js app router puts
+ * both in the same directory, and handing them the same name produced two
+ * nodes called "app" in a real project, indistinguishable in the graph, in an
+ * export, and in any advice that names them. They keep the folder for context
+ * and their own name to stay apart.
+ */
 export function labelFor(file: SourceFile): string {
   const parts = file.getFilePath().split("/")
   const base = (parts.pop() ?? "").replace(/\.[jt]sx?$/, "")
-  if (base === "index" || base === "page" || base === "layout") {
-    return parts.pop() ?? base
+  if (base === "index") return parts.pop() ?? base
+  if (base === "page" || base === "layout") {
+    const folder = parts.pop()
+    return folder ? `${folder}/${base}` : base
   }
   return base
 }

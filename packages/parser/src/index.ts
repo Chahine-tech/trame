@@ -7,14 +7,17 @@ import { buildGraph } from "./graph.js"
 import { evaluateRules } from "./rules.js"
 import { loadConfig } from "./config.js"
 import { findCycles, findOrphans } from "./analysis.js"
+import { diagnose, type Finding } from "./doctor.js"
+import { blameFindings } from "./blame.js"
+import { disagreements, findCommunities } from "./communities.js"
 import { diffGraphs } from "./diff.js"
 import { toDot, toMarkdown, toMermaid } from "./export.js"
 import { serve } from "./serve.js"
-import { buildTimeline, forEachCommit, sampleCommits } from "./replay.js"
+import { atCommit, buildTimeline, forEachCommit, listCommits, sampleCommits, type Commit } from "./replay.js"
 import type { GraphData, TrameConfig, Violation } from "./types.js"
 
 interface Args {
-  command: "parse" | "check" | "watch" | "serve" | "diff" | "replay"
+  command: "parse" | "check" | "doctor" | "blame" | "modules" | "watch" | "serve" | "diff" | "replay"
   src: string
   out: string
   tsconfig?: string
@@ -87,6 +90,9 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
 
   trame --src ./src [--out ./trame.json]     parse and write the graph
   trame check --src ./src                      evaluate rules, exit 1 on violations
+  trame doctor --src ./src                     what to fix, worst first
+  trame blame --src ./src [--since]            which commit introduced each problem
+  trame modules --src ./src                    where the real module boundaries are
   trame watch --src ./src [--out ...]          re-parse on file changes
   trame serve --data ./trame.json [--port]   serve the built viewer
   trame diff --base a.json --head b.json       what a branch did to the architecture
@@ -128,6 +134,9 @@ function parseArgs(argv: string[]): Args {
     const next = () => argv[++i] ?? ""
     switch (a) {
       case "check":
+      case "doctor":
+      case "blame":
+      case "modules":
       case "watch":
       case "serve":
       case "diff":
@@ -298,6 +307,147 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
   return graph
 }
 
+/**
+ * Advice, not a gate.
+ *
+ * `check` exits 1 so CI can refuse a merge. This one always exits 0: an
+ * unreferenced file is worth knowing about and is nobody's emergency, and a
+ * command that fails the build over a suggestion would be turned off within a
+ * week. The two are deliberately different tools.
+ */
+/**
+ * Where the module boundaries actually are.
+ *
+ * The folder tree is a claim about structure made once and rarely revisited.
+ * This finds the groups of files that genuinely depend on each other far more
+ * than on anything else, then reports only where the two disagree — a
+ * partition on its own is a curiosity, "this folder is two things" is a
+ * decision waiting to be made.
+ */
+async function runModules(args: Args, srcRoot: string): Promise<void> {
+  const config = await loadConfig(args.config)
+  const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
+  const found = findCommunities(graph)
+  const { split, merged } = disagreements(graph, found)
+
+  const short = (id: string) => id.split("/").pop()!.replace(/\.[jt]sx?$/, "")
+  // above roughly 0.3 the grouping explains the graph; near 0 it does not
+  console.log(
+    `  structure found: \x1b[1m${found.quality.toFixed(3)}\x1b[0m · your folders: \x1b[1m${found.folderQuality.toFixed(3)}\x1b[0m  \x1b[90m(0.3+ means the grouping explains the imports)\x1b[0m\n`,
+  )
+
+  // negative modularity is not "a bit low": it means files sharing a folder
+  // are less connected than they would be if you had shuffled them, which is
+  // the strongest thing this can find and deserves saying outright
+  if (found.folderQuality < 0) {
+    console.log(
+      `  \x1b[33m!\x1b[0m grouping by folder is worse than grouping at random — the tree and the imports are unrelated\n`,
+    )
+  }
+
+  if (split.length === 0 && merged.length === 0) {
+    console.log(`  \x1b[32m✓\x1b[0m your folders and your dependencies agree`)
+    return
+  }
+
+  for (const s of split) {
+    console.log(`  \x1b[33m${s.folder}/\x1b[0m holds ${s.parts.length} groups that barely touch:`)
+    for (const part of s.parts) console.log(`    \x1b[90m· ${part.map(short).join(", ")}\x1b[0m`)
+    console.log()
+  }
+  for (const m of merged) {
+    console.log(
+      `  \x1b[33m${m.folders.join(" + ")}\x1b[0m are one module in practice \x1b[90m(${m.files.length} files)\x1b[0m\n`,
+    )
+  }
+}
+
+/**
+ * Which commit introduced each problem, and who wrote it.
+ *
+ * Bisection over the full history rather than the sampled list a replay uses:
+ * probing log₂(n) commits means precision costs nothing, so thinning the list
+ * first would only make the answer vaguer for no saving. Parses are memoised
+ * by sha because separate searches converge on the same midpoints.
+ */
+async function runBlame(args: Args, srcRoot: string): Promise<void> {
+  const repo = path.resolve(args.repo)
+  const commits = listCommits(repo, args.since)
+  if (commits.length === 0) {
+    console.error(`error: no commits since ${args.since} — try --since "5 years ago"`)
+    process.exit(1)
+  }
+
+  const config = await loadConfig(args.config)
+  const exclude = resolveExclude(args, config)
+  const today = parseOnce(args, srcRoot, exclude)
+  if (config) today.violations = evaluateRules(today, config)
+
+  const relSrc = path.relative(repo, srcRoot)
+  const cache = new Map<string, GraphData | null>()
+  let checkouts = 0
+  const graphAt = (commit: Commit): GraphData | null => {
+    const hit = cache.get(commit.sha)
+    if (hit !== undefined) return hit
+    checkouts++
+    // only when someone is watching: piped into a file or another command,
+    // carriage returns are not animation, they are litter in the output
+    if (process.stdout.isTTY) {
+      process.stdout.write(`\r  reading history · ${checkouts} checkouts   `)
+    }
+    const graph = atCommit(repo, commit, (root) => {
+      const at = path.join(root, relSrc)
+      return fs.existsSync(at) ? parseOnce({ ...args, src: at }, at, exclude) : null
+    })
+    cache.set(commit.sha, graph)
+    return graph
+  }
+
+  const label = (id: string) => today.nodes.find((n) => n.id === id)?.label ?? id
+  const blamed = blameFindings(today, commits, graphAt, config, label)
+  if (process.stdout.isTTY) process.stdout.write("\r".padEnd(48) + "\r")
+
+  if (blamed.length === 0) {
+    console.log(`\x1b[32m✓\x1b[0m nothing to blame — no cycles, no rule broken`)
+    return
+  }
+
+  console.log(`${blamed.length} traced through ${commits.length} commits, ${checkouts} read:\n`)
+  for (const b of blamed) {
+    console.log(`  ${b.what}`)
+    if (b.commit) {
+      console.log(
+        `    \x1b[90m${b.commit.sha.slice(0, 8)} · ${b.commit.subject} · ${b.commit.author} · ${b.commit.date.slice(0, 10)}\x1b[0m\n`,
+      )
+    } else {
+      console.log(`    \x1b[90molder than the history read — try --since\x1b[0m\n`)
+    }
+  }
+}
+
+async function runDoctor(args: Args, srcRoot: string): Promise<void> {
+  const config = await loadConfig(args.config)
+  const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
+  if (config) graph.violations = evaluateRules(graph, config)
+
+  const findings = diagnose(graph)
+  if (findings.length === 0) {
+    console.log(`\x1b[32m✓\x1b[0m nothing to fix — no cycles, no dead code, no rule broken`)
+    return
+  }
+
+  const ICON: Record<Finding["kind"], string> = {
+    cycle: "\x1b[33m⟳\x1b[0m",
+    orphan: "\x1b[90m○\x1b[0m",
+    violation: "\x1b[31m✗\x1b[0m",
+  }
+  console.log(`${findings.length} thing${findings.length > 1 ? "s" : ""} worth fixing, worst first:\n`)
+  for (const f of findings) {
+    console.log(`  ${ICON[f.kind]} ${f.title}`)
+    console.log(`    \x1b[90m→ ${f.fix}\x1b[0m\n`)
+  }
+}
+
 async function runCheck(args: Args, srcRoot: string): Promise<void> {
   const config = await loadConfig(args.config)
   const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
@@ -452,6 +602,9 @@ async function main() {
 
   if (args.command === "replay") await runReplay(args, srcRoot)
   else if (args.command === "check") await runCheck(args, srcRoot)
+  else if (args.command === "doctor") await runDoctor(args, srcRoot)
+  else if (args.command === "blame") await runBlame(args, srcRoot)
+  else if (args.command === "modules") await runModules(args, srcRoot)
   else if (args.command === "watch") await runWatch(args, srcRoot)
   else await runParse(args, srcRoot)
 }
