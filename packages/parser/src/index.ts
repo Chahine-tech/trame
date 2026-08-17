@@ -304,8 +304,21 @@ function warnIfUninstalledWorkspace(srcRoot: string): void {
   }
 }
 
-function parseOnce(args: Args, srcRoot: string, exclude: string[] = args.exclude): GraphData {
-  warnIfUninstalledWorkspace(srcRoot)
+/**
+ * `quiet` for parses the user did not ask for.
+ *
+ * Reading history means parsing a throwaway checkout over and over, and each
+ * one announced the tsconfig it had found inside a temp directory: sixteen
+ * lines of noise around three actual answers. What a probe discovers about a
+ * worktree that no longer exists is nobody's business.
+ */
+function parseOnce(
+  args: Args,
+  srcRoot: string,
+  exclude: string[] = args.exclude,
+  quiet = false,
+): GraphData {
+  if (!quiet) warnIfUninstalledWorkspace(srcRoot)
   const tsconfig = args.noTsconfig
     ? undefined
     : args.tsconfig
@@ -314,7 +327,7 @@ function parseOnce(args: Args, srcRoot: string, exclude: string[] = args.exclude
 
   // said out loud: silent resolution is how the missing one went unnoticed
   if (tsconfig && !args.tsconfig) {
-    console.log(`  tsconfig: ${path.relative(process.cwd(), tsconfig) || tsconfig}`)
+    if (!quiet) console.log(`  tsconfig: ${path.relative(process.cwd(), tsconfig) || tsconfig}`)
   }
 
   const project = tsconfig
@@ -468,7 +481,7 @@ async function runBlame(args: Args, srcRoot: string): Promise<void> {
     }
     const graph = atCommit(repo, commit, (root) => {
       const at = path.join(root, relSrc)
-      return fs.existsSync(at) ? parseOnce({ ...args, src: at }, at, exclude) : null
+      return fs.existsSync(at) ? parseOnce({ ...args, src: at }, at, exclude, true) : null
     })
     cache.set(commit.sha, graph)
     return graph

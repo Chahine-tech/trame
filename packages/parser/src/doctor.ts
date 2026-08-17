@@ -115,10 +115,18 @@ export function diagnose(graph: GraphData): Finding[] {
 
   for (const cycle of findCycles(graph)) {
     const cut = bestCut(graph, cycle)
-    const walk = cycle.map(label)
+    /**
+     * Enough of the loop to recognise it, not all of it.
+     *
+     * cal.com has a 106-file cycle through its Prisma models; printing the
+     * whole walk produced a single unreadable line and pushed everything else
+     * off the screen. The count says how big it is, the head says where it is.
+     */
+    const walk = cycle.slice(0, 6).map(label)
+    const rest = cycle.length - walk.length
     findings.push({
       kind: "cycle",
-      title: `${cycle.length} files depend on each other in a loop: ${walk.join(" → ")}`,
+      title: `${cycle.length} files depend on each other in a loop: ${walk.join(" → ")}${rest > 0 ? ` … +${rest}` : ""}`,
       fix: cut
         ? `Remove the import of ${label(cut.edge.target)} from ${label(cut.edge.source)} — verified to free ${cut.frees} of them.`
         : "No single import breaks this one; it needs more than one edge cut.",
@@ -127,21 +135,40 @@ export function diagnose(graph: GraphData): Finding[] {
     })
   }
 
+  /**
+   * Dead code is an inference, and a weaker one than it looks.
+   *
+   * "Nothing imports this" is true of the graph, and the graph does not contain
+   * dynamic imports, framework conventions like a Next.js route, registries
+   * keyed by string, or the test files trame excludes on purpose — on cal.com,
+   * 14% of the files reported here are imported by a test and nothing else.
+   *
+   * So it is phrased as a question rather than an instruction, and ranked below
+   * cycles, which are facts about the graph rather than guesses about the world.
+   * A tool that confidently tells you to delete 1327 working files gets closed.
+   */
   for (const orphan of findOrphans(graph)) {
     const weight = deadWeight(graph, orphan)
+    const total = weight.length + 1
     findings.push({
       kind: "orphan",
       title:
         weight.length > 0
-          ? `${label(orphan)} is imported by nothing, and keeps ${weight.length} more file${weight.length === 1 ? "" : "s"} alive`
-          : `${label(orphan)} is imported by nothing`,
-      fix: `Delete it to remove ${weight.length + 1} file${weight.length === 0 ? "" : "s"} — or import it, if it is an entrypoint trame does not recognise.`,
-      impact: weight.length + 1,
+          ? `nothing here imports ${label(orphan)}, and ${weight.length} more file${weight.length === 1 ? "" : "s"} exist only for it`
+          : `nothing here imports ${label(orphan)}`,
+      fix:
+        `If that is real, deleting it removes ${total} file${total === 1 ? "" : "s"}. ` +
+        `If it is a route, a dynamic import or something only a test uses, trame cannot see that.`,
+      // deliberately below any cycle: an inference should not outrank a fact
+      impact: (weight.length + 1) / 1000,
       nodeIds: [orphan, ...weight],
     })
   }
 
   for (const v of graph.violations ?? []) {
+    // the cycles above already said this, in their own words and with a cut
+    // to suggest; letting the rule restate them prints every loop twice
+    if (v.rule === "no-cycles") continue
     findings.push({
       kind: "violation",
       title: v.message,

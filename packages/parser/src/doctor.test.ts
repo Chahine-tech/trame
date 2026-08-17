@@ -73,7 +73,7 @@ describe("dead code", () => {
     )
     const orphan = diagnose(g).find((f) => f.kind === "orphan" && f.nodeIds[0] === "widow")!
     expect(orphan.nodeIds).toEqual(["widow", "helper", "deep"])
-    expect(orphan.impact).toBe(3)
+    expect(orphan.fix).toMatch(/removes 3 files/)
   })
 
   it("does not claim a helper that something else still uses", () => {
@@ -84,12 +84,16 @@ describe("dead code", () => {
     )
     const orphan = diagnose(g).find((f) => f.nodeIds[0] === "widow")!
     expect(orphan.nodeIds).toEqual(["widow"])
-    expect(orphan.impact).toBe(1)
+    expect(orphan.fix).toMatch(/removes 1 file/)
   })
 })
 
 describe("ordering", () => {
-  it("puts the finding that buys the most first", () => {
+  it("puts a cycle above dead code, however much the dead code weighs", () => {
+    // a cycle is a fact about the graph; "nothing imports this" is an inference
+    // that dynamic imports, framework routes and excluded tests can each
+    // falsify. Four suspected dead files must not outrank two genuinely tangled
+    // ones — on cal.com that ordering buried 24 real cycles under 1327 guesses.
     const g = graph(
       ["main", "a", "b", "widow", "h1", "h2", "h3"],
       [
@@ -98,8 +102,17 @@ describe("ordering", () => {
       ],
     )
     const found = diagnose(g)
-    expect(found[0]!.kind).toBe("orphan") // 4 files removed beats 2 freed
-    expect(found[0]!.impact).toBe(4)
+    expect(found[0]!.kind).toBe("cycle")
+    expect(found.some((f) => f.kind === "orphan" && f.nodeIds.length === 4)).toBe(true)
+  })
+
+  it("still orders dead code by how much of it there is", () => {
+    const g = graph(
+      ["main", "small", "big", "b1", "b2", "b3"],
+      [["big", "b1"], ["b1", "b2"], ["b2", "b3"]],
+    )
+    const orphans = diagnose(g).filter((f) => f.kind === "orphan")
+    expect(orphans[0]!.nodeIds.length).toBeGreaterThan(orphans[1]!.nodeIds.length)
   })
 
   it("is stable across runs so a diff of two reports means something", () => {
