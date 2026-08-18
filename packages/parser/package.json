@@ -1,19 +1,43 @@
 {
   "name": "tramejs",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "bin": {
     "trame": "dist/index.js"
   },
   "exports": {
-    "./export": { "types": "./dist/export.d.ts", "default": "./dist/export.js" },
-    "./analysis": { "types": "./dist/analysis.d.ts", "default": "./dist/analysis.js" },
-    "./doctor": { "types": "./dist/doctor.d.ts", "default": "./dist/doctor.js" },
-    "./blame": { "types": "./dist/blame.d.ts", "default": "./dist/blame.js" },
-    "./communities": { "types": "./dist/communities.d.ts", "default": "./dist/communities.js" },
-    "./rules": { "types": "./dist/rules.d.ts", "default": "./dist/rules.js" },
-    "./types": { "types": "./dist/types.d.ts", "default": "./dist/types.js" },
-    "./replay": { "types": "./dist/replay.d.ts", "default": "./dist/replay.js" }
+    "./export": {
+      "types": "./dist/export.d.ts",
+      "default": "./dist/export.js"
+    },
+    "./analysis": {
+      "types": "./dist/analysis.d.ts",
+      "default": "./dist/analysis.js"
+    },
+    "./doctor": {
+      "types": "./dist/doctor.d.ts",
+      "default": "./dist/doctor.js"
+    },
+    "./blame": {
+      "types": "./dist/blame.d.ts",
+      "default": "./dist/blame.js"
+    },
+    "./communities": {
+      "types": "./dist/communities.d.ts",
+      "default": "./dist/communities.js"
+    },
+    "./rules": {
+      "types": "./dist/rules.d.ts",
+      "default": "./dist/rules.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
+    "./replay": {
+      "types": "./dist/replay.d.ts",
+      "default": "./dist/replay.js"
+    }
   },
   "scripts": {
     "dev": "tsx src/index.ts",
