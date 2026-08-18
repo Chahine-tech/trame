@@ -7,10 +7,8 @@ two files got connected, see what breaks before you touch it, test an
 architectural decision before you make it, and fail CI when the architecture
 drifts.
 
-[![trame](packages/site/public/og.png)](https://trame-61t.pages.dev)
-
 **[See it running](https://trame-61t.pages.dev)** · **[Open the viewer](https://trame-viewer.pages.dev)** — the graph in
-both is trame's own source, parsed by trame. The picture is a still; the link is the thing.
+both is trame's own source, parsed by trame.
 
 ## Why
 
