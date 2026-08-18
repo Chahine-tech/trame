@@ -3,12 +3,9 @@
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
-    "declaration": true,
     "lib": ["ES2022"],
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true
   },
-  "include": ["src"],
-  "exclude": ["dist", "**/*.test.ts"]
+  "include": ["src"]
 }

@@ -5,7 +5,7 @@ import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
 import { evaluateRules } from "./rules.js"
-import { loadConfig } from "./config.js"
+import { ConfigError, loadConfig } from "./config.js"
 import { findCycles, findOrphans } from "./analysis.js"
 import { diagnose, type Finding } from "./doctor.js"
 import { blameFindings } from "./blame.js"
@@ -663,6 +663,37 @@ async function runReplay(args: Args, srcRoot: string): Promise<void> {
   )
 }
 
+/**
+ * A graph file this tool wrote earlier — the only input that is a file the
+ * caller names rather than one we just produced.
+ *
+ * Pointed at the wrong path, or at a graph truncated by an interrupted write,
+ * the failure used to surface far from here as a property read on undefined
+ * somewhere inside the diff. Two `Array.isArray` calls buy a message that names
+ * the file and says how to make a real one.
+ */
+function readGraph(file: string): GraphData {
+  const p = path.resolve(file)
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(fs.readFileSync(p, "utf8"))
+  } catch (error) {
+    // an fs error already names the path it failed on; a syntax error does not
+    const message = (error as Error).message
+    console.error(error instanceof SyntaxError ? `error: could not parse ${p} — ${message}` : `error: ${message}`)
+    process.exit(1)
+  }
+  const graph = parsed as Partial<GraphData>
+  if (!parsed || typeof parsed !== "object" || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
+    console.error(
+      `error: ${p} is not a trame graph — expected nodes and edges arrays\n` +
+        `  generate one with: trame --src ./src --out ${file}`,
+    )
+    process.exit(1)
+  }
+  return parsed as GraphData
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2))
 
@@ -671,8 +702,8 @@ async function main() {
       console.error("error: diff needs --base <file.json> and --head <file.json>")
       process.exit(1)
     }
-    const base = JSON.parse(fs.readFileSync(path.resolve(args.base), "utf8")) as GraphData
-    const head = JSON.parse(fs.readFileSync(path.resolve(args.head), "utf8")) as GraphData
+    const base = readGraph(args.base)
+    const head = readGraph(args.head)
     const merged = diffGraphs(base, head)
     const outPath = path.resolve(args.out)
     fs.writeFileSync(outPath, render(merged, args.format))
@@ -706,4 +737,10 @@ async function main() {
   else await runParse(args, srcRoot)
 }
 
-main()
+main().catch((error: unknown) => {
+  // a bad config is the user's to fix and needs no stack trace; anything else
+  // reaching here is our bug, and the trace is the useful part of the report
+  if (error instanceof ConfigError) console.error(`error: ${error.message}`)
+  else console.error(error)
+  process.exit(1)
+})

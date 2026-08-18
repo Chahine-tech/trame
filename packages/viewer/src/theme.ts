@@ -1,30 +1,21 @@
 import { useSyncExternalStore } from "react"
 import type { EdgeType, NodeType } from "./types"
 
-export interface Palette {
-  crust: string
-  mantle: string
-  base: string
-  surface0: string
-  surface1: string
-  overlay: string
-  subtext: string
-  text: string
-  blue: string
-  green: string
-  mauve: string
-  peach: string
-  pink: string
-  yellow: string
-  teal: string
-  lav: string
-  red: string
-}
-
-const VARS: (keyof Palette)[] = [
+/**
+ * The CSS custom properties the stylesheet defines, and the single source of
+ * truth for what a palette contains.
+ *
+ * `Palette` is derived from this list rather than declared beside it: `read()`
+ * builds its result by walking these names, so a colour declared in the type
+ * but missing here would be typed `string` and be `undefined` at runtime. One
+ * list means the two cannot drift.
+ */
+const VARS = [
   "crust", "mantle", "base", "surface0", "surface1", "overlay", "subtext", "text",
   "blue", "green", "mauve", "peach", "pink", "yellow", "teal", "lav", "red",
-]
+] as const
+
+export type Palette = Record<(typeof VARS)[number], string>
 
 /** Color = information: each node type maps to one Catppuccin accent. */
 export const NODE_COLOR: Record<NodeType, keyof Palette> = {

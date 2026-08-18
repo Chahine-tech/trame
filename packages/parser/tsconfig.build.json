@@ -1,0 +1,14 @@
+{
+  // What ships. tsconfig.json is the wider net — it covers the tests too, so
+  // the editor and `typecheck` see them; this one narrows to what belongs in
+  // dist. Keeping the exclusion here rather than there is the whole point:
+  // tests that no compiler ever reads are tests that can quietly rot.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true
+  },
+  "exclude": ["dist", "**/*.test.ts"]
+}
