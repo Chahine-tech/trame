@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentRef } from "react"
+import { useEffect, useMemo, useRef, useState, type ComponentRef } from "react"
 import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
@@ -12,6 +12,7 @@ import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
 import { Districts } from "./Districts"
 import { ZoomDirector } from "./ZoomDirector"
+import { DetailBudget } from "./DetailBudget"
 import { CaptureFrame } from "./CaptureFrame"
 
 /** Scratch vectors, reused every frame — always rewritten before they are read. */
@@ -127,8 +128,25 @@ export function Scene() {
   )
   const introSpin = useIntroSpin()
   const districtMode = useGraphStore((s) => s.districtMode)
+  const nearby = useGraphStore((s) => s.nearby)
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
+
+  /**
+   * The detail view draws its neighbourhood, not the repository.
+   *
+   * An edge needs both ends present or it would trail off into nothing, which
+   * reads as a bug rather than as a boundary. `nearby` is null whenever the
+   * whole graph fits, and then this is the same list it always was.
+   */
+  const visible = useMemo(() => {
+    if (!data || !nearby) return data
+    return {
+      ...data,
+      nodes: data.nodes.filter((n) => nearby.has(n.id)),
+      edges: data.edges.filter((e) => nearby.has(e.source) && nearby.has(e.target)),
+    }
+  }, [data, nearby])
 
   // the spin pauses while a node is lit and resumes after; in demand mode the
   // loop has already stopped by then, so it needs an explicit restart
@@ -150,16 +168,17 @@ export function Scene() {
       <Lighting />
 
       <ZoomDirector />
+      <DetailBudget />
 
       {districtMode ? (
         <Districts />
       ) : (
         <>
           <Clusters />
-          {data.edges.map((e) => (
+          {visible!.edges.map((e) => (
             <EdgeMesh key={e.id} edge={e} />
           ))}
-          {data.nodes.map((n) => (
+          {visible!.nodes.map((n) => (
             <NodeMesh key={n.id} node={n} />
           ))}
         </>

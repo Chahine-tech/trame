@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
 import { Html } from "@react-three/drei"
@@ -24,9 +24,73 @@ interface DistrictLink {
   weight: number
 }
 
+/** Scratch vector for the screen projection — rewritten before every read. */
+const PROJECTED = new THREE.Vector3()
+
 /** A folder reads as one body once you are far enough not to read filenames. */
 function radiusFor(fileCount: number): number {
   return 2.2 + Math.sqrt(fileCount) * 1.5
+}
+
+/** A label's footprint on screen, in pixels, and how much it deserves the space. */
+export interface LabelBox {
+  id: string
+  /** centre, in pixels from the top left of the canvas */
+  x: number
+  y: number
+  width: number
+  height: number
+  /** bigger wins the ground it stands on; ties break on id, so runs agree */
+  rank: number
+}
+
+/**
+ * The labels a map can actually show: the most important ones, and then
+ * whatever still fits between them.
+ *
+ * Every district drawing its own name works until there are more than a
+ * handful. cal.com has 114 folders, so `i18n/ 1 file` was printed straight
+ * through the middle of `trpc/ 398 files` and neither could be read. A paper
+ * map solves this by not labelling everything at once — the capital is named,
+ * the village next to it waits until you are closer — and dropping a name is
+ * better than keeping two that cancel each other out.
+ *
+ * Biggest first, then greedily: a name is kept when its box clears every name
+ * already kept. Greedy is not optimal — choosing a maximum set of
+ * non-overlapping boxes is NP-hard — but taking the largest first puts the
+ * error where it costs least, on the folders with the fewest files in them.
+ */
+export function withoutOverlap(boxes: LabelBox[]): Set<string> {
+  const kept: LabelBox[] = []
+  const ids = new Set<string>()
+  const ordered = [...boxes].sort((a, b) => b.rank - a.rank || a.id.localeCompare(b.id))
+
+  for (const box of ordered) {
+    const clashes = kept.some(
+      (other) =>
+        Math.abs(box.x - other.x) * 2 < box.width + other.width &&
+        Math.abs(box.y - other.y) * 2 < box.height + other.height,
+    )
+    if (clashes) continue
+    kept.push(box)
+    ids.add(box.id)
+  }
+  return ids
+}
+
+/**
+ * Roughly how much room a district's name takes, without measuring the DOM.
+ *
+ * The font is monospace, so the width follows from the character count: about
+ * 0.6 em, at 15px for the name and 10px for the file count beneath it. Reading
+ * back the real rectangles would be exact and would also force a layout of
+ * every label on every camera move, which is the cost this whole thing exists
+ * to avoid.
+ */
+function labelSize(label: string, fileCount: number): { width: number; height: number } {
+  const name = (label.length + 1) * 9
+  const count = `${fileCount} files`.length * 6.2
+  return { width: Math.max(name, count) + 10, height: 32 }
 }
 
 function centroidOf(ids: string[], positions: Map<string, Vec3>): THREE.Vector3 | null {
@@ -41,10 +105,12 @@ function DistrictBody({
   district,
   appear,
   showLabel,
+  onLabel,
 }: {
   district: District
   appear: React.RefObject<number>
   showLabel: boolean
+  onLabel: (id: string, el: HTMLDivElement | null) => void
 }) {
   const focus = useGraphStore((s) => s.focus)
   const meshRef = useRef<THREE.Mesh>(null)
@@ -104,7 +170,7 @@ function DistrictBody({
           soon as the camera orbits */}
       {showLabel && (
       <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
-        <div className="district-label">
+        <div className="district-label" ref={(el) => onLabel(district.id, el)}>
           <span className="name" style={{ color: district.color }}>
             {district.label}/
           </span>
@@ -228,6 +294,50 @@ export function Districts() {
     invalidate() // keep the entrance running under frameloop="demand"
   })
 
+  /**
+   * Decide which names survive, and say so straight to the DOM.
+   *
+   * Written imperatively for the same reason the entrance is: 114 labels
+   * re-rendering several times a second while the camera turns would cost far
+   * more than the arithmetic that decides them. Recomputed only when the camera
+   * has actually moved, which means a still scene costs nothing at all.
+   */
+  const labels = useRef(new Map<string, HTMLDivElement>())
+  const onLabel = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) labels.current.set(id, el)
+    else labels.current.delete(id)
+  }, [])
+  const lastView = useRef("")
+
+  useFrame(({ camera, size }) => {
+    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}`
+    if (view === lastView.current) return
+    lastView.current = view
+
+    const boxes: LabelBox[] = []
+    for (const district of districts) {
+      if (!labels.current.has(district.id)) continue
+      PROJECTED.copy(district.centroid).project(camera)
+      // behind the camera: drei still keeps the element around, and a name
+      // from the far side of the graph must not take a place on this one
+      if (PROJECTED.z > 1) continue
+      const { width, height } = labelSize(district.label, district.fileCount)
+      boxes.push({
+        id: district.id,
+        x: ((PROJECTED.x + 1) / 2) * size.width,
+        y: ((1 - PROJECTED.y) / 2) * size.height,
+        width,
+        height,
+        rank: district.fileCount,
+      })
+    }
+
+    const keep = withoutOverlap(boxes)
+    for (const [id, el] of labels.current) {
+      el.style.opacity = keep.has(id) ? "1" : "0"
+    }
+  })
+
   if (!data) return null
 
   return (
@@ -241,6 +351,7 @@ export function Districts() {
           district={district}
           appear={appear}
           showLabel={showLabels && showClusters}
+          onLabel={onLabel}
         />
       ))}
     </>

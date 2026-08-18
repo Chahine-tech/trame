@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
+import { nearestTo } from "../scene/DetailBudget"
 import { simulateDelete, type WhatIfReport } from "./whatif"
 import type { LensKind } from "./lens"
 
@@ -162,6 +163,19 @@ interface GraphState {
   /** zoomed out far enough that folders stand in for their files */
   districtMode: boolean
   setDistrictMode: (v: boolean) => void
+
+  /**
+   * Which files the detail view is allowed to draw — `null` when the whole
+   * graph fits and nothing needs holding back.
+   *
+   * Districts already stand in for files from a distance, but stepping inside
+   * used to mount every node and every edge in the repository. On cal.com that
+   * is 3451 files and 9458 imports, around 25 800 draw calls, and the scene
+   * stopped being either fast or readable. Measured on that graph: 500 files
+   * are comfortable, 1000 are neither.
+   */
+  nearby: Set<string> | null
+  setNearby: (ids: Set<string> | null) => void
 
   /** the architecture replayed across git history, when one was generated */
   timeline: Timeline | null
@@ -426,6 +440,23 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     )
   },
 
+  nearby: null,
+  setNearby: (ids) => {
+    const current = get().nearby
+    // same membership, same render: replacing the set would remount the scene
+    if (current === ids) return
+    if (current && ids && current.size === ids.size) {
+      let identical = true
+      for (const id of ids) {
+        if (current.has(id)) continue
+        identical = false
+        break
+      }
+      if (identical) return
+    }
+    set({ nearby: ids })
+  },
+
   load: (data, isDemo = false) => {
     const prev = get()
     // a watch reload must not destroy hand-made work: keep the arrangement
@@ -467,10 +498,26 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const alive = new Set(data.nodes.map((n) => n.id))
     const pinned = new Set([...prev.pinned].filter((id) => alive.has(id)))
 
+    /**
+     * Decide the neighbourhood before the first render, not after it.
+     *
+     * DetailBudget runs inside the frame loop, so its first say comes one frame
+     * *after* the scene has mounted — and mounting cal.com whole is 3451 nodes
+     * and 9458 edges, some 25 800 draw calls, built and thrown away in the same
+     * breath. The camera opens looking at the origin, so that is where the first
+     * neighbourhood is taken from.
+     */
+    const nearby = nearestTo(
+      data.nodes.map((n) => n.id),
+      positions,
+      [0, 0, 0],
+    )
+
     set({
       data,
       isDemo,
       positions,
+      nearby,
       pinned,
       adjacency,
       inDeg,
@@ -488,6 +535,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       litSet: new Set(),
       ...noLens(),
     })
+
   },
 
   setHover: (id) => {
