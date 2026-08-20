@@ -166,3 +166,28 @@ export function impassable(ids: string[], edges: GraphEdge[], share = 0.03): Set
   const limit = Math.max(20, Math.round(ids.length * share))
   return new Set(ids.filter((id) => (degree.get(id) ?? 0) >= limit))
 }
+
+/**
+ * The widest view of a file's surroundings that still fits on screen.
+ *
+ * Two hops is the readable distance and almost always affordable — on cal.com
+ * the median file reaches 32 others and only one in a hundred passes four
+ * hundred. Almost always is not always: opening on `handleCancelBooking`, which
+ * is exactly the kind of well-connected file worth opening on, reached 426. So
+ * the reach is chosen rather than assumed, and a file with an unusually busy
+ * neighbourhood is shown one hop of it rather than a screenful nobody can read.
+ */
+export function fittingNeighbourhood(
+  focus: string,
+  edges: GraphEdge[],
+  impassableIds: Set<string>,
+  budget: number,
+): Set<string> {
+  let last = neighbourhood(focus, edges, 1, impassableIds)
+  for (let hops = 2; hops <= 3; hops++) {
+    const wider = neighbourhood(focus, edges, hops, impassableIds)
+    if (wider.size > budget) return last
+    last = wider
+  }
+  return last
+}

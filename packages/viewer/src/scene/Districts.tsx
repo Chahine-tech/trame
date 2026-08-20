@@ -5,6 +5,7 @@ import { Html } from "@react-three/drei"
 import { useGraphStore } from "../store/graph"
 import { isDarkGround, usePalette } from "../theme"
 import type { Vec3 } from "../types"
+import { applyLabels, textSize, withoutOverlap, type LabelBox } from "./labels"
 
 interface District {
   id: string
@@ -31,75 +32,6 @@ const MIDPOINT = new THREE.Vector3()
 /** A folder reads as one body once you are far enough not to read filenames. */
 function radiusFor(fileCount: number): number {
   return 2.2 + Math.sqrt(fileCount) * 1.5
-}
-
-/** A label's footprint on screen, in pixels, and how much it deserves the space. */
-export interface LabelBox {
-  id: string
-  /** centre, in pixels from the top left of the canvas */
-  x: number
-  y: number
-  width: number
-  height: number
-  /**
-   * What kind of thing this is, lowest first. A place name beats a traffic
-   * count: knowing a region is `features/` is worth more than knowing that 43
-   * imports cross a particular line, so no number ever pushes out a name.
-   */
-  tier: number
-  /** within a tier, bigger wins; ties break on id, so runs agree */
-  rank: number
-}
-
-/**
- * The labels a map can actually show: the most important ones, and then
- * whatever still fits between them.
- *
- * Every district drawing its own name works until there are more than a
- * handful. cal.com has 114 folders, so `i18n/ 1 file` was printed straight
- * through the middle of `trpc/ 398 files` and neither could be read. A paper
- * map solves this by not labelling everything at once — the capital is named,
- * the village next to it waits until you are closer — and dropping a name is
- * better than keeping two that cancel each other out.
- *
- * Biggest first, then greedily: a name is kept when its box clears every name
- * already kept. Greedy is not optimal — choosing a maximum set of
- * non-overlapping boxes is NP-hard — but taking the largest first puts the
- * error where it costs least, on the folders with the fewest files in them.
- */
-export function withoutOverlap(boxes: LabelBox[]): Set<string> {
-  const kept: LabelBox[] = []
-  const ids = new Set<string>()
-  const ordered = [...boxes].sort(
-    (a, b) => a.tier - b.tier || b.rank - a.rank || a.id.localeCompare(b.id),
-  )
-
-  for (const box of ordered) {
-    const clashes = kept.some(
-      (other) =>
-        Math.abs(box.x - other.x) * 2 < box.width + other.width &&
-        Math.abs(box.y - other.y) * 2 < box.height + other.height,
-    )
-    if (clashes) continue
-    kept.push(box)
-    ids.add(box.id)
-  }
-  return ids
-}
-
-/**
- * Roughly how much room a district's name takes, without measuring the DOM.
- *
- * The font is monospace, so the width follows from the character count: about
- * 0.6 em, at 15px for the name and 10px for the file count beneath it. Reading
- * back the real rectangles would be exact and would also force a layout of
- * every label on every camera move, which is the cost this whole thing exists
- * to avoid.
- */
-function labelSize(label: string, fileCount: number): { width: number; height: number } {
-  const name = (label.length + 1) * 9
-  const count = `${fileCount} files`.length * 6.2
-  return { width: Math.max(name, count) + 10, height: 32 }
 }
 
 function centroidOf(ids: string[], positions: Map<string, Vec3>): THREE.Vector3 | null {
@@ -369,8 +301,18 @@ export function Districts() {
     }
 
     for (const district of districts) {
-      const { width, height } = labelSize(district.label, district.fileCount)
-      place(district.id, district.centroid, width, height, 0, district.fileCount)
+      // the name sits over the file count, so it is two lines tall and as wide
+      // as whichever of the two runs longer
+      const name = textSize(`${district.label}/`, 15)
+      const count = textSize(`${district.fileCount} files`, 10)
+      place(
+        district.id,
+        district.centroid,
+        Math.max(name.width, count.width),
+        name.height + count.height,
+        0,
+        district.fileCount,
+      )
     }
 
     /**
@@ -383,17 +325,11 @@ export function Districts() {
      */
     for (const link of links) {
       MIDPOINT.copy(link.from).lerp(link.to, 0.5)
-      place(link.id, MIDPOINT, `${link.weight}`.length * 6.2 + 16, 18, 1, link.weight)
+      const pill = textSize(`${link.weight}`, 10)
+      place(link.id, MIDPOINT, pill.width, pill.height, 1, link.weight)
     }
 
-    const keep = withoutOverlap(boxes)
-    const considered = new Set(boxes.map((b) => b.id))
-    for (const [id, el] of labels.current) {
-      // an element that arrived mid-pass is not "rejected", merely not yet
-      // judged; leaving it be until the next pass is kinder than blanking it
-      if (!considered.has(id) && el.style.opacity === "") continue
-      el.style.opacity = keep.has(id) ? "1" : "0"
-    }
+    applyLabels(labels.current, boxes, withoutOverlap(boxes))
   })
 
   if (!data) return null
