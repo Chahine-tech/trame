@@ -1,24 +1,24 @@
 {
   "meta": {
     "project": "trame",
-    "generated": "2026-08-07T15:49:30.007Z",
-    "nodeCount": 24,
-    "edgeCount": 58
+    "generated": "2026-08-19T21:10:25.274Z",
+    "nodeCount": 31,
+    "edgeCount": 74
   },
   "nodes": [
     {
       "id": "App.tsx",
       "label": "App",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/App.tsx",
-      "line": 22,
+      "file": "App.tsx",
+      "line": 25,
       "cluster": "src"
     },
     {
       "id": "demo-data.ts",
       "label": "demo-data",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/demo-data.ts",
+      "file": "demo-data.ts",
       "line": 4,
       "cluster": "src"
     },
@@ -26,7 +26,7 @@
       "id": "editor.ts",
       "label": "editor",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/editor.ts",
+      "file": "editor.ts",
       "line": 2,
       "cluster": "src"
     },
@@ -34,7 +34,7 @@
       "id": "graph-feed.ts",
       "label": "graph-feed",
       "type": "api",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/graph-feed.ts",
+      "file": "graph-feed.ts",
       "line": 7,
       "cluster": "src"
     },
@@ -42,31 +42,55 @@
       "id": "main.tsx",
       "label": "main",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/main.tsx",
+      "file": "main.tsx",
       "line": 1,
+      "cluster": "src"
+    },
+    {
+      "id": "share.ts",
+      "label": "share",
+      "type": "module",
+      "file": "share.ts",
+      "line": 17,
       "cluster": "src"
     },
     {
       "id": "theme.ts",
       "label": "theme",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/theme.ts",
-      "line": 4,
+      "file": "theme.ts",
+      "line": 18,
       "cluster": "src"
     },
     {
       "id": "types.ts",
       "label": "types",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/types.ts",
+      "file": "types.ts",
       "line": 1,
       "cluster": "src"
+    },
+    {
+      "id": "scene/arrival.ts",
+      "label": "arrival",
+      "type": "module",
+      "file": "scene/arrival.ts",
+      "line": 14,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/budget.ts",
+      "label": "budget",
+      "type": "module",
+      "file": "scene/budget.ts",
+      "line": 16,
+      "cluster": "scene"
     },
     {
       "id": "scene/CaptureFrame.tsx",
       "label": "CaptureFrame",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/CaptureFrame.tsx",
+      "file": "scene/CaptureFrame.tsx",
       "line": 13,
       "cluster": "scene"
     },
@@ -74,55 +98,71 @@
       "id": "scene/Clusters.tsx",
       "label": "Clusters",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Clusters.tsx",
+      "file": "scene/Clusters.tsx",
       "line": 55,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/DetailBudget.tsx",
+      "label": "DetailBudget",
+      "type": "component",
+      "file": "scene/DetailBudget.tsx",
+      "line": 30,
       "cluster": "scene"
     },
     {
       "id": "scene/Districts.tsx",
       "label": "Districts",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Districts.tsx",
-      "line": 160,
+      "file": "scene/Districts.tsx",
+      "line": 37,
       "cluster": "scene"
     },
     {
       "id": "scene/EdgeMesh.tsx",
       "label": "EdgeMesh",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/EdgeMesh.tsx",
-      "line": 120,
+      "file": "scene/EdgeMesh.tsx",
+      "line": 140,
       "cluster": "scene"
     },
     {
       "id": "scene/Layout.ts",
       "label": "Layout",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Layout.ts",
-      "line": 38,
+      "file": "scene/Layout.ts",
+      "line": 445,
+      "cluster": "scene"
+    },
+    {
+      "id": "scene/Lighting.tsx",
+      "label": "Lighting",
+      "type": "component",
+      "file": "scene/Lighting.tsx",
+      "line": 22,
       "cluster": "scene"
     },
     {
       "id": "scene/NodeMesh.tsx",
       "label": "NodeMesh",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/NodeMesh.tsx",
-      "line": 88,
+      "file": "scene/NodeMesh.tsx",
+      "line": 92,
       "cluster": "scene"
     },
     {
       "id": "scene/Scene.tsx",
       "label": "Scene",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/Scene.tsx",
-      "line": 120,
+      "file": "scene/Scene.tsx",
+      "line": 122,
       "cluster": "scene"
     },
     {
       "id": "scene/useDisposable.ts",
       "label": "useDisposable",
       "type": "hook",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/useDisposable.ts",
+      "file": "scene/useDisposable.ts",
       "line": 14,
       "cluster": "scene"
     },
@@ -130,7 +170,7 @@
       "id": "scene/ZoomDirector.tsx",
       "label": "ZoomDirector",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/scene/ZoomDirector.tsx",
+      "file": "scene/ZoomDirector.tsx",
       "line": 12,
       "cluster": "scene"
     },
@@ -138,15 +178,23 @@
       "id": "store/graph.ts",
       "label": "graph",
       "type": "store",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/graph.ts",
-      "line": 117,
+      "file": "store/graph.ts",
+      "line": 35,
+      "cluster": "store"
+    },
+    {
+      "id": "store/lens.ts",
+      "label": "lens",
+      "type": "module",
+      "file": "store/lens.ts",
+      "line": 10,
       "cluster": "store"
     },
     {
       "id": "store/whatif.ts",
       "label": "whatif",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/store/whatif.ts",
+      "file": "store/whatif.ts",
       "line": 5,
       "cluster": "store"
     },
@@ -154,7 +202,7 @@
       "id": "ui/FirstRunHint.tsx",
       "label": "FirstRunHint",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/FirstRunHint.tsx",
+      "file": "ui/FirstRunHint.tsx",
       "line": 10,
       "cluster": "ui"
     },
@@ -162,7 +210,7 @@
       "id": "ui/Inspector.tsx",
       "label": "Inspector",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Inspector.tsx",
+      "file": "ui/Inspector.tsx",
       "line": 5,
       "cluster": "ui"
     },
@@ -170,23 +218,31 @@
       "id": "ui/Palette.tsx",
       "label": "Palette",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Palette.tsx",
-      "line": 38,
+      "file": "ui/Palette.tsx",
+      "line": 45,
       "cluster": "ui"
     },
     {
       "id": "ui/Shortcuts.tsx",
       "label": "Shortcuts",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/Shortcuts.tsx",
-      "line": 57,
+      "file": "ui/Shortcuts.tsx",
+      "line": 66,
+      "cluster": "ui"
+    },
+    {
+      "id": "ui/Timeline.tsx",
+      "label": "Timeline",
+      "type": "component",
+      "file": "ui/Timeline.tsx",
+      "line": 13,
       "cluster": "ui"
     },
     {
       "id": "ui/toast.ts",
       "label": "toast",
       "type": "module",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/toast.ts",
+      "file": "ui/toast.ts",
       "line": 28,
       "cluster": "ui"
     },
@@ -194,8 +250,8 @@
       "id": "ui/TopBar.tsx",
       "label": "TopBar",
       "type": "component",
-      "file": "/Users/chahinebenlahcen/Documents/trame/packages/viewer/src/ui/TopBar.tsx",
-      "line": 7,
+      "file": "ui/TopBar.tsx",
+      "line": 8,
       "cluster": "ui"
     }
   ],
@@ -249,10 +305,22 @@
       "type": "component"
     },
     {
+      "id": "App.tsx->ui/Timeline.tsx",
+      "source": "App.tsx",
+      "target": "ui/Timeline.tsx",
+      "type": "component"
+    },
+    {
       "id": "App.tsx->graph-feed.ts",
       "source": "App.tsx",
       "target": "graph-feed.ts",
       "type": "api-call"
+    },
+    {
+      "id": "App.tsx->share.ts",
+      "source": "App.tsx",
+      "target": "share.ts",
+      "type": "import"
     },
     {
       "id": "App.tsx->editor.ts",
@@ -303,8 +371,26 @@
       "type": "import"
     },
     {
+      "id": "share.ts->store/graph.ts",
+      "source": "share.ts",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "share.ts->store/lens.ts",
+      "source": "share.ts",
+      "target": "store/lens.ts",
+      "type": "import"
+    },
+    {
       "id": "theme.ts->types.ts",
       "source": "theme.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/budget.ts->types.ts",
+      "source": "scene/budget.ts",
       "target": "types.ts",
       "type": "import"
     },
@@ -324,6 +410,18 @@
       "id": "scene/Clusters.tsx->store/graph.ts",
       "source": "scene/Clusters.tsx",
       "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/DetailBudget.tsx->store/graph.ts",
+      "source": "scene/DetailBudget.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/DetailBudget.tsx->scene/budget.ts",
+      "source": "scene/DetailBudget.tsx",
+      "target": "scene/budget.ts",
       "type": "import"
     },
     {
@@ -369,9 +467,21 @@
       "type": "import"
     },
     {
+      "id": "scene/EdgeMesh.tsx->scene/arrival.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "scene/arrival.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/Layout.ts->types.ts",
       "source": "scene/Layout.ts",
       "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Lighting.tsx->theme.ts",
+      "source": "scene/Lighting.tsx",
+      "target": "theme.ts",
       "type": "import"
     },
     {
@@ -384,6 +494,12 @@
       "id": "scene/NodeMesh.tsx->theme.ts",
       "source": "scene/NodeMesh.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->scene/arrival.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "scene/arrival.ts",
       "type": "import"
     },
     {
@@ -403,6 +519,12 @@
       "source": "scene/Scene.tsx",
       "target": "theme.ts",
       "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/Lighting.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Lighting.tsx",
+      "type": "component"
     },
     {
       "id": "scene/Scene.tsx->scene/NodeMesh.tsx",
@@ -435,6 +557,12 @@
       "type": "component"
     },
     {
+      "id": "scene/Scene.tsx->scene/DetailBudget.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/DetailBudget.tsx",
+      "type": "component"
+    },
+    {
       "id": "scene/Scene.tsx->scene/CaptureFrame.tsx",
       "source": "scene/Scene.tsx",
       "target": "scene/CaptureFrame.tsx",
@@ -459,15 +587,21 @@
       "type": "import"
     },
     {
-      "id": "store/graph.ts->ui/toast.ts",
+      "id": "store/graph.ts->scene/budget.ts",
       "source": "store/graph.ts",
-      "target": "ui/toast.ts",
+      "target": "scene/budget.ts",
       "type": "import"
     },
     {
       "id": "store/graph.ts->store/whatif.ts",
       "source": "store/graph.ts",
       "target": "store/whatif.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->store/lens.ts",
+      "source": "store/graph.ts",
+      "target": "store/lens.ts",
       "type": "import"
     },
     {
@@ -507,6 +641,12 @@
       "type": "import"
     },
     {
+      "id": "ui/Palette.tsx->share.ts",
+      "source": "ui/Palette.tsx",
+      "target": "share.ts",
+      "type": "import"
+    },
+    {
       "id": "ui/Palette.tsx->editor.ts",
       "source": "ui/Palette.tsx",
       "target": "editor.ts",
@@ -522,6 +662,12 @@
       "id": "ui/Palette.tsx->ui/toast.ts",
       "source": "ui/Palette.tsx",
       "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Timeline.tsx->store/graph.ts",
+      "source": "ui/Timeline.tsx",
+      "target": "store/graph.ts",
       "type": "import"
     },
     {
@@ -547,6 +693,12 @@
       "source": "ui/TopBar.tsx",
       "target": "theme.ts",
       "type": "import"
+    },
+    {
+      "id": "ui/TopBar.tsx->store/lens.ts",
+      "source": "ui/TopBar.tsx",
+      "target": "store/lens.ts",
+      "type": "import"
     }
   ],
   "clusters": [
@@ -555,11 +707,15 @@
       "label": "scene",
       "color": "#89b4fa",
       "nodeIds": [
+        "scene/arrival.ts",
+        "scene/budget.ts",
         "scene/CaptureFrame.tsx",
         "scene/Clusters.tsx",
+        "scene/DetailBudget.tsx",
         "scene/Districts.tsx",
         "scene/EdgeMesh.tsx",
         "scene/Layout.ts",
+        "scene/Lighting.tsx",
         "scene/NodeMesh.tsx",
         "scene/Scene.tsx",
         "scene/useDisposable.ts",
@@ -576,6 +732,7 @@
         "editor.ts",
         "graph-feed.ts",
         "main.tsx",
+        "share.ts",
         "theme.ts",
         "types.ts"
       ]
@@ -589,6 +746,7 @@
         "ui/Inspector.tsx",
         "ui/Palette.tsx",
         "ui/Shortcuts.tsx",
+        "ui/Timeline.tsx",
         "ui/toast.ts",
         "ui/TopBar.tsx"
       ]
@@ -599,6 +757,7 @@
       "color": "#fab387",
       "nodeIds": [
         "store/graph.ts",
+        "store/lens.ts",
         "store/whatif.ts"
       ]
     }

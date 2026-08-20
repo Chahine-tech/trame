@@ -50,7 +50,9 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
       id: rel,
       label: labelFor(file),
       type: classify(file),
-      file: abs,
+      // relative, with the root recorded once in meta — a graph is a thing
+      // people share, and it should not carry the layout of their machine
+      file: rel,
       line: firstExportLine(file),
       // the package it belongs to when there is one, the folder shape otherwise
       cluster: packageFor(abs, srcRoot) ?? clusterFor(rel),
@@ -81,7 +83,7 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
         id,
         label: `${usage.method} ${usage.endpoint}`,
         type: "api",
-        file: usage.file,
+        file: path.relative(srcRoot, usage.file),
         line: usage.line,
         cluster: "api",
         meta: { endpoint: usage.endpoint, method: usage.method },
@@ -107,7 +109,7 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
         id,
         label,
         type: "query-key",
-        file: usage.file,
+        file: path.relative(srcRoot, usage.file),
         line: usage.line,
         cluster: "queries",
         meta: { queryKey: usage.queryKey },
@@ -143,6 +145,7 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
       generated: new Date().toISOString(),
       nodeCount: nodes.length,
       edgeCount: edges.length,
+      root: srcRoot,
     },
     nodes,
     edges,

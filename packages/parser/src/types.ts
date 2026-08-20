@@ -56,6 +56,17 @@ export interface GraphData {
     generated: string
     nodeCount: number
     edgeCount: number
+    /**
+     * Absolute path the file paths are relative to, so a node can be opened in
+     * an editor.
+     *
+     * Kept here, once, rather than repeated on every node — which is what makes
+     * a graph safe to publish. Every node used to carry the full path from the
+     * root of the machine that parsed it, so sharing a graph meant sharing the
+     * shape of somebody's disk, three thousand times over. Dropping this one
+     * field now anonymises the whole file.
+     */
+    root?: string
     /** watch mode: last parse failed, this graph is the last good one */
     error?: string
   }

@@ -78,6 +78,14 @@ export interface GraphData {
     generated: string
     nodeCount: number
     edgeCount: number
+    /**
+     * Absolute path the node paths hang off, so a file can be opened locally.
+     *
+     * Absent on a graph somebody else parsed and published — which is the point:
+     * one field carries the shape of the machine that produced the graph, so one
+     * field can be dropped to anonymise it.
+     */
+    root?: string
     /** watch mode: last parse failed, this graph is the last good one */
     error?: string
   }

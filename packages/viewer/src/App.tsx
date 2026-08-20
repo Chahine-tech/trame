@@ -20,7 +20,7 @@ import { FirstRunHint } from "./ui/FirstRunHint"
 import { Timeline as TimelineBar } from "./ui/Timeline"
 import { subscribeToGraph, subscribeToTimeline } from "./graph-feed"
 import { useShareLink } from "./share"
-import { EDITOR_LABEL, getEditor, openInEditor } from "./editor"
+import { EDITOR_LABEL, getEditor, locate, openInEditor } from "./editor"
 
 export function AppUI() {
   // the address bar follows the view, and an incoming link restores one
@@ -146,8 +146,9 @@ export function AppUI() {
       } else if (e.key.toLowerCase() === "o") {
         const s = useGraphStore.getState()
         const node = s.data?.nodes.find((n) => n.id === s.selectedId)
-        if (node?.file) {
-          openInEditor(node.file, node.line)
+        const here = locate(node?.file, s.data?.meta.root)
+        if (here && node) {
+          openInEditor(here, node.line)
           toastOpeningEditor(EDITOR_LABEL[getEditor()], `${node.id}:${node.line}`)
         } else toastNeedsSelection("Open in editor")
       }

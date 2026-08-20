@@ -1,7 +1,8 @@
 import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
-import { nearestTo } from "../scene/DetailBudget"
+import { BUDGET } from "../scene/budget"
+import { impassable, neighbourhood, skeleton } from "../scene/skeleton"
 import { simulateDelete, type WhatIfReport } from "./whatif"
 import type { LensKind } from "./lens"
 
@@ -176,6 +177,20 @@ interface GraphState {
    */
   nearby: Set<string> | null
   setNearby: (ids: Set<string> | null) => void
+  /** the load-bearing files, kept so returning from a selection is instant */
+  skeletonSet: Set<string> | null
+  /** files wired to so much of the codebase that routing through them says nothing */
+  traffic: Set<string>
+  /**
+   * How far the arrangement reaches, as the ninetieth percentile radius.
+   *
+   * Every camera distance in the scene used to be a number written for a graph
+   * the size of trame's own — start at 80, collapse to districts past 115, never
+   * pull back beyond 220. cal.com's skeleton reaches 402, so all four sat inside
+   * the cloud and there was no way to rise above the map. They are ratios of
+   * this now, and the ratios are the ones trame was already using.
+   */
+  extent: number
 
   /** the architecture replayed across git history, when one was generated */
   timeline: Timeline | null
@@ -441,6 +456,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   nearby: null,
+  skeletonSet: null,
+  traffic: new Set(),
+  extent: 60,
   setNearby: (ids) => {
     const current = get().nearby
     // same membership, same render: replacing the set would remount the scene
@@ -499,25 +517,36 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const pinned = new Set([...prev.pinned].filter((id) => alive.has(id)))
 
     /**
-     * Decide the neighbourhood before the first render, not after it.
+     * What the detail view opens on, decided before the first render.
      *
-     * DetailBudget runs inside the frame loop, so its first say comes one frame
-     * *after* the scene has mounted — and mounting cal.com whole is 3451 nodes
-     * and 9458 edges, some 25 800 draw calls, built and thrown away in the same
-     * breath. The camera opens looking at the origin, so that is where the first
-     * neighbourhood is taken from.
+     * A large repository opens on its skeleton — the files that hold it up —
+     * rather than on whichever four hundred happened to sit near the camera.
+     * Selecting a file then swaps the skeleton for that file's neighbourhood.
+     * Both are settled here so the scene never mounts the whole graph even
+     * once: deciding a frame later meant building cal.com's 25 800 draw calls
+     * and throwing them away in the same breath.
      */
-    const nearby = nearestTo(
-      data.nodes.map((n) => n.id),
-      positions,
-      [0, 0, 0],
-    )
+    const ids = data.nodes.map((n) => n.id)
+    const traffic = impassable(ids, data.edges)
+    const bones = skeleton(ids, data.edges, BUDGET)
+
+    // measured over what will actually be drawn, and at the ninetieth
+    // percentile so a single stray file cannot push the camera into orbit
+    const reach = (bones ? [...bones] : ids)
+      .map((id) => positions.get(id))
+      .filter((p): p is Vec3 => Boolean(p))
+      .map((p) => Math.hypot(p[0], p[1], p[2]))
+      .sort((a, b) => a - b)
+    const extent = Math.max(40, reach[Math.floor(reach.length * 0.9)] ?? 60)
 
     set({
       data,
       isDemo,
       positions,
-      nearby,
+      nearby: bones,
+      skeletonSet: bones,
+      traffic,
+      extent,
       pinned,
       adjacency,
       inDeg,
@@ -546,10 +575,21 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   select: (id) => {
-    const { adjacency } = get()
+    const { adjacency, data, skeletonSet, traffic } = get()
+    /**
+     * Selecting a file is asking about it, so answer with what it talks to.
+     *
+     * Two hops: on cal.com the median file reaches 32 others that way, and the
+     * few that would reach hundreds do it through the same handful of universal
+     * utilities, which are drawn but not travelled through. Letting go of the
+     * selection puts the skeleton back — the map you came from.
+     */
+    const nearby =
+      id && skeletonSet && data ? neighbourhood(id, data.edges, 2, traffic) : skeletonSet
     set({
       selectedId: id,
       selectedEdgeId: null,
+      nearby,
       litSet: computeLit({ adjacency }, id),
       // a new selection invalidates whatever lens was answering about the old one
       ...noLens(),

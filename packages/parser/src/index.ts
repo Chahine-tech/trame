@@ -22,6 +22,8 @@ interface Args {
   out: string
   tsconfig?: string
   noTsconfig: boolean
+  /** drop the absolute source root, for a graph meant to be published */
+  anonymous: boolean
   config?: string
   project?: string
   exclude: string[]
@@ -101,6 +103,7 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
   options:
     --tsconfig ./tsconfig.json   resolve path aliases through a specific tsconfig
     --no-tsconfig                ignore the tsconfig found next to --src
+    --anonymous                  omit the source root — for a graph you publish
     --config ./trame.config.ts constraint rules (auto-detected in cwd)
     --project name               project name in meta
     --exclude a,b,c              extra path patterns to skip
@@ -128,6 +131,7 @@ function parseArgs(argv: string[]): Args {
     maxFrames: 40,
     repo: ".",
     noTsconfig: false,
+    anonymous: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
@@ -181,6 +185,9 @@ function parseArgs(argv: string[]): Args {
         break
       case "--out":
         args.out = next()
+        break
+      case "--anonymous":
+        args.anonymous = true
         break
       case "--no-tsconfig":
         args.noTsconfig = true
@@ -339,6 +346,19 @@ function parseOnce(
   const projectName = args.project ?? path.basename(path.dirname(srcRoot))
   const graph = buildGraph(project, srcRoot, projectName)
   graph.analysis = { orphans: findOrphans(graph), cycles: findCycles(graph) }
+
+  /**
+   * A graph on its way to the public web should not describe the machine that
+   * made it.
+   *
+   * Node paths are relative already; the source root is the one absolute thing
+   * left, and it is the whole of the leak — "/Users/someone/Documents/work/…"
+   * says who you are and how you file your life. Dropping it costs only the
+   * jump-to-editor button, which was never going to work on a stranger's
+   * machine anyway.
+   */
+  if (args.anonymous) delete graph.meta.root
+
   return graph
 }
 

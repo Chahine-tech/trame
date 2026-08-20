@@ -12,7 +12,6 @@ import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
 import { Districts } from "./Districts"
 import { ZoomDirector } from "./ZoomDirector"
-import { DetailBudget } from "./DetailBudget"
 import { CaptureFrame } from "./CaptureFrame"
 
 /** Scratch vectors, reused every frame — always rewritten before they are read. */
@@ -26,8 +25,25 @@ const FOCUS_LAMBDA = 5
  * Pulls the fog in while something is selected so everything around it
  * recedes — the cheap half of a depth-of-field effect, no postprocessing.
  */
+/**
+ * Fog distances, as multiples of how far the arrangement reaches.
+ *
+ * These were absolute — 120 and 320 on paper — which frames a graph the size of
+ * trame's own and swallows anything larger whole. Pulling the camera back to
+ * suit cal.com's skeleton put every file past the far plane, so the scene was
+ * painted entirely in the background colour and only the HTML labels came
+ * through: a map of names floating over nothing. The ratios here are the ones
+ * those absolute numbers already had.
+ */
+const FOG = {
+  paper: { near: 2.0, far: 5.4 },
+  void: { near: 1.0, far: 2.5 },
+  attentive: { near: 0.44, far: 1.6 },
+}
+
 function FocusDepth() {
   const attentive = useGraphStore((s) => s.litSet.size > 0 || s.selectedEdgeId !== null)
+  const extent = useGraphStore((s) => s.extent)
   const scene = useThree((s) => s.scene)
   const invalidate = useThree((s) => s.invalidate)
   const dark = isDarkGround()
@@ -39,8 +55,9 @@ function FocusDepth() {
     // things sink into the void — but on paper it bleaches them into the page,
     // on top of the dimming the ink language already does. Two washes, and the
     // scene faded out about a second after every hover.
-    const near = dark && attentive ? 26 : dark ? 60 : 120
-    const far = dark && attentive ? 96 : dark ? 150 : 320
+    const band = dark && attentive ? FOG.attentive : dark ? FOG.void : FOG.paper
+    const near = band.near * extent
+    const far = band.far * extent
     const nextNear = THREE.MathUtils.damp(fog.near, near, 4, dt)
     const nextFar = THREE.MathUtils.damp(fog.far, far, 4, dt)
     if (Math.abs(nextFar - fog.far) < 0.05 && Math.abs(nextNear - fog.near) < 0.05) return
@@ -129,6 +146,8 @@ export function Scene() {
   const introSpin = useIntroSpin()
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
+  const extent = useGraphStore((s) => s.extent)
+  const camera = useThree((s) => s.camera)
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
 
@@ -148,6 +167,23 @@ export function Scene() {
     }
   }, [data, nearby])
 
+  /**
+   * Stand back far enough to see what was loaded.
+   *
+   * The canvas opens the camera at a fixed 80, which frames trame's own graph
+   * and lands somewhere in the middle of a large one. Keyed on the extent, so a
+   * watch-mode reload of the same codebase leaves the camera exactly where the
+   * reader put it.
+   */
+  useEffect(() => {
+    const want = extent * 1.35
+    const dir = camera.position.length() > 0.01 ? camera.position.clone().normalize() : null
+    if (dir) camera.position.copy(dir.multiplyScalar(want))
+    camera.lookAt(0, 0, 0)
+    camera.updateProjectionMatrix()
+    invalidate()
+  }, [extent, camera, invalidate])
+
   // the spin pauses while a node is lit and resumes after; in demand mode the
   // loop has already stopped by then, so it needs an explicit restart
   useEffect(() => {
@@ -162,13 +198,12 @@ export function Scene() {
       {/* depth fog — far nodes recede into the void, never a flat board.
           It tightens on selection: the surroundings lose contrast like a
           shallow depth of field, without paying for a blur pass. */}
-      <fog attach="fog" args={[palette.base, 60, 150]} />
+      <fog attach="fog" args={[palette.base, extent, extent * 2.5]} />
       <FocusDepth />
 
       <Lighting />
 
       <ZoomDirector />
-      <DetailBudget />
 
       {districtMode ? (
         <Districts />
@@ -192,8 +227,8 @@ export function Scene() {
         dampingFactor={0.08}
         autoRotate={introSpin && idle}
         autoRotateSpeed={0.4}
-        minDistance={8}
-        maxDistance={220}
+        minDistance={extent * 0.14}
+        maxDistance={extent * 3.7}
       />
       <CameraRig controls={controls} />
       <CaptureFrame />

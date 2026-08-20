@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest"
 import { withoutOverlap, type LabelBox } from "./Districts"
 
 function box(id: string, x: number, y: number, rank = 1, width = 100, height = 32): LabelBox {
-  return { id, x, y, width, height, rank }
+  return { id, x, y, width, height, tier: 0, rank }
+}
+
+/** A count on a line: same geometry, second tier. */
+function pill(id: string, x: number, y: number, rank = 1): LabelBox {
+  return { id, x, y, width: 30, height: 18, tier: 1, rank }
 }
 
 describe("labelling a map", () => {
@@ -44,6 +49,19 @@ describe("labelling a map", () => {
     // equal file counts must not swap places as the camera drifts
     const boxes = [box("beta", 0, 0, 7), box("alpha", 12, 0, 7)]
     expect([...withoutOverlap(boxes)]).toEqual([...withoutOverlap([...boxes].reverse())])
+  })
+
+  it("never lets a traffic count push out a place name", () => {
+    // cal.com draws 114 names and 293 of these counts, so the numbers were
+    // three quarters of the clutter. A huge number must still yield to a small
+    // folder: knowing a region is `i18n/` beats knowing 443 imports cross here.
+    const kept = withoutOverlap([pill("crossing", 100, 100, 443), box("i18n", 105, 100, 1)])
+    expect([...kept]).toEqual(["i18n"])
+  })
+
+  it("lets a count fill a gap no name wanted", () => {
+    const kept = withoutOverlap([box("features", 0, 0, 737), pill("crossing", 400, 0, 12)])
+    expect(kept.size).toBe(2)
   })
 
   it("keeps nothing from nothing", () => {

@@ -3,7 +3,7 @@ import { toDot, toMermaid } from "tramejs/export"
 import { currentGraph, exportGraph, useGraphStore } from "../store/graph"
 import { NODE_COLOR, usePalette } from "../theme"
 import { shareUrl } from "../share"
-import { EDITORS, EDITOR_LABEL, getEditor, openInEditor, setEditor } from "../editor"
+import { EDITORS, EDITOR_LABEL, getEditor, locate, openInEditor, setEditor } from "../editor"
 import type { GraphData } from "../types"
 import {
   toastCopied,
@@ -102,8 +102,9 @@ export function Palette({
                 const s = useGraphStore.getState()
                 const node = s.data?.nodes.find((n) => n.id === s.selectedId)
                 onClose()
-                if (node?.file) {
-                  openInEditor(node.file, node.line)
+                const here = locate(node?.file, s.data?.meta.root)
+                if (here && node) {
+                  openInEditor(here, node.line)
                   toastOpeningEditor(EDITOR_LABEL[getEditor()], `${node.id}:${node.line}`)
                 }
               }}

@@ -24,8 +24,9 @@ interface DistrictLink {
   weight: number
 }
 
-/** Scratch vector for the screen projection — rewritten before every read. */
+/** Scratch vectors — rewritten before every read, never held across frames. */
 const PROJECTED = new THREE.Vector3()
+const MIDPOINT = new THREE.Vector3()
 
 /** A folder reads as one body once you are far enough not to read filenames. */
 function radiusFor(fileCount: number): number {
@@ -40,7 +41,13 @@ export interface LabelBox {
   y: number
   width: number
   height: number
-  /** bigger wins the ground it stands on; ties break on id, so runs agree */
+  /**
+   * What kind of thing this is, lowest first. A place name beats a traffic
+   * count: knowing a region is `features/` is worth more than knowing that 43
+   * imports cross a particular line, so no number ever pushes out a name.
+   */
+  tier: number
+  /** within a tier, bigger wins; ties break on id, so runs agree */
   rank: number
 }
 
@@ -63,7 +70,9 @@ export interface LabelBox {
 export function withoutOverlap(boxes: LabelBox[]): Set<string> {
   const kept: LabelBox[] = []
   const ids = new Set<string>()
-  const ordered = [...boxes].sort((a, b) => b.rank - a.rank || a.id.localeCompare(b.id))
+  const ordered = [...boxes].sort(
+    (a, b) => a.tier - b.tier || b.rank - a.rank || a.id.localeCompare(b.id),
+  )
 
   for (const box of ordered) {
     const clashes = kept.some(
@@ -196,7 +205,15 @@ function DistrictBody({
   )
 }
 
-function DistrictEdge({ link, appear }: { link: DistrictLink; appear: React.RefObject<number> }) {
+function DistrictEdge({
+  link,
+  appear,
+  onLabel,
+}: {
+  link: DistrictLink
+  appear: React.RefObject<number>
+  onLabel: (id: string, el: HTMLDivElement | null) => void
+}) {
   const palette = usePalette()
   const matRef = useRef<THREE.MeshBasicMaterial>(null)
 
@@ -220,7 +237,9 @@ function DistrictEdge({ link, appear }: { link: DistrictLink; appear: React.RefO
       </mesh>
       {link.weight > 1 && (
         <Html position={mid} center zIndexRange={[3, 0]} style={{ pointerEvents: "none" }}>
-          <div className="district-weight">{link.weight}</div>
+          <div className="district-weight" ref={(el) => onLabel(link.id, el)}>
+            {link.weight}
+          </div>
         </Html>
       )}
     </group>
@@ -310,30 +329,69 @@ export function Districts() {
   const lastView = useRef("")
 
   useFrame(({ camera, size }) => {
-    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}`
+    /**
+     * Recompute when the view moves — or when the cast changes.
+     *
+     * Labels attach through a ref callback, so some arrive a frame or two after
+     * the first pass. Keying only on the camera meant those were never
+     * considered, and since anything absent from the reckoning was switched off,
+     * they stayed invisible until something else moved the camera. On cal.com
+     * that hid the largest folders and left the map labelled with nothing but
+     * its smallest integrations.
+     */
+    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${labels.current.size}`
     if (view === lastView.current) return
     lastView.current = view
 
     const boxes: LabelBox[] = []
-    for (const district of districts) {
-      if (!labels.current.has(district.id)) continue
-      PROJECTED.copy(district.centroid).project(camera)
-      // behind the camera: drei still keeps the element around, and a name
-      // from the far side of the graph must not take a place on this one
-      if (PROJECTED.z > 1) continue
-      const { width, height } = labelSize(district.label, district.fileCount)
+    const place = (
+      id: string,
+      at: THREE.Vector3,
+      width: number,
+      height: number,
+      tier: number,
+      rank: number,
+    ) => {
+      if (!labels.current.has(id)) return
+      PROJECTED.copy(at).project(camera)
+      // behind the camera: drei still keeps the element around, and a name from
+      // the far side of the graph must not take a place on this one
+      if (PROJECTED.z > 1) return
       boxes.push({
-        id: district.id,
+        id,
         x: ((PROJECTED.x + 1) / 2) * size.width,
         y: ((1 - PROJECTED.y) / 2) * size.height,
         width,
         height,
-        rank: district.fileCount,
+        tier,
+        rank,
       })
     }
 
+    for (const district of districts) {
+      const { width, height } = labelSize(district.label, district.fileCount)
+      place(district.id, district.centroid, width, height, 0, district.fileCount)
+    }
+
+    /**
+     * The counts on the lines compete for the same pixels as the names.
+     *
+     * They were left out of this at first, and they are the larger half of the
+     * problem: cal.com draws 114 names and 293 of these, so three quarters of
+     * the clutter was never being arbitrated at all. In the second tier, so a
+     * number can fill a gap but never take a place a name wanted.
+     */
+    for (const link of links) {
+      MIDPOINT.copy(link.from).lerp(link.to, 0.5)
+      place(link.id, MIDPOINT, `${link.weight}`.length * 6.2 + 16, 18, 1, link.weight)
+    }
+
     const keep = withoutOverlap(boxes)
+    const considered = new Set(boxes.map((b) => b.id))
     for (const [id, el] of labels.current) {
+      // an element that arrived mid-pass is not "rejected", merely not yet
+      // judged; leaving it be until the next pass is kinder than blanking it
+      if (!considered.has(id) && el.style.opacity === "") continue
       el.style.opacity = keep.has(id) ? "1" : "0"
     }
   })
@@ -343,7 +401,7 @@ export function Districts() {
   return (
     <>
       {links.map((link) => (
-        <DistrictEdge key={link.id} link={link} appear={appear} />
+        <DistrictEdge key={link.id} link={link} appear={appear} onLabel={onLabel} />
       ))}
       {districts.map((district) => (
         <DistrictBody

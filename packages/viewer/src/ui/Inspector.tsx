@@ -1,6 +1,6 @@
 import { useGraphStore } from "../store/graph"
 import { NODE_COLOR, EDGE_COLOR, usePalette } from "../theme"
-import { EDITOR_LABEL, getEditor, openInEditor } from "../editor"
+import { EDITOR_LABEL, getEditor, locate, openInEditor } from "../editor"
 
 export function Inspector() {
   const palette = usePalette()
@@ -17,6 +17,7 @@ export function Inspector() {
   const orphans = useGraphStore((s) => s.orphans)
 
   const node = data?.nodes.find((n) => n.id === selectedId) ?? null
+  const here = locate(node?.file, data?.meta.root)
   const edge = data?.edges.find((e) => e.id === selectedEdgeId) ?? null
   const open = Boolean(node || edge)
   const isOrphan = node ? orphans.has(node.id) : false
@@ -44,9 +45,14 @@ export function Inspector() {
           <div className="insp-title">{node.label}</div>
           <button
             className="insp-path insp-path-link"
-            onClick={() => openInEditor(node.file, node.line)}
-            title={`Open in ${EDITOR_LABEL[getEditor()]} — ${node.file}:${node.line}`}
-            disabled={!node.file}
+            onClick={() => here && openInEditor(here, node.line)}
+            title={
+              here
+                ? `Open in ${EDITOR_LABEL[getEditor()]} — ${node.id}:${node.line}`
+                : // somebody else's codebase: the file is real, just not here
+                  `${node.id}:${node.line} — not on this machine`
+            }
+            disabled={!here}
           >
             {node.id}:{node.line}
             <span className="go">↗</span>

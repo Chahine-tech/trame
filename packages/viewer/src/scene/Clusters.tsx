@@ -55,15 +55,27 @@ function FolderLabel({
 export function Clusters() {
   const data = useGraphStore((s) => s.data)
   const positions = useGraphStore((s) => s.positions)
+  const nearby = useGraphStore((s) => s.nearby)
   const show = useGraphStore((s) => s.showClusters)
 
-  // every folder the topbar counts gets a label, single-file ones included —
-  // a count that doesn't match what's on screen is a count nobody trusts
+  /**
+   * A folder is named from the files actually on screen, and stays silent when
+   * none of them are.
+   *
+   * These centres used to come from every file the folder holds, drawn or not.
+   * Once the detail view began showing a subset that stopped describing
+   * anything: on cal.com some twenty labels — `matomo/`, `webex/`, `campfire/`,
+   * all small integrations the skeleton peels away first — hung in an empty
+   * corner naming files that were nowhere on screen, while the folders that
+   * were drawn had their names buried in the crowd. Two populations at once,
+   * nodes showing one and labels describing the other.
+   */
   const bubbles = useMemo(() => {
     if (!data) return []
     return data.clusters
       .map((cluster) => {
-        const pts = cluster.nodeIds
+        const drawn = nearby ? cluster.nodeIds.filter((id) => nearby.has(id)) : cluster.nodeIds
+        const pts = drawn
           .map((id) => positions.get(id))
           .filter((p): p is [number, number, number] => Boolean(p))
         if (pts.length === 0) return null
@@ -75,7 +87,7 @@ export function Clusters() {
         return { cluster, centroid, radius: radius + 3.5 }
       })
       .filter((b): b is NonNullable<typeof b> => Boolean(b))
-  }, [data, positions])
+  }, [data, positions, nearby])
 
   if (!show || !data) return null
 

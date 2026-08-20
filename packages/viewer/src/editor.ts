@@ -29,6 +29,25 @@ export function cycleEditor(): EditorScheme {
 }
 
 /**
+ * Where a node's file lives on this machine, or null when it lives on none.
+ *
+ * Nodes carry a path relative to the parsed root, and the root itself is
+ * recorded once in the graph's metadata — so a published graph simply omits it
+ * and no longer describes anybody's disk. A graph without a root is a graph
+ * somebody else parsed: there is nothing here to open, and guessing would send
+ * the editor after a file that does not exist.
+ *
+ * Graphs written before the split carry an absolute path on every node; those
+ * still open, since a path that is already absolute needs no root.
+ */
+export function locate(file: string | undefined, root: string | undefined): string | null {
+  if (!file) return null
+  if (file.startsWith("/") || /^[A-Za-z]:[\\/]/.test(file)) return file
+  if (!root) return null
+  return `${root.replace(/[/\\]$/, "")}/${file}`
+}
+
+/**
  * Jump to a file at a line. Synthetic nodes (API endpoints, query keys)
  * carry the call site in `file`, so they open where they're used.
  */
