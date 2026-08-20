@@ -20,33 +20,157 @@ trame doesn't ask you to draw a diagram at all. It reads your source with
 `ts-morph` and turns the codebase itself into a map you can walk through, ask
 questions of, and hold to a set of rules.
 
+The examples below are cal.com — 3,451 files across 114 folders, a codebase
+nobody reading this wrote. Every number is what trame printed.
+
 ## Explore
 
-- **Auto-parsed graph** — components, pages, hooks, API endpoints, TanStack Query keys, Zustand stores, React contexts, extracted straight from your source. No hand-written diagrams.
-- **Controllable Bézier edges** — click an edge, drag its two lavender control points in 3D space, curves persist to JSON.
-- **Folders as neighbourhoods** — a clustering force pulls each folder's files into a compact district; semantic zoom fades folder labels in as you zoom out, like a map.
-- **Path tracing** — shift-click a second node to light the dependency chain between them. *"Why does LoginPage depend on Chart?"*
-- **Jump to source** — click the file path (or press `O`) to open the file at its line in VS Code, Cursor, Windsurf or Zed.
-- **Shareable views** — `⌘K → Copy link to this view` puts the selection and the active lens in the URL. Send it and your colleague opens on the same file, with the same question already asked.
-- **Live pipeline** — `trame watch` re-parses on save, the viewer hot-swaps the graph.
+```bash
+npx tramejs --src ./src
+trame serve
+```
+
+What opens is not a diagram. Files are nodes, shaped by what they are — page,
+component, hook, store, context, API endpoint, query key. Imports are edges you
+can bend and the curves persist. A clustering force pulls each folder into its
+own district, and past a certain distance the files fade into the folders that
+hold them, the way a map trades streets for cities.
+
+On a codebase too large to draw at once, trame does not try. It picks out the
+files that hold the structure up, then opens on the worst thing they are caught
+in, with the neighbourhood around it already drawn.
+
+Once you are there:
+
+| | |
+|---|---|
+| `shift-click` a second file | lights the dependency chain between the two. *Why does LoginPage depend on Chart?* |
+| `I` | everything that transitively depends on this file, fading with distance |
+| `W` | what deleting it would break, what it would strand, which cycles it would resolve — without touching disk |
+| `O` | opens the file at its line in VS Code, Cursor, Windsurf or Zed |
+| `⌘K` → *Copy link to this view* | puts the selection and the active question in the URL, so a colleague opens where you left off |
+
+`trame watch` re-parses on save and the viewer swaps the graph under you.
 
 ## Understand
 
-- **Impact analysis** — select a node, press `I`: everything that transitively depends on it lights up, fading with distance. *"If I change this, what breaks?"*
-- **What if?** — select a node, press `W`: what would break, what would be stranded, which cycles it would resolve, all without touching the codebase on disk.
-- **Dead code & cycles** — files nothing imports render hollow; circular dependencies are detected (Tarjan SCC) and can fail CI.
-- **`trame modules`** — Louvain community detection on the import graph, then compared against your directories. It reports only the disagreements: a folder holding three groups that never touch, or two folders that are one module in practice. Both partitions are scored with Newman's modularity, so "your tree explains 0.05 of this graph, the real structure explains 0.27" is a measurement rather than an opinion.
-- **`trame doctor`** — everything worth fixing, ordered by what it buys. For a cycle it names the one import to remove, chosen by cutting each candidate and recomputing, so the advice is measured rather than guessed. For dead code it counts the private helpers that would go with it.
-- **`trame blame`** — which commit introduced a cycle, and who wrote it. `git blame` answers that for a line; a cycle is not written on any line, it emerges from imports spread across the files it joins. Found by bisecting the history, so five thousand commits cost about thirteen checkouts.
-- **Replay** — `trame replay` walks your git history and lets you scrub the architecture as it grew. Surviving files keep their position between frames, so the eye can follow what appeared and what went away.
-- **Diff mode** — `trame diff --base main.json --head branch.json` renders what a branch did to your architecture: additions green, removals as red ghosts.
+Ask what is worth fixing:
+
+```bash
+trame doctor --src ./packages
+```
+
+```
+574 things worth fixing, top 2:
+
+  ⟳ 106 files depend on each other in a loop: class → prismaNamespace → models … +100
+    → Remove the import of models from prismaNamespace — verified to free 104 of them.
+
+  ⟳ 8 files depend on each other in a loop: getCalendar → CalendarSubscriptionService
+    → CalendarSyncService → handleCancelBooking → EventManager → CalendarManager
+    → Remove the import of CalendarSubscriptionService from getCalendar — frees 6.
+```
+
+The cut is not a guess. A group of eight files can hold several distinct loops,
+so removing the import that looks load-bearing may leave the tangle intact.
+trame takes out each candidate in turn and recounts what stays caught, which is
+why "frees 104" is a measurement and not an opinion.
+
+Dead code is reported the same way, and phrased as the inference it is: trame
+cannot see a dynamic import, a framework route, or a file only a test uses, so
+it says how many private helpers would go with a deletion rather than telling
+you to delete anything.
+
+Ask where the modules actually are:
+
+```bash
+trame modules --src ./packages
+```
+
+```
+structure found: 0.685 · your folders: 0.427
+
+trpc/ holds 2 groups that barely touch:
+  · createContext, addNotificationsSubscription.handler, addSecondaryEmail.handler … +122
+  · errorFormatter, perfMiddleware, sessionMiddleware, authedProcedure … +153
+
+googlecalendar/ holds 2 groups that barely touch:
+  · _metadata, CalendarAuth, CalendarService, google-calendar.e2e, testUtils
+  · add, callback, index, getGoogleAppKeys
+```
+
+Handlers on one side, middleware on the other, inside one folder that claims to
+be one thing. The service layer and the OAuth routes, likewise. Louvain finds
+the groups from the imports alone; both groupings are then scored with Newman's
+modularity, so 0.685 against 0.427 says the folder tree explains this codebase
+about half as well as its own dependencies do.
+
+Ask who introduced it:
+
+```bash
+trame blame --src ./packages
+```
+
+```
+19 traced through 2642 commits, 58 read:
+
+  cycle: embed-iframe → embed → react-hooks
+    73f51920 · refactor: move Booker hooks from packages/features to apps/web/modules
+
+  cycle: schema → fieldTypes → variantsConfig
+    older than the history read — try --since
+```
+
+`git blame` answers that for a line. A cycle is not written on any line: it
+emerges from imports spread across the files it joins, and the commit that
+closed the loop may have touched none of them meaningfully. trame bisects the
+history instead, parsing the architecture at each probe, so the cost is
+logarithmic rather than linear — and since the probes are shared between
+questions, nineteen answers came out of fifty-eight checkouts rather than
+nineteen searches' worth.
+
+And ask how it got this way. `trame replay` walks the history and lets you scrub
+the architecture as it grew; surviving files keep their position between frames,
+so the eye follows what appeared and what went away. `trame diff --base a.json
+--head b.json` does the same for one branch: additions green, removals as red
+ghosts.
 
 ## Enforce
 
-- **Constraint rules** — declare architecture rules in `trame.config.ts`; violations glow red in the graph and `trame check` exits 1 for CI.
-- **A comment on every pull request** — what the branch did to the architecture, with a Mermaid diagram of just the changed neighbourhood. [Details below](#in-ci).
+Write the rules down, in `trame.config.ts`:
 
-**Calm by design.** Nodes rest grey. Colour only lands with your attention, in Catppuccin Mocha or Latte to match your terminal.
+```ts
+export default {
+  rules: [
+    { type: "no-cycles", message: "Circular dependency" },
+    {
+      type: "no-direct-import",
+      match: { sourceType: "page", targetType: "page" },
+      message: "Pages should not import each other directly",
+    },
+  ],
+}
+```
+
+```bash
+trame check --src ./src
+```
+
+```
+✗ [no-cycles] Circular dependency (CalendarEventBuilder → BookingRepository → IBookingRepository → CalendarEventBuilder)
+```
+
+Exit 1, so CI stops there. Violations glow red in the viewer with the message in
+the inspector, and the config is validated before it runs: a rule typed
+`no-cycle` instead of `no-cycles` used to match nothing, report nothing and pass
+— a green build that checked nothing at all.
+
+[`.github/workflows/trame.yml`](.github/workflows/trame.yml) also comments on
+every pull request with what the branch did to the architecture, and edits that
+comment in place rather than adding one. [Details below](#in-ci).
+
+**Calm by design.** Nodes rest grey. Colour only lands with your attention, in
+Catppuccin Mocha or Latte to match your terminal.
 
 ## Quickstart
 
@@ -83,11 +207,13 @@ pnpm parse -- --src ./path/to/src --out ./packages/viewer/public/trame.json
 pnpm test
 ```
 
-29 tests, on the parts where being wrong is silent: Tarjan's SCC detection
+141 tests, on the parts where being wrong is silent: Tarjan's SCC detection
 (including a 20 000-node chain, since the implementation promises to be
-iterative), the three constraint rules `trame check` exits on, the commit
-sampler that decides whether a replay reads as growth or as a slideshow, and
-the viewer's lens mutual exclusion.
+iterative), the three constraint rules `trame check` exits on and the validation
+that stops a misspelt rule passing quietly, the commit sampler that decides
+whether a replay reads as growth or as a slideshow, the layout's handling of
+codebases whose packages do not import one another, and the arbitration that
+decides which labels get the space when more want it than fit.
 
 ## Diagrams for docs and PRs
 
