@@ -30,7 +30,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 9,
             "cluster": "src"
           },
@@ -38,7 +38,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -46,7 +46,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -54,7 +54,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -62,7 +62,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -70,7 +70,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -78,7 +78,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 9,
             "cluster": "scene"
           },
@@ -86,7 +86,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 39,
             "cluster": "scene"
           },
@@ -94,7 +94,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 44,
             "cluster": "scene"
           },
@@ -102,7 +102,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 47,
             "cluster": "store"
           },
@@ -110,7 +110,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 4,
             "cluster": "ui"
           },
@@ -118,7 +118,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 9,
             "cluster": "ui"
           },
@@ -126,7 +126,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 3,
             "cluster": "ui"
           },
@@ -134,7 +134,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/506d186f3ca6/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 18,
             "cluster": "api",
             "meta": {
@@ -408,7 +408,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 9,
             "cluster": "src"
           },
@@ -416,7 +416,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -424,7 +424,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -432,7 +432,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -440,7 +440,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -448,7 +448,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 7,
             "cluster": "scene"
           },
@@ -456,7 +456,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -464,7 +464,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 9,
             "cluster": "scene"
           },
@@ -472,7 +472,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 39,
             "cluster": "scene"
           },
@@ -480,7 +480,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 45,
             "cluster": "scene"
           },
@@ -488,7 +488,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 55,
             "cluster": "store"
           },
@@ -496,7 +496,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 4,
             "cluster": "ui"
           },
@@ -504,7 +504,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 9,
             "cluster": "ui"
           },
@@ -512,7 +512,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -520,7 +520,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/e5acf5c84642/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 18,
             "cluster": "api",
             "meta": {
@@ -819,7 +819,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 9,
             "cluster": "src"
           },
@@ -827,7 +827,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -835,7 +835,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -843,7 +843,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -851,7 +851,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -859,7 +859,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -867,7 +867,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 7,
             "cluster": "scene"
           },
@@ -875,7 +875,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -883,7 +883,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 9,
             "cluster": "scene"
           },
@@ -891,7 +891,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -899,7 +899,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -907,7 +907,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 81,
             "cluster": "store"
           },
@@ -915,7 +915,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 4,
             "cluster": "ui"
           },
@@ -923,7 +923,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 9,
             "cluster": "ui"
           },
@@ -931,7 +931,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -939,7 +939,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5465abd7f750/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 18,
             "cluster": "api",
             "meta": {
@@ -1249,7 +1249,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 9,
             "cluster": "src"
           },
@@ -1257,7 +1257,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -1265,7 +1265,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -1273,7 +1273,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -1281,7 +1281,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -1289,7 +1289,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -1297,7 +1297,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -1305,7 +1305,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -1313,7 +1313,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -1321,7 +1321,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -1329,7 +1329,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -1337,7 +1337,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 81,
             "cluster": "store"
           },
@@ -1345,7 +1345,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 4,
             "cluster": "ui"
           },
@@ -1353,7 +1353,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 9,
             "cluster": "ui"
           },
@@ -1361,7 +1361,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -1369,7 +1369,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c0e6a17a5b6a/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 18,
             "cluster": "api",
             "meta": {
@@ -1679,7 +1679,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 9,
             "cluster": "src"
           },
@@ -1687,7 +1687,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -1695,7 +1695,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -1703,7 +1703,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -1711,7 +1711,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -1719,7 +1719,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -1727,7 +1727,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -1735,7 +1735,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -1743,7 +1743,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -1751,7 +1751,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -1759,7 +1759,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -1767,7 +1767,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 81,
             "cluster": "store"
           },
@@ -1775,7 +1775,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 4,
             "cluster": "ui"
           },
@@ -1783,7 +1783,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 9,
             "cluster": "ui"
           },
@@ -1791,7 +1791,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -1799,7 +1799,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/6c8fb1be170c/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 18,
             "cluster": "api",
             "meta": {
@@ -2111,7 +2111,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 10,
             "cluster": "src"
           },
@@ -2119,7 +2119,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -2127,7 +2127,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -2135,7 +2135,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -2143,7 +2143,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -2151,7 +2151,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -2159,7 +2159,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -2167,7 +2167,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -2175,7 +2175,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -2183,7 +2183,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -2191,7 +2191,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -2199,7 +2199,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -2207,7 +2207,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 98,
             "cluster": "store"
           },
@@ -2215,7 +2215,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -2223,7 +2223,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -2231,7 +2231,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -2239,7 +2239,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/a5c2d3c397b5/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 19,
             "cluster": "api",
             "meta": {
@@ -2571,7 +2571,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 12,
             "cluster": "src"
           },
@@ -2579,7 +2579,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -2587,7 +2587,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -2595,7 +2595,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -2603,7 +2603,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -2611,7 +2611,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -2619,7 +2619,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -2627,7 +2627,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -2635,7 +2635,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -2643,7 +2643,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -2651,7 +2651,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -2659,7 +2659,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -2667,7 +2667,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 98,
             "cluster": "store"
           },
@@ -2675,7 +2675,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -2683,7 +2683,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -2691,7 +2691,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -2699,7 +2699,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 48,
             "cluster": "ui"
           },
@@ -2707,7 +2707,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -2715,7 +2715,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/4518612b083f/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 22,
             "cluster": "api",
             "meta": {
@@ -3060,7 +3060,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 16,
             "cluster": "src"
           },
@@ -3068,7 +3068,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -3076,7 +3076,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -3084,7 +3084,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -3092,7 +3092,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -3100,7 +3100,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -3108,7 +3108,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -3116,7 +3116,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -3124,7 +3124,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -3132,7 +3132,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -3140,7 +3140,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -3148,7 +3148,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -3156,7 +3156,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 99,
             "cluster": "store"
           },
@@ -3164,7 +3164,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -3172,7 +3172,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -3180,7 +3180,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 11,
             "cluster": "ui"
           },
@@ -3188,7 +3188,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 48,
             "cluster": "ui"
           },
@@ -3196,7 +3196,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -3204,7 +3204,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -3212,7 +3212,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/5602526c74da/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 27,
             "cluster": "api",
             "meta": {
@@ -3598,7 +3598,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 16,
             "cluster": "src"
           },
@@ -3606,7 +3606,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -3614,7 +3614,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -3622,7 +3622,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -3630,7 +3630,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -3638,7 +3638,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -3646,7 +3646,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -3654,7 +3654,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -3662,7 +3662,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -3670,7 +3670,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 42,
             "cluster": "scene"
           },
@@ -3678,7 +3678,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -3686,7 +3686,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -3694,7 +3694,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 99,
             "cluster": "store"
           },
@@ -3702,7 +3702,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -3710,7 +3710,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -3718,7 +3718,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 11,
             "cluster": "ui"
           },
@@ -3726,7 +3726,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 48,
             "cluster": "ui"
           },
@@ -3734,7 +3734,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -3742,7 +3742,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -3750,7 +3750,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/c87048ff612b/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 27,
             "cluster": "api",
             "meta": {
@@ -4136,7 +4136,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 23,
             "cluster": "src"
           },
@@ -4144,7 +4144,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -4152,7 +4152,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -4160,7 +4160,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -4168,7 +4168,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -4176,7 +4176,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -4184,7 +4184,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -4192,7 +4192,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 47,
             "cluster": "scene"
           },
@@ -4200,7 +4200,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 86,
             "cluster": "scene"
           },
@@ -4208,7 +4208,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 38,
             "cluster": "scene"
           },
@@ -4216,7 +4216,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -4224,7 +4224,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 46,
             "cluster": "scene"
           },
@@ -4232,7 +4232,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 104,
             "cluster": "store"
           },
@@ -4240,7 +4240,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -4248,7 +4248,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -4256,7 +4256,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 11,
             "cluster": "ui"
           },
@@ -4264,7 +4264,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 48,
             "cluster": "ui"
           },
@@ -4272,7 +4272,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -4280,7 +4280,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           },
@@ -4288,7 +4288,7 @@
             "id": "api:GET /archviz.json",
             "label": "GET /archviz.json",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/efaccd37440e/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 34,
             "cluster": "api",
             "meta": {
@@ -4679,7 +4679,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 22,
             "cluster": "src"
           },
@@ -4687,7 +4687,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -4695,7 +4695,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -4703,7 +4703,7 @@
             "id": "graph-feed.ts",
             "label": "graph-feed",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/graph-feed.ts",
+            "file": "graph-feed.ts",
             "line": 7,
             "cluster": "src"
           },
@@ -4711,7 +4711,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -4719,7 +4719,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -4727,7 +4727,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -4735,7 +4735,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -4743,7 +4743,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 55,
             "cluster": "scene"
           },
@@ -4751,7 +4751,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 95,
             "cluster": "scene"
           },
@@ -4759,7 +4759,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 38,
             "cluster": "scene"
           },
@@ -4767,7 +4767,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -4775,7 +4775,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 88,
             "cluster": "scene"
           },
@@ -4783,7 +4783,7 @@
             "id": "scene/useDisposable.ts",
             "label": "useDisposable",
             "type": "hook",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/scene/useDisposable.ts",
+            "file": "scene/useDisposable.ts",
             "line": 14,
             "cluster": "scene"
           },
@@ -4791,7 +4791,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 104,
             "cluster": "store"
           },
@@ -4799,7 +4799,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -4807,7 +4807,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -4815,7 +4815,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 11,
             "cluster": "ui"
           },
@@ -4823,7 +4823,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 56,
             "cluster": "ui"
           },
@@ -4831,7 +4831,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -4839,7 +4839,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8f71cc68241c/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           }
@@ -5221,7 +5221,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 22,
             "cluster": "src"
           },
@@ -5229,7 +5229,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -5237,7 +5237,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -5245,7 +5245,7 @@
             "id": "graph-feed.ts",
             "label": "graph-feed",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/graph-feed.ts",
+            "file": "graph-feed.ts",
             "line": 7,
             "cluster": "src"
           },
@@ -5253,7 +5253,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -5261,7 +5261,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -5269,7 +5269,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -5277,7 +5277,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -5285,7 +5285,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 55,
             "cluster": "scene"
           },
@@ -5293,7 +5293,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 95,
             "cluster": "scene"
           },
@@ -5301,7 +5301,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 38,
             "cluster": "scene"
           },
@@ -5309,7 +5309,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 66,
             "cluster": "scene"
           },
@@ -5317,7 +5317,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 88,
             "cluster": "scene"
           },
@@ -5325,7 +5325,7 @@
             "id": "scene/useDisposable.ts",
             "label": "useDisposable",
             "type": "hook",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/scene/useDisposable.ts",
+            "file": "scene/useDisposable.ts",
             "line": 14,
             "cluster": "scene"
           },
@@ -5333,7 +5333,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 104,
             "cluster": "store"
           },
@@ -5341,7 +5341,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -5349,7 +5349,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -5357,7 +5357,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 38,
             "cluster": "ui"
           },
@@ -5365,7 +5365,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 56,
             "cluster": "ui"
           },
@@ -5373,7 +5373,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -5381,7 +5381,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/fee6e2f5e1da/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           }
@@ -5772,7 +5772,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 22,
             "cluster": "src"
           },
@@ -5780,7 +5780,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -5788,7 +5788,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -5796,7 +5796,7 @@
             "id": "graph-feed.ts",
             "label": "graph-feed",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/graph-feed.ts",
+            "file": "graph-feed.ts",
             "line": 7,
             "cluster": "src"
           },
@@ -5804,7 +5804,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -5812,7 +5812,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -5820,7 +5820,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -5828,7 +5828,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -5836,7 +5836,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 55,
             "cluster": "scene"
           },
@@ -5844,7 +5844,7 @@
             "id": "scene/Districts.tsx",
             "label": "Districts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/Districts.tsx",
+            "file": "scene/Districts.tsx",
             "line": 160,
             "cluster": "scene"
           },
@@ -5852,7 +5852,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 120,
             "cluster": "scene"
           },
@@ -5860,7 +5860,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 38,
             "cluster": "scene"
           },
@@ -5868,7 +5868,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 87,
             "cluster": "scene"
           },
@@ -5876,7 +5876,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 115,
             "cluster": "scene"
           },
@@ -5884,7 +5884,7 @@
             "id": "scene/useDisposable.ts",
             "label": "useDisposable",
             "type": "hook",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/useDisposable.ts",
+            "file": "scene/useDisposable.ts",
             "line": 14,
             "cluster": "scene"
           },
@@ -5892,7 +5892,7 @@
             "id": "scene/ZoomDirector.tsx",
             "label": "ZoomDirector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/scene/ZoomDirector.tsx",
+            "file": "scene/ZoomDirector.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -5900,7 +5900,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 110,
             "cluster": "store"
           },
@@ -5908,7 +5908,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -5916,7 +5916,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -5924,7 +5924,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 38,
             "cluster": "ui"
           },
@@ -5932,7 +5932,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 56,
             "cluster": "ui"
           },
@@ -5940,7 +5940,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -5948,7 +5948,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/2e465e216519/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           }
@@ -6374,7 +6374,7 @@
             "id": "App.tsx",
             "label": "App",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/App.tsx",
+            "file": "App.tsx",
             "line": 22,
             "cluster": "src"
           },
@@ -6382,7 +6382,7 @@
             "id": "demo-data.ts",
             "label": "demo-data",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/demo-data.ts",
+            "file": "demo-data.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -6390,7 +6390,7 @@
             "id": "editor.ts",
             "label": "editor",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/editor.ts",
+            "file": "editor.ts",
             "line": 2,
             "cluster": "src"
           },
@@ -6398,7 +6398,7 @@
             "id": "graph-feed.ts",
             "label": "graph-feed",
             "type": "api",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/graph-feed.ts",
+            "file": "graph-feed.ts",
             "line": 7,
             "cluster": "src"
           },
@@ -6406,7 +6406,7 @@
             "id": "main.tsx",
             "label": "main",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/main.tsx",
+            "file": "main.tsx",
             "line": 1,
             "cluster": "src"
           },
@@ -6414,7 +6414,7 @@
             "id": "theme.ts",
             "label": "theme",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/theme.ts",
+            "file": "theme.ts",
             "line": 4,
             "cluster": "src"
           },
@@ -6422,7 +6422,7 @@
             "id": "types.ts",
             "label": "types",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/types.ts",
+            "file": "types.ts",
             "line": 1,
             "cluster": "src"
           },
@@ -6430,7 +6430,7 @@
             "id": "scene/CaptureFrame.tsx",
             "label": "CaptureFrame",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/CaptureFrame.tsx",
+            "file": "scene/CaptureFrame.tsx",
             "line": 13,
             "cluster": "scene"
           },
@@ -6438,7 +6438,7 @@
             "id": "scene/Clusters.tsx",
             "label": "Clusters",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/Clusters.tsx",
+            "file": "scene/Clusters.tsx",
             "line": 55,
             "cluster": "scene"
           },
@@ -6446,7 +6446,7 @@
             "id": "scene/Districts.tsx",
             "label": "Districts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/Districts.tsx",
+            "file": "scene/Districts.tsx",
             "line": 160,
             "cluster": "scene"
           },
@@ -6454,7 +6454,7 @@
             "id": "scene/EdgeMesh.tsx",
             "label": "EdgeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/EdgeMesh.tsx",
+            "file": "scene/EdgeMesh.tsx",
             "line": 120,
             "cluster": "scene"
           },
@@ -6462,7 +6462,7 @@
             "id": "scene/Layout.ts",
             "label": "Layout",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/Layout.ts",
+            "file": "scene/Layout.ts",
             "line": 38,
             "cluster": "scene"
           },
@@ -6470,7 +6470,7 @@
             "id": "scene/NodeMesh.tsx",
             "label": "NodeMesh",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/NodeMesh.tsx",
+            "file": "scene/NodeMesh.tsx",
             "line": 88,
             "cluster": "scene"
           },
@@ -6478,7 +6478,7 @@
             "id": "scene/Scene.tsx",
             "label": "Scene",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/Scene.tsx",
+            "file": "scene/Scene.tsx",
             "line": 120,
             "cluster": "scene"
           },
@@ -6486,7 +6486,7 @@
             "id": "scene/useDisposable.ts",
             "label": "useDisposable",
             "type": "hook",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/useDisposable.ts",
+            "file": "scene/useDisposable.ts",
             "line": 14,
             "cluster": "scene"
           },
@@ -6494,7 +6494,7 @@
             "id": "scene/ZoomDirector.tsx",
             "label": "ZoomDirector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/scene/ZoomDirector.tsx",
+            "file": "scene/ZoomDirector.tsx",
             "line": 12,
             "cluster": "scene"
           },
@@ -6502,7 +6502,7 @@
             "id": "store/graph.ts",
             "label": "graph",
             "type": "store",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/store/graph.ts",
+            "file": "store/graph.ts",
             "line": 110,
             "cluster": "store"
           },
@@ -6510,7 +6510,7 @@
             "id": "ui/FirstRunHint.tsx",
             "label": "FirstRunHint",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/FirstRunHint.tsx",
+            "file": "ui/FirstRunHint.tsx",
             "line": 10,
             "cluster": "ui"
           },
@@ -6518,7 +6518,7 @@
             "id": "ui/Inspector.tsx",
             "label": "Inspector",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/Inspector.tsx",
+            "file": "ui/Inspector.tsx",
             "line": 5,
             "cluster": "ui"
           },
@@ -6526,7 +6526,7 @@
             "id": "ui/Palette.tsx",
             "label": "Palette",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/Palette.tsx",
+            "file": "ui/Palette.tsx",
             "line": 38,
             "cluster": "ui"
           },
@@ -6534,7 +6534,7 @@
             "id": "ui/Shortcuts.tsx",
             "label": "Shortcuts",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/Shortcuts.tsx",
+            "file": "ui/Shortcuts.tsx",
             "line": 56,
             "cluster": "ui"
           },
@@ -6542,7 +6542,7 @@
             "id": "ui/toast.ts",
             "label": "toast",
             "type": "module",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/toast.ts",
+            "file": "ui/toast.ts",
             "line": 28,
             "cluster": "ui"
           },
@@ -6550,7 +6550,7 @@
             "id": "ui/TopBar.tsx",
             "label": "TopBar",
             "type": "component",
-            "file": "/var/folders/z9/kr_dhrdj349czrmqnlz8vrpr0000gn/T/trame-replay-68UzwZ/8e6c828dbe1f/packages/viewer/src/ui/TopBar.tsx",
+            "file": "ui/TopBar.tsx",
             "line": 7,
             "cluster": "ui"
           }
