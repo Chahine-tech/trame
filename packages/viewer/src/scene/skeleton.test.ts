@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { coreness, impassable, neighbourhood, skeleton } from "./skeleton"
+import { coreness, fittingNeighbourhood, impassable, neighbourhood, skeleton } from "./skeleton"
 import type { GraphEdge } from "../types"
 
 function links(pairs: [string, string][]): GraphEdge[] {
@@ -137,5 +137,36 @@ describe("what counts as traffic", () => {
     // one of them would be withholding a tenth of the map
     const { ids, edges } = clique("q", 12)
     expect(impassable(ids, edges).size).toBe(0)
+  })
+})
+
+describe("choosing how far to look", () => {
+  /** A hub with `n` neighbours, each of which has ten of its own. */
+  function busy(n: number): GraphEdge[] {
+    const pairs: [string, string][] = []
+    for (let i = 0; i < n; i++) {
+      pairs.push(["focus", `near${i}`])
+      for (let j = 0; j < 10; j++) pairs.push([`near${i}`, `far${i}_${j}`])
+    }
+    return links(pairs)
+  }
+
+  it("takes two hops when they fit", () => {
+    const near = fittingNeighbourhood("focus", busy(3), new Set(), 400)
+    expect(near.size).toBe(34) // focus + 3 + 30
+  })
+
+  it("falls back to one hop rather than overflowing", () => {
+    // opening on handleCancelBooking — exactly the sort of well-connected file
+    // worth opening on — reached 426 at two hops, past the budget it exists to
+    // respect. Better a smaller true view than a screenful nobody can read.
+    const near = fittingNeighbourhood("focus", busy(60), new Set(), 400)
+    expect(near.size).toBe(61) // focus + its 60 neighbours, and no further
+  })
+
+  it("never returns less than the file itself and what it touches", () => {
+    const near = fittingNeighbourhood("focus", busy(2), new Set(), 1)
+    expect(near.has("focus")).toBe(true)
+    expect(near.size).toBeGreaterThan(1)
   })
 })

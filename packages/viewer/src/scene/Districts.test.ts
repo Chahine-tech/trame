@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { withoutOverlap, type LabelBox } from "./Districts"
+import { withoutOverlap, type LabelBox } from "./labels"
 
 function box(id: string, x: number, y: number, rank = 1, width = 100, height = 32): LabelBox {
   return { id, x, y, width, height, tier: 0, rank }

@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber"
 import { Billboard, Html } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js"
 import { useGraphStore } from "../store/graph"
+import { registerLabel } from "./nodeLabels"
 import { isDarkGround, mix, NODE_COLOR, usePalette, type Palette } from "../theme"
 import { nodeProgress, overshoot } from "./arrival"
 import type { GraphNode } from "../types"
@@ -98,6 +99,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const isHovered = useGraphStore((s) => s.hoverId === node.id)
   const isSelected = useGraphStore((s) => s.selectedId === node.id)
   const showLabels = useGraphStore((s) => s.showLabels)
+  const name = useGraphStore((s) => s.names.get(node.id) ?? node.label)
   const setHover = useGraphStore((s) => s.setHover)
   const select = useGraphStore((s) => s.select)
   const focus = useGraphStore((s) => s.focus)
@@ -399,7 +401,12 @@ export function NodeMesh({ node }: { node: GraphNode }) {
 
       {showLabel && (
         <Html zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-          <div className={`node-label${isHovered || isSelected ? "" : " dim"}`}>{node.label}</div>
+          <div
+            className={`node-label${isHovered || isSelected ? "" : " dim"}`}
+            ref={(el) => registerLabel(node.id, el)}
+          >
+            {name}
+          </div>
         </Html>
       )}
     </mesh>

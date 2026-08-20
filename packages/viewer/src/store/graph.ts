@@ -2,7 +2,9 @@ import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
 import { BUDGET } from "../scene/budget"
-import { impassable, neighbourhood, skeleton } from "../scene/skeleton"
+import { fittingNeighbourhood, impassable, skeleton } from "../scene/skeleton"
+import { disambiguate } from "../scene/names"
+import { diagnose } from "tramejs/doctor"
 import { simulateDelete, type WhatIfReport } from "./whatif"
 import type { LensKind } from "./lens"
 
@@ -181,6 +183,8 @@ interface GraphState {
   skeletonSet: Set<string> | null
   /** files wired to so much of the codebase that routing through them says nothing */
   traffic: Set<string>
+  /** what to write beside each file, qualified only where two share a name */
+  names: Map<string, string>
   /**
    * How far the arrangement reaches, as the ninetieth percentile radius.
    *
@@ -217,6 +221,8 @@ interface GraphState {
   toggleWhatIf: () => void
 
   load: (data: GraphData, isDemo?: boolean) => void
+  /** select the worst problem the load-bearing files are involved in */
+  openOnFinding: () => void
   setHover: (id: string | null) => void
   select: (id: string | null) => void
   selectEdge: (id: string | null) => void
@@ -227,6 +233,52 @@ interface GraphState {
   setCtrl: (edgeId: string, c1: Vec3, c2: Vec3) => void
   resetCtrl: (edgeId: string) => void
   clear: () => void
+}
+
+/**
+ * Where a set of files sits, and how far it spreads around that.
+ *
+ * Every camera distance is a multiple of the spread, so it has to describe what
+ * is on screen rather than what exists — and measured from the middle of that,
+ * not from the origin. A neighbourhood is a knot somewhere off to one side; its
+ * distance *from the origin* says how far away it is, which is not the same
+ * question as how big it is, and answering the wrong one framed a thumbnail in
+ * an empty screen. The percentile rather than the maximum, because one stray
+ * file should not push the camera into orbit.
+ */
+function reachOf(
+  ids: string[],
+  positions: Map<string, Vec3>,
+): { at: Vec3; spread: number } {
+  const points = ids.map((id) => positions.get(id)).filter((p): p is Vec3 => Boolean(p))
+  if (points.length === 0) return { at: [0, 0, 0], spread: 60 }
+
+  const at: Vec3 = [0, 0, 0]
+  for (const p of points) {
+    at[0] += p[0] / points.length
+    at[1] += p[1] / points.length
+    at[2] += p[2] / points.length
+  }
+  const radii = points
+    .map((p) => Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2]))
+    .sort((a, b) => a - b)
+  /**
+   * Frame everything, unless one file has wandered absurdly far.
+   *
+   * Trimming the outermost tenth was the first attempt: it keeps a stray among
+   * three thousand from pushing the camera into orbit, and on the forty files
+   * around a selection it quietly dropped four of them off the screen — one of
+   * them a hub, cut in half at the left margin. Framing to the very furthest is
+   * no better: cal.com's cancellation neighbourhood runs to 81 at the median
+   * and 187 at the ninety-fifth, with a single file out at 323, and letting
+   * that one file decide would shrink the other thirty-nine by half.
+   *
+   * So the whole set counts, up to a few times the middle of it. Nothing is
+   * excluded for being merely far — only for being out of all proportion.
+   */
+  const median = radii[Math.floor(radii.length / 2)] ?? 60
+  const furthest = radii[radii.length - 1] ?? 60
+  return { at, spread: Math.max(40, Math.min(furthest, median * 2.5)) }
 }
 
 function computeLit(state: Pick<GraphState, "adjacency">, id: string | null): Set<string> {
@@ -458,6 +510,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   nearby: null,
   skeletonSet: null,
   traffic: new Set(),
+  names: new Map(),
   extent: 60,
   setNearby: (ids) => {
     const current = get().nearby
@@ -530,20 +583,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const traffic = impassable(ids, data.edges)
     const bones = skeleton(ids, data.edges, BUDGET)
 
-    // measured over what will actually be drawn, and at the ninetieth
-    // percentile so a single stray file cannot push the camera into orbit
-    const reach = (bones ? [...bones] : ids)
-      .map((id) => positions.get(id))
-      .filter((p): p is Vec3 => Boolean(p))
-      .map((p) => Math.hypot(p[0], p[1], p[2]))
-      .sort((a, b) => a - b)
-    const extent = Math.max(40, reach[Math.floor(reach.length * 0.9)] ?? 60)
+    const extent = reachOf(bones ? [...bones] : ids, positions).spread
 
     set({
       data,
       isDemo,
       positions,
       nearby: bones,
+      names: disambiguate(bones ? data.nodes.filter((n) => bones.has(n.id)) : data.nodes),
       skeletonSet: bones,
       traffic,
       extent,
@@ -561,10 +608,70 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       hoverId: null,
       selectedId: null,
       selectedEdgeId: null,
+      // including where the camera was pointed: a target left over from another
+      // codebase aims it at coordinates that mean nothing in this one
+      focusTarget: null,
       litSet: new Set(),
       ...noLens(),
     })
 
+    /**
+     * Open on a question rather than on a graph.
+     *
+     * A repository too big to draw whole is also too big to *read* whole, so
+     * landing on all of it asks the reader to find their own way in. Landing on
+     * the worst thing the codebase is actually doing gives them somewhere to
+     * stand — and the neighbourhood view answers it immediately.
+     *
+     * Only for graphs that already needed a skeleton: a small one shows
+     * everything at once and has nothing to lead with.
+     */
+    if (bones) get().openOnFinding()
+
+  },
+
+  openOnFinding: () => {
+    const { data, skeletonSet, adjacency } = get()
+    if (!data || !skeletonSet) return
+
+    /**
+     * The biggest finding is rarely the one worth opening on.
+     *
+     * cal.com's is a 106-file loop through generated Prisma models — the
+     * largest by a distance, and architecture nobody wrote. Not one of those
+     * files survives the peeling that leaves the skeleton, while the cycle a
+     * reader should care about (`getCalendar → CalendarSubscriptionService →
+     * …`) is 87% load-bearing. So the skeleton picks the question, and the
+     * ranking only orders what is left.
+     */
+    const worth = diagnose(data).find(
+      (f) => f.kind === "cycle" && f.nodeIds.some((id) => skeletonSet.has(id)),
+    )
+    if (!worth) return
+
+    // stand where the most of it is visible at once
+    const focus = worth.nodeIds
+      .filter((id) => skeletonSet.has(id))
+      .sort(
+        (a, b) => (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
+      )[0]
+    if (!focus) return
+    get().select(focus)
+
+    /**
+     * Frame the answer, not the repository.
+     *
+     * The camera works in multiples of `extent`, which was measured over the
+     * skeleton — some four hundred units across. The neighbourhood it has just
+     * opened on is a tight knot a fraction of that, so left alone the scene
+     * showed a thumbnail adrift in an empty frame. Only on the opening move:
+     * re-framing on every later click would snatch the camera out of the
+     * reader's hands.
+     */
+    const { nearby, positions } = get()
+    if (!nearby) return
+    const { at, spread } = reachOf([...nearby], positions)
+    set({ extent: spread, focusTarget: at })
   },
 
   setHover: (id) => {
@@ -585,11 +692,16 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      * selection puts the skeleton back — the map you came from.
      */
     const nearby =
-      id && skeletonSet && data ? neighbourhood(id, data.edges, 2, traffic) : skeletonSet
+      id && skeletonSet && data
+        ? fittingNeighbourhood(id, data.edges, traffic, BUDGET)
+        : skeletonSet
     set({
       selectedId: id,
       selectedEdgeId: null,
       nearby,
+      // two files can share a basename without sharing a screen; qualify only
+      // the ones that now do
+      names: disambiguate(nearby && data ? data.nodes.filter((n) => nearby.has(n.id)) : (data?.nodes ?? [])),
       litSet: computeLit({ adjacency }, id),
       // a new selection invalidates whatever lens was answering about the old one
       ...noLens(),

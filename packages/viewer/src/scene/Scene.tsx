@@ -13,10 +13,67 @@ import { Clusters } from "./Clusters"
 import { Districts } from "./Districts"
 import { ZoomDirector } from "./ZoomDirector"
 import { CaptureFrame } from "./CaptureFrame"
+import { applyLabels, textSize, withoutOverlap, type LabelBox } from "./labels"
+import { labelElements } from "./nodeLabels"
 
 /** Scratch vectors, reused every frame — always rewritten before they are read. */
 const GOAL = new THREE.Vector3()
 const DIR = new THREE.Vector3()
+const AT = new THREE.Vector3()
+
+/**
+ * Keeps file names from writing over one another.
+ *
+ * Labels appear for the neighbourhood around whatever is in hand, which is the
+ * right set to name and far too many to name at once: opening cal.com on
+ * `handleCancelBooking` put forty of them on one knot, and the middle of the
+ * screen became a smudge. The one the reader is actually asking about is
+ * ranked first and the rest fill the gaps around it.
+ *
+ * Written straight to the DOM, and only when the view has moved — the same
+ * reasoning as the district names, and for the same reason: re-rendering forty
+ * meshes several times a second would cost more than the arithmetic deciding
+ * them.
+ */
+function NameDirector() {
+  const positions = useGraphStore((s) => s.positions)
+  const selectedId = useGraphStore((s) => s.selectedId)
+  const lastView = useRef("")
+
+  useFrame(({ camera, size }) => {
+    const elements = labelElements()
+    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}`
+    if (view === lastView.current) return
+    lastView.current = view
+
+    const boxes: LabelBox[] = []
+    for (const [id, el] of elements) {
+      // a label switched off by the scene has no claim on the space
+      if (el.offsetParent === null) continue
+      const p = positions.get(id)
+      if (!p) continue
+      AT.set(p[0], p[1], p[2]).project(camera)
+      if (AT.z > 1) continue
+      const { width, height } = textSize(el.textContent ?? "", 11)
+      boxes.push({
+        id,
+        x: ((AT.x + 1) / 2) * size.width,
+        // the label floats above its node, per .node-label's transform
+        y: ((1 - AT.y) / 2) * size.height - height,
+        width,
+        height,
+        tier: 0,
+        // the file in hand always keeps its name; the rest are ranked by how
+        // near they are to the camera, so the front of the knot stays readable
+        rank: id === selectedId ? Number.MAX_SAFE_INTEGER : -AT.z,
+      })
+    }
+
+    applyLabels(elements, boxes, withoutOverlap(boxes))
+  })
+
+  return null
+}
 
 /** Convergence rate, in "fraction of the remaining distance closed per second". */
 const FOCUS_LAMBDA = 5
@@ -72,6 +129,7 @@ function FocusDepth() {
 /** Eases the OrbitControls target toward the focused node, then lets go. */
 function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
   const focusTarget = useGraphStore((s) => s.focusTarget)
+  const extent = useGraphStore((s) => s.extent)
   const clearFocus = useGraphStore((s) => s.clearFocus)
   const camera = useThree((s) => s.camera)
   const invalidate = useThree((s) => s.invalidate)
@@ -92,7 +150,18 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
 
     // dolly toward a comfortable distance from the target
     const dist = camera.position.distanceTo(GOAL)
-    const desired = focusTarget[0] === 0 && focusTarget[1] === 0 && focusTarget[2] === 0 ? 80 : 26
+    /**
+     * Outside what you are looking at, not inside it.
+     *
+     * This was 26 units, which is an arm's length from trame's own graph and
+     * deep inside a neighbourhood of cal.com's — where every import that passes
+     * near the lens becomes a grey band across the screen, because a tube seen
+     * from two units away fills half the frame. Those bands had been blamed on
+     * the renderer for two days; they were the camera standing in the middle of
+     * the thing it was meant to be showing. The same ratio the opening shot
+     * uses, so flying somewhere frames it the way arriving does.
+     */
+    const desired = extent * 1.35
     DIR.copy(camera.position).sub(GOAL).normalize()
     camera.position.copy(GOAL).addScaledVector(DIR, THREE.MathUtils.lerp(dist, desired, t))
 
@@ -101,6 +170,41 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
     }
     c.update()
   })
+
+  return null
+}
+
+/** Matches `.inspector`'s width in styles.css. */
+const PANEL = 300
+
+/**
+ * Centre the scene in the part of it the reader can actually see.
+ *
+ * The inspector slides over the right three hundred pixels of the canvas, and
+ * the camera has always framed the whole thing — so the middle of the picture
+ * sits behind the panel and the right of the neighbourhood is hidden under it.
+ * Shifting the projection rather than the camera means nothing moves in the
+ * scene: the same view, recentred on the window that is left.
+ *
+ * Cleared when the panel is away, or every graph would sit permanently askew.
+ */
+function PanelOffset() {
+  const open = useGraphStore((s) => s.selectedId !== null || s.selectedEdgeId !== null)
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
+  const size = useThree((s) => s.size)
+  const invalidate = useThree((s) => s.invalidate)
+
+  useEffect(() => {
+    // too narrow to give a third of the screen away: the panel covers the scene
+    // on a phone rather than sitting beside it
+    if (open && size.width > PANEL * 3) {
+      camera.setViewOffset(size.width, size.height, PANEL / 2, 0, size.width, size.height)
+    } else {
+      camera.clearViewOffset()
+    }
+    camera.updateProjectionMatrix()
+    invalidate()
+  }, [open, camera, size.width, size.height, invalidate])
 
   return null
 }
@@ -204,6 +308,8 @@ export function Scene() {
       <Lighting />
 
       <ZoomDirector />
+      <NameDirector />
+      <PanelOffset />
 
       {districtMode ? (
         <Districts />
