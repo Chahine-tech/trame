@@ -1,11 +1,12 @@
 import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
-import { BUDGET } from "../scene/budget"
+import { BUDGET, READABLE } from "../scene/budget"
 import { fittingNeighbourhood, impassable, skeleton } from "../scene/skeleton"
 import { disambiguate } from "../scene/names"
 import { diagnose } from "tramejs/doctor"
 import { simulateDelete, type WhatIfReport } from "./whatif"
+import { replayOf, type Replay } from "./timeline"
 import type { LensKind } from "./lens"
 
 /**
@@ -198,6 +199,8 @@ interface GraphState {
 
   /** the architecture replayed across git history, when one was generated */
   timeline: Timeline | null
+  /** rebuilds any frame of it, walking the changes from the first */
+  replay: Replay | null
   frameIndex: number
   /** the live graph, parked while a replay is on screen */
   present: GraphData | null
@@ -426,13 +429,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   playArrival: () => set({ arrivedAt: performance.now() }),
 
   timeline: null,
+  replay: null,
   frameIndex: 0,
   present: null,
   frameAdded: new Set(),
   frameRemoved: new Set(),
   // a generated replay is merely *available*; entering it is a deliberate act,
   // so the present stays the default view and only one source loads the graph
-  loadTimeline: (t) => set({ timeline: t }),
+  loadTimeline: (t) => set({ timeline: t, replay: replayOf(t) }),
   enterReplay: () => {
     const { timeline, present, data } = get()
     if (!timeline) return
@@ -449,12 +453,19 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     set({ present: null })
   },
   showFrame: (index) => {
-    const { timeline, load } = get()
+    const { timeline, replay, load } = get()
     const frame = timeline?.frames[index]
-    if (!frame) return
+    if (!frame || !replay) return
+    /**
+     * Rebuilt from the first frame and the changes since, because a frame no
+     * longer carries the whole architecture — forty copies of the same three
+     * thousand files is most of what a replay used to weigh.
+     */
+    const graph = replay.at(index)
+    if (!graph) return
     // load() seeds the layout from the previous positions, so a file that
     // survives this commit keeps its place instead of jumping
-    load(frame.graph)
+    load(graph)
     set({
       lens: "replay",
       frameIndex: index,
@@ -693,7 +704,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      */
     const nearby =
       id && skeletonSet && data
-        ? fittingNeighbourhood(id, data.edges, traffic, BUDGET)
+        ? fittingNeighbourhood(id, data.edges, traffic, READABLE)
         : skeletonSet
     set({
       selectedId: id,

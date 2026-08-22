@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useGraphStore } from "../store/graph"
 import { cycleThemePref, getThemePref, usePalette } from "../theme"
 import { LENSES } from "../store/lens"
@@ -19,6 +19,7 @@ export function TopBar({
   const pathNodes = useGraphStore((s) => s.pathNodes)
   const isDemo = useGraphStore((s) => s.isDemo)
   const districtMode = useGraphStore((s) => s.districtMode)
+  const nearby = useGraphStore((s) => s.nearby)
   const whatIf = useGraphStore((s) => s.whatIf)
   // the diff lens is a property of the data, not something you toggle
   const lens = useGraphStore((s) => (s.data?.diff ? "diff" : s.lens))
@@ -31,6 +32,14 @@ export function TopBar({
   const palette = usePalette()
 
   const impactLabel = impactOf ? data?.nodes.find((n) => n.id === impactOf)?.label : null
+
+  /** How much of the repository is on screen — null when all of it is. */
+  const shown = useMemo(() => {
+    if (!data || !nearby || nearby.size >= data.meta.nodeCount) return null
+    const folders = new Set<string>()
+    for (const node of data.nodes) if (nearby.has(node.id)) folders.add(node.cluster)
+    return { files: nearby.size, folders: folders.size }
+  }, [data, nearby])
 
   return (
     <header className="topbar">
@@ -101,6 +110,13 @@ export function TopBar({
             <>
               <b>{data.clusters.length}</b> folders
             </>
+          ) : shown ? (
+            /* the detail view draws a neighbourhood, not the repository. Saying
+               "2238 files" over 59 dots left people hunting for the rest. */
+            <>
+              <b>{shown.files}</b> of <b>{data.meta.nodeCount}</b> files in{" "}
+              <b>{shown.folders}</b> folders
+            </>
           ) : (
             <>
               <b>{data.meta.nodeCount}</b> files in <b>{data.clusters.length}</b> folders
@@ -117,7 +133,9 @@ export function TopBar({
                 <span className="warn"> · ↻ {data.analysis!.cycles.length} cycles</span>
               )}
               {(data.analysis?.orphans.length ?? 0) > 0 && (
-                <span className="warn"> · ⌀ {data.analysis!.orphans.length} unused</span>
+                /* "unused" claimed more than the analysis knows: nothing here
+                   imports these, which is not the same as nobody running them */
+                <span className="warn"> · ⌀ {data.analysis!.orphans.length} unimported</span>
               )}
             </>
           )}

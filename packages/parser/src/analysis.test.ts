@@ -76,6 +76,55 @@ describe("findOrphans", () => {
     expect(findOrphans(g)).toEqual(["src/lonely.ts"])
   })
 
+  it("never reports a file the router calls by name", () => {
+    // dub reported 650 orphans, 481 of them `route.ts`. App Router calls
+    // those; nothing in the repository imports them, by design.
+    const g = graph(
+      [
+        "app/api/links/route.ts",
+        "app/(dash)/page.tsx",
+        "app/layout.tsx",
+        "app/loading.tsx",
+        "app/not-found.tsx",
+        "app/sitemap.ts",
+        "lib/lonely.ts",
+      ],
+      [],
+    )
+    expect(findOrphans(g)).toEqual(["lib/lonely.ts"])
+  })
+
+  it("never reports a file named for the tool that runs it", () => {
+    const g = graph(
+      ["vitest.config.ts", "playwright/auth.setup.ts", "env.d.ts", "middleware.ts", "lib/lonely.ts"],
+      [],
+    )
+    expect(findOrphans(g)).toEqual(["lib/lonely.ts"])
+  })
+
+  it("never reports a file run from outside the codebase", () => {
+    // the callers are a shell prompt or a test runner. Worse for helpers: the
+    // default exclude drops `*.test.ts`, so whatever imports them is not in
+    // the graph, and they look abandoned by construction.
+    const g = graph(
+      [
+        "scripts/backfill-sales.ts",
+        "tests/utils/helpers.ts",
+        "playwright/seed.ts",
+        "lib/lonely.ts",
+      ],
+      [],
+    )
+    expect(findOrphans(g)).toEqual(["lib/lonely.ts"])
+  })
+
+  it("still reports a file that merely sits beside the conventions", () => {
+    // the guard is on the filename, not the folder — dead code under app/
+    // is still dead code
+    const g = graph(["app/api/links/helpers.ts", "app/api/links/route.ts"], [])
+    expect(findOrphans(g)).toEqual(["app/api/links/helpers.ts"])
+  })
+
   it("never reports synthetic nodes, which are leaves by construction", () => {
     const g = graph(["p", "a", "q", "m"], [], {
       p: "page",

@@ -79,6 +79,35 @@ function getGlowTexture(): THREE.CanvasTexture {
   return glowTexture
 }
 
+/**
+ * The same halo for paper: a soft ring around the node instead of a bloom over
+ * it, so it marks without emitting and without painting over what it marks.
+ *
+ * Both are drawn inside the node's own scale, which is what makes them work at
+ * any zoom — the halo is a multiple of the node, never a fraction of its edge.
+ * The centre is left empty because this one is composited normally rather than
+ * added: a filled disc would tint the node it is meant to point at.
+ */
+let haloTexture: THREE.CanvasTexture | null = null
+function getHaloTexture(): THREE.CanvasTexture {
+  if (haloTexture) return haloTexture
+  const canvas = document.createElement("canvas")
+  canvas.width = canvas.height = 128
+  const ctx = canvas.getContext("2d")!
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
+  // the hole clears the largest geometry in the set — a component's rounded
+  // box reaches a corner at about half the sprite's radius
+  g.addColorStop(0, "rgba(255,255,255,0)")
+  g.addColorStop(0.36, "rgba(255,255,255,0)")
+  g.addColorStop(0.54, "rgba(255,255,255,0.95)")
+  g.addColorStop(0.72, "rgba(255,255,255,0.4)")
+  g.addColorStop(1, "rgba(255,255,255,0)")
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  haloTexture = new THREE.CanvasTexture(canvas)
+  return haloTexture
+}
+
 
 const geometryCache = new Map<GraphNode["type"], THREE.BufferGeometry>()
 function geometryFor(type: GraphNode["type"]): THREE.BufferGeometry {
@@ -330,15 +359,18 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         // hollow: dead code, or a node this branch removed (a ghost)
         wireframe={(isOrphan && !isLit) || node.diff === "removed" || isDoomed}
       />
-      {/* Light added to the void — dark ground only.
+      {/* "this one" — a bloom in the void, a ring on paper.
        *
-       * It used to render on paper too, tinted with the accent, and that was a
-       * bloom: a 4.4-unit coloured cloud at 1.5:1 sitting over the page. Paper
-       * does not emit. The marker for "this one" on a light ground is the
-       * inverted hull just below, which was written to replace this and ended
-       * up doubling it instead. */}
-      {dark &&
-        (isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
+       * Paper had an inverted hull at 1.14 instead, the classic way to outline
+       * a solid, and it was right about emission and wrong about arithmetic. A
+       * 14% hull is a fraction of the node's edge: on the tinybird
+       * neighbourhood, 65 files across 1200px, a node is 5px and its outline
+       * came to a third of one. The marker was not discreet, it was absent.
+       *
+       * A halo is a multiple of the node rather than a fraction of it, so it
+       * survives any zoom the node itself survives. Both grounds get one now;
+       * only how it composites differs. */}
+      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
         (() => {
           const accent = onPath
             ? palette.lav
@@ -351,24 +383,18 @@ export function NodeMesh({ node }: { node: GraphNode }) {
           return (
             <sprite scale={[5.2, 5.2, 1]} raycast={() => null}>
               <spriteMaterial
-                map={getGlowTexture()}
-                color={accent}
+                map={dark ? getGlowTexture() : getHaloTexture()}
+                // on paper the accent alone is too pale to ring a dark dot, so
+                // it is carried toward the ink the node is drawn in
+                color={dark ? accent : mix(accent, palette.text, 0.45)}
                 transparent
-                opacity={strong ? 0.55 : 0.32}
-                blending={THREE.AdditiveBlending}
+                opacity={dark ? (strong ? 0.55 : 0.32) : strong ? 0.85 : 0.55}
+                blending={dark ? THREE.AdditiveBlending : THREE.NormalBlending}
                 depthWrite={false}
               />
             </sprite>
           )
         })()}
-
-      {/* the crisp edge that replaces the glow as a "this one" marker on paper:
-          an inverted hull, the classic way to outline a solid */}
-      {!dark && (isLit || onPath || isViolated) && (
-        <mesh geometry={geometryFor(node.type)} scale={1.14} raycast={() => null}>
-          <meshBasicMaterial color={mix(color, palette.text, 0.55)} side={THREE.BackSide} />
-        </mesh>
-      )}
 
       {/* the wave front, alive only while the impact ripple passes this ring */}
       {impactOn && impactDepth !== undefined && (

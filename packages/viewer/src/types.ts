@@ -106,6 +106,23 @@ export interface GraphData {
 
 export type Vec3 = [number, number, number]
 
+/**
+ * One commit's worth of change, enough to rebuild a frame from the one before.
+ *
+ * Additions and removals are the obvious part. Changes are not: a file that
+ * stays put can still move to another line, get renamed, or stop being a module
+ * and start being a component — and that one is drawn, since type decides a
+ * node's shape and colour.
+ */
+export interface FrameDelta {
+  addedNodes: GraphNode[]
+  changedNodes: GraphNode[]
+  removedNodes: string[]
+  addedEdges: GraphEdge[]
+  changedEdges: GraphEdge[]
+  removedEdges: string[]
+}
+
 export interface ReplayFrame {
   sha: string
   date: string
@@ -117,7 +134,13 @@ export interface ReplayFrame {
   removed: string[]
   violations: number
   cycles: number
-  graph: GraphData
+  /**
+   * The whole architecture, on the first frame — and on every frame of a
+   * replay generated before the format carried differences, which still reads.
+   */
+  graph?: GraphData
+  /** what this commit changed, for every frame after the first */
+  delta?: FrameDelta
 }
 
 export interface Timeline {

@@ -7,8 +7,9 @@ two files got connected, see what breaks before you touch it, test an
 architectural decision before you make it, and fail CI when the architecture
 drifts.
 
-**[See it running](https://trame-61t.pages.dev)** · **[Open the viewer](https://trame-viewer.pages.dev)** — the graph in
-both is trame's own source, parsed by trame.
+**[See it running](https://trame-61t.pages.dev)** — trame's own source, parsed by
+trame. **[Open the viewer](https://trame-viewer.pages.dev)** — [dub](https://github.com/dubinc/dub),
+3547 files, with a year of its history to scrub through.
 
 ## Why
 
@@ -61,7 +62,7 @@ trame doctor --src ./packages
 ```
 
 ```
-574 things worth fixing, top 2:
+551 things worth fixing, top 2:
 
   ⟳ 106 files depend on each other in a loop: class → prismaNamespace → models … +100
     → Remove the import of models from prismaNamespace — verified to free 104 of them.
@@ -76,10 +77,13 @@ so removing the import that looks load-bearing may leave the tangle intact.
 trame takes out each candidate in turn and recounts what stays caught, which is
 why "frees 104" is a measurement and not an opinion.
 
-Dead code is reported the same way, and phrased as the inference it is: trame
-cannot see a dynamic import, a framework route, or a file only a test uses, so
-it says how many private helpers would go with a deletion rather than telling
-you to delete anything.
+Dead code is reported the same way, and phrased as the inference it is. Files
+something else calls are left alone — router filenames, `*.config.ts`, and
+anything under `scripts/`, `tests/` or `playwright/`, where no import exists to
+find. On dub that is the difference between 650 unimported files and 46. What
+survives is still an inference, since a dynamic import is invisible, so trame
+says how many private helpers would go with a deletion rather than telling you
+to delete anything.
 
 Ask where the modules actually are:
 

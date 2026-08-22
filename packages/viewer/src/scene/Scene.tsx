@@ -58,8 +58,16 @@ function NameDirector() {
       boxes.push({
         id,
         x: ((AT.x + 1) / 2) * size.width,
-        // the label floats above its node, per .node-label's transform
-        y: ((1 - AT.y) / 2) * size.height - height,
+        /**
+         * Where the label actually sits, not where the node does.
+         *
+         * `.node-label` carries `translate(-50%, -180%)` and drei anchors its
+         * top-left corner at the projected point, so the box ends up centred
+         * 1.3 of its own heights above the node. Reckoning on one height put
+         * the rectangles a third of a line below the ink, and two names the
+         * arbitration believed were clear of each other touched on screen.
+         */
+        y: ((1 - AT.y) / 2) * size.height - height * 1.3,
         width,
         height,
         tier: 0,
