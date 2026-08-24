@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { useGraphStore } from "../store/graph"
-import { EDGE_COLOR, isDarkGround, mix, usePalette } from "../theme"
+import { EDGE_COLOR, isDarkGround, usePalette } from "../theme"
+import { edgeInk } from "./ink"
 import type { GraphEdge, Vec3 } from "../types"
 import { useDisposable } from "./useDisposable"
 import { edgeProgress, easeOut } from "./arrival"
@@ -11,19 +12,42 @@ import { edgeProgress, easeOut } from "./arrival"
 const RADIAL_SEGMENTS = 6
 
 /**
- * How present an edge stays once a lens has pushed it into the background.
- *
- * It used to be 0.03 — effectively deleted — while dimmed *nodes* stayed fully
- * opaque and merely turned pale. That asymmetry is what made a lens look
- * cloudy: the background kept its dots and lost its lines, and dots without
- * lines read as dirt on the screen rather than as distance.
- *
- * Low enough that the lit answer still shouts, high enough that the map
- * survives underneath it — losing the structure is too high a price for
- * highlighting part of it.
+ * The arrangement these tube widths were chosen against — trame's own graph,
+ * and still the store's default extent.
  */
-function dimmedEdge(dark: boolean): number {
-  return dark ? 0.09 : 0.2
+const TUNED_AT = 60
+
+/**
+ * How much to thicken the tubes so a line stays a line at any zoom.
+ *
+ * A tube has a radius in world units, so it shrinks as the camera pulls back,
+ * and every camera distance in this scene is a multiple of `extent`. The two
+ * cancel: hold the radius fixed and an edge occupies a constant *fraction* of
+ * the view, which on a large graph is a fraction of a pixel. At 60 units and a
+ * 60° field of view a lit edge is 2.4 CSS pixels; around dub's tinybird, which
+ * spreads to 255, the same edge is 0.57 — antialiased into a wash rather than
+ * drawn as a line. The dark ground got away with it, because a thin bright
+ * line on black survives being smeared and a thin dark line on white does not.
+ * It was never a colour problem, and no amount of opacity would have fixed it.
+ *
+ * Restoring the *same* width everywhere — growing straight with the extent —
+ * was the obvious repair and it was wrong. It put 2.4 pixels back on a hub
+ * with a hundred and fifty edges converging on it and buried the nodes under
+ * their own connections. The hand-tuned width was never only a width: trame's
+ * own graph is 24 files, and 2.4 pixels is what suits that sparsity. A big
+ * arrangement is not just further away, it is denser, and lines that read when
+ * they are few will blot when they are many.
+ *
+ * So the growth is sub-linear — the usual answer for a linear measure fighting
+ * something that scales like an area. It buys back enough to clear a pixel,
+ * not enough to restore the weight of a sparse map:
+ *
+ *   extent  60 → 2.44 CSS px   (unchanged, the floor holds)
+ *   extent 255 → 1.18          (was 0.57)
+ *   extent 453 → 0.89          (was 0.32)
+ */
+export function tubeGrowth(extent: number): number {
+  return Math.max(1, Math.sqrt(extent / TUNED_AT))
 }
 
 const UP = new THREE.Vector3(0, 1, 0)
@@ -193,6 +217,9 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   })
 
   const isLit = isSelected || (litSet.has(edge.source) && litSet.has(edge.target) && hasActive)
+  // changes on load and on the opening move of a selection, never per frame,
+  // so the tubes are not rebuilt while the camera turns
+  const growth = tubeGrowth(useGraphStore((s) => s.extent))
 
   const { geometry, arrowPos, arrowQuat } = useMemo(() => {
     if (!p0 || !p3 || !ctrl) return { geometry: null, arrowPos: null, arrowQuat: null }
@@ -203,7 +230,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       new THREE.Vector3(...p3),
     )
     // thickens on hover so "this edge is clickable" needs no explaining
-    const radius = isSelected ? 0.16 : hovered ? 0.17 : isLit ? 0.12 : 0.045
+    const radius = (isSelected ? 0.16 : hovered ? 0.17 : isLit ? 0.12 : 0.045) * growth
     const geometry = new THREE.TubeGeometry(curve, 40, radius, RADIAL_SEGMENTS)
     // arrowhead just before the target node's surface
     const t = 0.93
@@ -211,7 +238,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     const tangent = curve.getTangent(t)
     const arrowQuat = new THREE.Quaternion().setFromUnitVectors(UP, tangent)
     return { geometry, arrowPos, arrowQuat }
-  }, [p0, p3, ctrl, isSelected, isLit, hovered])
+  }, [p0, p3, ctrl, isSelected, isLit, hovered, growth])
   // the tube is rebuilt on every hover and selection change — release the old one
   useDisposable(geometry)
 
@@ -225,41 +252,24 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   if (!p0 || !p3 || !ctrl || !geometry) return null
   if (edgeFilter && edge.type !== edgeFilter) return null
 
-  const typeColor = palette[EDGE_COLOR[edge.type]]
   const dark = isDarkGround()
-  const DIMMED_EDGE = dimmedEdge(dark)
-
-  // analysis overlays win over the resting language
-  let color: string
-  let opacity: number
-  if (edge.diff === "added") {
-    color = palette.green
-    opacity = 0.85
-  } else if (edge.diff === "removed") {
-    color = palette.red
-    opacity = 0.3
-  } else if (pathOn) {
-    color = onPath ? palette.lav : palette.surface1
-    opacity = onPath ? 0.95 : DIMMED_EDGE
-  } else if (impactOn) {
-    const both = impactHasSource && impactHasTarget
-    color = both ? palette.yellow : palette.surface1
-    opacity = both ? 0.6 : DIMMED_EDGE
-  } else if (isViolated) {
-    color = palette.red
-    opacity = isSelected || isLit ? 0.95 : 0.55
-  } else if (hovered) {
-    color = dark ? typeColor : mix(typeColor, palette.text, 0.3)
-    opacity = 0.9
-  } else if (dark) {
-    color = isLit ? typeColor : palette.surface1
-    opacity = isSelected ? 0.95 : isLit ? 0.75 : hasActive ? 0.05 : 0.22
-  } else {
-    // on paper a live edge is darker ink, not brighter light. Dimmed lines keep
-    // a floor: the structure has to stay readable while part of it is lit.
-    color = isLit || isSelected ? mix(typeColor, palette.text, 0.3) : palette.overlay
-    opacity = isLit || isSelected ? 0.95 : hasActive ? 0.3 : 0.6
-  }
+  const { color, opacity } = edgeInk(
+    {
+      diff: edge.diff,
+      pathOn,
+      onPath,
+      impactOn,
+      impacted: impactHasSource && impactHasTarget,
+      violated: isViolated,
+      hovered,
+      lit: isLit,
+      selected: isSelected,
+      hasActive,
+      typeColor: palette[EDGE_COLOR[edge.type]],
+    },
+    palette,
+    dark,
+  )
 
   return (
     <group>
@@ -288,7 +298,9 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       </mesh>
 
       <mesh ref={arrowRef} position={arrowPos} quaternion={arrowQuat}>
-        <coneGeometry args={[0.32, 0.9, 10]} />
+        {/* the head shrinks with the line it belongs to, or it stops reading
+            as a direction and starts reading as a speck */}
+        <coneGeometry args={[0.32 * growth, 0.9 * growth, 10]} />
         <meshBasicMaterial color={color} transparent opacity={opacity} />
       </mesh>
 

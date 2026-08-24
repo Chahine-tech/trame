@@ -756,15 +756,53 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     set({ ctrl })
   },
 
-  clear: () =>
-    set({
+  /**
+   * Letting go of a file gives the map back.
+   *
+   * This used to drop the selection and leave `nearby` where the selection had
+   * put it, so both ways out — escape and a click on the background — landed
+   * on the neighbourhood of nothing: sixty-five files of three thousand five
+   * hundred, unlit, with the camera still parked on a knot that no longer had
+   * a reason to be the subject. Nothing widened it again, so once you had
+   * opened a file the only way back to the map was a reload.
+   *
+   * `select` already knew how — its own null branch falls back to the skeleton
+   * — but nothing ever called `select(null)`, and the branch sat unreachable
+   * from the interface.
+   *
+   * The camera comes back only when the view was actually narrowed. Clicking
+   * the background with nothing selected is how people deselect, and how they
+   * find out that nothing was selected; taking the camera off them for it
+   * would punish the gesture.
+   */
+  clear: () => {
+    const { skeletonSet, nearby, data, positions } = get()
+    const widened = nearby !== skeletonSet
+    const rest = {
       hoverId: null,
       selectedId: null,
       selectedEdgeId: null,
-      litSet: new Set(),
-      focusTarget: null,
+      litSet: new Set<string>(),
       ...noLens(),
-    }),
+    }
+    if (!widened || !data) {
+      set({ ...rest, focusTarget: null })
+      return
+    }
+    const ids = skeletonSet ? [...skeletonSet] : data.nodes.map((n) => n.id)
+    const { at, spread } = reachOf(ids, positions)
+    set({
+      ...rest,
+      nearby: skeletonSet,
+      // the qualifiers described who shared the screen, and that has changed
+      names: disambiguate(
+        skeletonSet ? data.nodes.filter((n) => skeletonSet.has(n.id)) : data.nodes,
+      ),
+      extent: spread,
+      // fly back rather than cut: letting go should undo the arrival
+      focusTarget: at,
+    })
+  },
 }))
 
 /**
