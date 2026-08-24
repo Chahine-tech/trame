@@ -23,3 +23,13 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+
+      # nothing reachable from an entry point, and nothing installed that
+      # nobody imports. Two dead store actions went unnoticed for months.
+      - run: pnpm knip
+
+      # the published package resolves for the people who install it. The
+      # exports map once pointed at ./src/*.ts and every import of tramejs
+      # failed with ERR_MODULE_NOT_FOUND; it was found by hand, after release.
+      # Runs after build, since it inspects dist.
+      - run: pnpm check:package

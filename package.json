@@ -8,9 +8,12 @@
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "parse": "pnpm --filter tramejs dev --",
-    "test": "turbo test"
+    "test": "turbo test",
+    "knip": "knip",
+    "check:package": "pnpm --filter tramejs check:package"
   },
   "devDependencies": {
+    "knip": "^6.32.2",
     "turbo": "^2.5.0"
   },
   "packageManager": "pnpm@11.5.0",

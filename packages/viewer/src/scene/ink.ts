@@ -19,7 +19,7 @@ export interface Ink {
  * survives underneath it — losing the structure is too high a price for
  * highlighting part of it.
  */
-export function dimmedEdge(dark: boolean): number {
+function dimmedEdge(dark: boolean): number {
   return dark ? 0.09 : 0.2
 }
 

@@ -44,13 +44,16 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "check:package": "publint && attw --pack . --profile esm-only",
     "prepack": "node scripts/stage-viewer.mjs"
   },
   "dependencies": {
     "ts-morph": "^28.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@types/node": "^24.3.0",
+    "publint": "^0.3.24",
     "tsx": "^4.20.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"

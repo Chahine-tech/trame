@@ -11,10 +11,10 @@
  */
 
 /** How long one node takes to land. */
-export const NODE_ARRIVE_MS = 620
+const NODE_ARRIVE_MS = 620
 
 /** How long one edge takes to draw itself, once its endpoints are down. */
-export const EDGE_DRAW_MS = 420
+const EDGE_DRAW_MS = 420
 
 /** Spacing between consecutive arrivals. */
 const STAGGER_MS = 34
@@ -28,7 +28,7 @@ const SLOTS = 24
  * Deterministic on purpose: every visitor sees the same choreography, and a
  * screenshot taken at 400 ms looks the same as the one in the README.
  */
-export function arrivalSlot(id: string): number {
+function arrivalSlot(id: string): number {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
   return Math.abs(h) % SLOTS
