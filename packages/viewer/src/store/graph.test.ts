@@ -521,6 +521,22 @@ describe("a deselection can be taken back", () => {
     useGraphStore.setState({ timeline: null, present: null, lens: "none" })
     useGraphStore.getState().load(ringWithLeaves())
     useGraphStore.getState().clearFocus()
+    // the viewer mounts a toaster; the landing, which drives the same store,
+    // does not — and the offer only exists where a notice can carry it
+    useGraphStore.getState().setToastsMounted(true)
+  })
+
+  it("offers nothing where no notice can be drawn", () => {
+    /**
+     * The landing renders the viewer's meshes and drives this store, mounts no
+     * toaster, and its last section calls `clear()`. Offering there fetched
+     * goey-toast and framer-motion for a message nobody could see.
+     */
+    useGraphStore.getState().setToastsMounted(false)
+    useGraphStore.getState().select("ring/0.ts")
+    useGraphStore.getState().clear()
+    expect(useGraphStore.getState().selectedId).toBeNull()
+    expect(useGraphStore.getState().cleared).toBeNull()
   })
 
   it("remembers what the click let go of", () => {

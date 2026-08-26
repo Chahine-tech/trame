@@ -10,14 +10,21 @@ import { replayOf, type Replay } from "./timeline"
 import type { LensKind } from "./lens"
 
 /**
- * Toasts, fetched when one is needed.
+ * Toasts, fetched when one is needed and only where one can be drawn.
  *
- * The toast library pulls in framer-motion, 55 kB gzip that the landing shipped
+ * The toast library pulls in framer-motion, 56 kB gzip that the landing shipped
  * in its critical chunk for messages it never shows, since the store is all it
  * imports from the viewer. App.tsx imports the module statically, so in the
- * viewer this resolves from cache. Both call sites are user gestures.
+ * viewer this resolves from cache.
+ *
+ * The deferred import alone was not enough: the landing drives this store and
+ * mounts no toaster, so any action of its own that reached a toast paid the
+ * fetch for a message with nowhere to appear. `sections.ts` calls `clear()` and
+ * `tracePathTo()`, both of which can. Guarding here rather than at each call
+ * site means a toast added later cannot reopen the hole.
  */
 function toast(show: (m: typeof import("../ui/toast")) => void): void {
+  if (!useGraphStore.getState().toastsMounted) return
   void import("../ui/toast").then(show)
 }
 
@@ -134,6 +141,12 @@ interface GraphState {
   /** …captured the moment a lens takes the camera, spent when it gives it back. */
   savedVantage: { at: Vec3; dir: Vec3 } | null
   setVantage: (at: Vec3, dir: Vec3) => void
+  /**
+   * Whether anything on screen can present a notice. Off until a host says so,
+   * which gates both `toast()` and the undo offer that depends on one.
+   */
+  toastsMounted: boolean
+  setToastsMounted: (on: boolean) => void
   /**
    * What the last `clear()` let go of, while the offer to take it back stands.
    * Null otherwise, which is what gates `⌘Z` against a notice still on screen.
@@ -380,6 +393,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   savedVantage: null,
   cleared: null,
   selectedAt: 0,
+  toastsMounted: false,
+  setToastsMounted: (on) => set({ toastsMounted: on }),
   setVantage: (at, dir) => set({ vantage: { at, dir } }),
   controlsEnabled: true,
 
@@ -877,8 +892,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   clear: () => {
     const { skeletonSet, nearby, data, positions, selectedId, lens, vantage } = get()
     const widened = nearby !== skeletonSet
-    // what is being let go of, for as long as the offer to take it back stands
-    const cleared = selectedId ? { selectedId, lens, vantage } : null
+    // the offer and the notice carrying it are the same thing: where nothing
+    // can present one, nothing is remembered either
+    const cleared = selectedId && get().toastsMounted ? { selectedId, lens, vantage } : null
     if (cleared) {
       const label = get().names.get(selectedId!) ?? selectedId!
       toast((t) => {

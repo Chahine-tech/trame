@@ -36,6 +36,13 @@ export function AppUI() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
+  // this is the only host that mounts a toaster; the landing drives the same
+  // store without one, and must not be offered notices it cannot draw
+  useEffect(() => {
+    useGraphStore.getState().setToastsMounted(true)
+    return () => useGraphStore.getState().setToastsMounted(false)
+  }, [])
+
   // a replay, if one was generated; it takes over from the live graph
   useEffect(() => subscribeToTimeline((t) => useGraphStore.getState().loadTimeline(t)), [])
 
