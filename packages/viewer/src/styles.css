@@ -149,24 +149,6 @@ html, body, #root {
   background: color-mix(in srgb, var(--lav) 14%, transparent);
 }
 /* One badge, always in the same place: which question the colours answer. */
-.topbar .lens-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 2px 8px 2px 7px;
-  border: 1px solid var(--surface0);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--text);
-  background: var(--mantle);
-}
-.topbar .lens-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
-.topbar .lens-badge .esc {
-  color: var(--overlay);
-  border-left: 1px solid var(--surface0);
-  padding-left: 7px;
-}
 .topbar .mode.whatif {
   color: var(--peach);
   background: color-mix(in srgb, var(--peach) 14%, transparent);
@@ -470,4 +452,84 @@ html, body, #root {
 
 @media (max-width: 680px) {
   .shortcuts-grid { grid-template-columns: 1fr; }
+}
+
+/* The lenses, and which one is answering.
+ *
+ * Bottom left: the timeline owns the centre while a replay runs, and the
+ * inspector owns the right. Quiet at rest, so the only colour on screen is
+ * still the one the reader asked for. */
+.lensbar {
+  position: fixed;
+  left: 22px;
+  bottom: 22px;
+  display: flex;
+  gap: 6px;
+  z-index: 14;
+}
+
+/* Toasts share this corner, and stack up from the bottom edge — so without
+   this they start underneath the chips and bury them. The lens bar sits at 22
+   and stands about 26 tall, so the stack begins just above it, on the same
+   left margin. Sonner takes each side separately; goey-toast's `offset` prop
+   narrows to one number for all four, which would indent the toasts further
+   than the chips they are aligned with. */
+[data-sonner-toaster] {
+  --offset-bottom: 60px;
+  --offset-left: 22px;
+}
+.lens-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px 5px 8px;
+  border: 1px solid var(--surface0);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mantle) 88%, transparent);
+  backdrop-filter: blur(12px) saturate(160%);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--subtext);
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    opacity 180ms var(--ease-out);
+}
+.lens-chip .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.55;
+  transition: opacity 180ms var(--ease-out);
+}
+.lens-chip.on .dot { opacity: 1; }
+.lens-chip .by {
+  color: var(--overlay);
+  border-left: 1px solid var(--surface0);
+  padding-left: 7px;
+  /* room for `esc`, which replaces the key once the lens is on. Without it the
+     chip grows two characters at the moment of the press and shoves the rest
+     of the row sideways. */
+  min-width: 3ch;
+  text-align: center;
+}
+/* dimmed rather than hidden: a lens you cannot use yet is still part of the
+   language, and the title says what it is waiting for */
+.lens-chip.off { opacity: 0.45; cursor: default; }
+/* `path` is a gesture, so its chip is a label. Dashed, because a solid border
+   on something that never responds to a press is a promise the chip cannot
+   keep, and the tooltip saying so arrives too late. */
+.lens-chip:disabled {
+  cursor: default;
+  border-style: dashed;
+  background: transparent;
+  backdrop-filter: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lens-chip:not(.off):not(.on):hover {
+    color: var(--text);
+    border-color: var(--overlay);
+  }
 }

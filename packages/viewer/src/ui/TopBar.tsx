@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react"
 import { useGraphStore } from "../store/graph"
-import { cycleThemePref, getThemePref, usePalette } from "../theme"
-import { LENSES } from "../store/lens"
+import { cycleThemePref, getThemePref } from "../theme"
 
 const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 
@@ -21,15 +20,12 @@ export function TopBar({
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
   const whatIf = useGraphStore((s) => s.whatIf)
-  // the diff lens is a property of the data, not something you toggle
-  const lens = useGraphStore((s) => (s.data?.diff ? "diff" : s.lens))
 
   const healthy =
     (data?.violations?.length ?? 0) === 0 &&
     (data?.analysis?.cycles.length ?? 0) === 0 &&
     (data?.analysis?.orphans.length ?? 0) === 0
   const [theme, setTheme] = useState(getThemePref)
-  const palette = usePalette()
 
   const impactLabel = impactOf ? data?.nodes.find((n) => n.id === impactOf)?.label : null
 
@@ -46,56 +42,12 @@ export function TopBar({
       <span className="brand">
         trame<span className="d">_</span>
       </span>
-      {data?.diff && (
-        <span className="mode diff">
-          diff · <span className="add">+{data.diff.addedNodes}</span>{" "}
-          <span className="del">−{data.diff.removedNodes}</span> nodes ·{" "}
-          <span className="add">+{data.diff.addedEdges}</span>{" "}
-          <span className="del">−{data.diff.removedEdges}</span> edges
-        </span>
-      )}
-      {lens !== "none" && (
-        <span className="lens-badge" title={LENSES[lens].hint}>
-          <span className="dot" style={{ background: palette[LENSES[lens].accent] }} />
-          {LENSES[lens].label}
-          <span className="esc">esc</span>
-        </span>
-      )}
-      {whatIf && (
-        <span className="mode whatif">
-          what if · delete {whatIf.label} →{" "}
-          {whatIf.broken.length > 0 && <b>{whatIf.broken.length} break</b>}
-          {whatIf.orphaned.length > 0 && (
-            <>
-              {whatIf.broken.length > 0 && " · "}
-              <b>{whatIf.orphaned.length} stranded</b>
-            </>
-          )}
-          {whatIf.cyclesResolved > 0 && (
-            <span className="good"> · {whatIf.cyclesResolved} cycles resolved</span>
-          )}
-          {whatIf.broken.length === 0 &&
-            whatIf.orphaned.length === 0 &&
-            whatIf.cyclesResolved === 0 && <span className="good">nothing breaks</span>}
-        </span>
-      )}
-      {impactLabel && (
-        <span className="mode impact">
-          impact · {impactLabel} → {impactCount - 1} dependents
-        </span>
-      )}
-      {pathNodes.length > 0 && <span className="mode path">path · {pathNodes.length} hops</span>}
-      {isDemo && (
-        <span className="mode warn-chip" title="No trame.json was served — this is sample data">
-          demo data
-        </span>
-      )}
-      {data?.meta.error && (
-        <span className="mode stale" title={data.meta.error}>
-          stale · parse failed
-        </span>
-      )}
-      {data && !data.diff && !whatIf && !impactLabel && pathNodes.length === 0 && (
+      {/* Where you are, before what you asked.
+          The project used to render after the lens chips, which was fine while
+          the two excluded each other; now that they sit side by side, turning a
+          lens on slid the repository name four hundred pixels to the right. The
+          one thing that does not depend on the question is the anchor. */}
+      {data && !data.diff && (
         <span className="counts">
           {/* the project first, then how much of it you are looking at: a
               bare stat line says nothing about the thing itself. Skipped when
@@ -140,6 +92,48 @@ export function TopBar({
             </>
           )}
           {edgeFilter && <span className="chip"> · edges: {edgeFilter}</span>}
+        </span>
+      )}
+      {data?.diff && (
+        <span className="mode diff">
+          diff · <span className="add">+{data.diff.addedNodes}</span>{" "}
+          <span className="del">−{data.diff.removedNodes}</span> nodes ·{" "}
+          <span className="add">+{data.diff.addedEdges}</span>{" "}
+          <span className="del">−{data.diff.removedEdges}</span> edges
+        </span>
+      )}
+      {whatIf && (
+        <span className="mode whatif">
+          what if · delete {whatIf.label} →{" "}
+          {whatIf.broken.length > 0 && <b>{whatIf.broken.length} break</b>}
+          {whatIf.orphaned.length > 0 && (
+            <>
+              {whatIf.broken.length > 0 && " · "}
+              <b>{whatIf.orphaned.length} stranded</b>
+            </>
+          )}
+          {whatIf.cyclesResolved > 0 && (
+            <span className="good"> · {whatIf.cyclesResolved} cycles resolved</span>
+          )}
+          {whatIf.broken.length === 0 &&
+            whatIf.orphaned.length === 0 &&
+            whatIf.cyclesResolved === 0 && <span className="good">nothing breaks</span>}
+        </span>
+      )}
+      {impactLabel && (
+        <span className="mode impact">
+          impact · {impactLabel} → {impactCount - 1} dependents
+        </span>
+      )}
+      {pathNodes.length > 0 && <span className="mode path">path · {pathNodes.length} hops</span>}
+      {isDemo && (
+        <span className="mode warn-chip" title="No trame.json was served — this is sample data">
+          demo data
+        </span>
+      )}
+      {data?.meta.error && (
+        <span className="mode stale" title={data.meta.error}>
+          stale · parse failed
         </span>
       )}
       <button

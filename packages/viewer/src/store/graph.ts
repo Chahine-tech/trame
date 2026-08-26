@@ -2,7 +2,7 @@ import { create } from "zustand"
 import type { EdgeType, GraphData, Timeline, Vec3 } from "../types"
 import { runLayout } from "../scene/Layout"
 import { BUDGET, READABLE } from "../scene/budget"
-import { fittingNeighbourhood, impassable, skeleton } from "../scene/skeleton"
+import { fittingNeighbourhood, fittingRings, impassable, skeleton } from "../scene/skeleton"
 import { disambiguate } from "../scene/names"
 import { diagnose } from "tramejs/doctor"
 import { simulateDelete, type WhatIfReport } from "./whatif"
@@ -92,8 +92,69 @@ interface GraphState {
   /** node ids lit by the current hover/selection (node + direct neighbours) */
   litSet: Set<string>
 
-  /** camera focus target, consumed by the CameraRig */
+  /**
+   * Where the camera is asked to fly. Transient: the rig clears it on arrival.
+   */
   focusTarget: Vec3 | null
+  /**
+   * The middle of what is drawn, kept for as long as it is drawn.
+   *
+   * `extent` says how big the subject is and this says where it is, and the
+   * two are read together by everything that turns them into a camera
+   * distance. Only the size used to be kept: `reachOf` returns both, and every
+   * caller threw the centre away into `focusTarget`, which the rig deletes the
+   * moment it lands. So five frames after any move, the scene knew how big the
+   * subject was and had forgotten where — and each consumer guessed, mostly by
+   * assuming the origin. A neighbourhood is a knot off to one side, so they
+   * disagreed by however far off to the side it was.
+   */
+  viewCentre: Vec3
+  /**
+   * Which side to look from, when the answer is "the side you were on".
+   *
+   * A flight only ever changes the camera's distance: the rig rebuilds its
+   * direction each frame from the centre it is flying to, so it keeps whatever
+   * angle the camera already held. That is right for going somewhere and wrong
+   * for coming back. A lens flies to its own centre, off to one side of the
+   * selection, and closing it flies back to the selection's centre — from the
+   * side the lens left the camera on, not the side the reader chose. Same
+   * distance, different vantage, so the view came back rotated and every round
+   * trip rotated it further. Null means "keep the angle you have", which is
+   * what going somewhere new should do.
+   */
+  focusDir: Vec3 | null
+  /**
+   * Where the reader is standing: the point they are looking at, and the side
+   * they are looking from. The rig publishes it when a flight settles.
+   *
+   * `at` is not always `viewCentre`. Following a link, or pressing `F`, aims
+   * the camera at one file — `focus()` sets `focusTarget` and deliberately
+   * leaves `viewCentre` on the middle of what is drawn. So on dub's tinybird
+   * the reader lands looking at the file, at [260.1, 7.5, 140.6], while the
+   * middle of its sixty-five neighbours is [243.4, -2.8, 95.0], fifty units
+   * away. Recomputing the centre on the way back out of a lens therefore
+   * silently moved the camera to a place the reader had never chosen — once,
+   * on the first round trip, and never again.
+   *
+   * Null until a flight has actually settled. There is no honest default here:
+   * inventing one sent a lens "back" to a place the reader had never been —
+   * the origin — on any graph where nothing had landed yet.
+   */
+  vantage: { at: Vec3; dir: Vec3 } | null
+  /** …captured the moment a lens takes the camera, spent when it gives it back. */
+  savedVantage: { at: Vec3; dir: Vec3 } | null
+  setVantage: (at: Vec3, dir: Vec3) => void
+  /**
+   * What the last `clear()` let go of, while the offer to take it back stands.
+   *
+   * Null the rest of the time, which is what gates the undo: the gesture is
+   * only ever offered against a notice the reader can still see.
+   */
+  cleared: { selectedId: string; lens: LensKind; vantage: { at: Vec3; dir: Vec3 } | null } | null
+  restoreCleared: () => void
+  /** When the last selection was committed, for the background-click guard. */
+  selectedAt: number
+  clearFromBackground: () => void
   /** OrbitControls gate, off while dragging a Bezier handle */
   controlsEnabled: boolean
 
@@ -203,6 +264,16 @@ interface GraphState {
   lens: LensKind
   /** drop the lens but keep the selection: esc walks back one step at a time */
   clearLens: () => void
+  /** the view a selection alone would show, for a lens closing behind itself */
+  restoreView: () => {
+    nearby: Set<string> | null
+    names: Map<string, string>
+    extent: number
+    focusTarget: Vec3
+    viewCentre: Vec3
+    focusDir: Vec3 | null
+    savedVantage: { at: Vec3; dir: Vec3 } | null
+  }
 
   /** "what if I deleted this?": the consequences, computed but not applied */
   whatIf: WhatIfReport | null
@@ -273,6 +344,35 @@ function computeLit(state: Pick<GraphState, "adjacency">, id: string | null): Se
   return lit
 }
 
+/**
+ * What the view draws for a set of ids, and how the camera frames it.
+ *
+ * Shared by the selection and by the lenses that widen past it, so a lens can
+ * change what is on screen and hand it back untouched when it closes.
+ */
+function viewOf(
+  ids: Set<string> | null,
+  data: GraphData | null,
+  positions: Map<string, Vec3>,
+) {
+  const nodes = ids && data ? data.nodes.filter((n) => ids.has(n.id)) : (data?.nodes ?? [])
+  const { at, spread } = reachOf(nodes.map((n) => n.id), positions)
+  return {
+    nearby: ids,
+    names: disambiguate(nodes),
+    extent: spread,
+    focusTarget: at,
+    viewCentre: at,
+    // a fresh framing is somewhere new: keep the angle the reader is holding.
+    // Only a lens closing behind itself asks for a particular one.
+    focusDir: null as Vec3 | null,
+    // and a fresh framing is not something to come back to, so any vantage a
+    // lens was holding for its own return is spent. Openers re-take theirs
+    // after this spread.
+    savedVantage: null as { at: Vec3; dir: Vec3 } | null,
+  }
+}
+
 export const useGraphStore = create<GraphState>((set, get) => ({
   data: null,
   positions: new Map(),
@@ -286,6 +386,13 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   litSet: new Set(),
 
   focusTarget: null,
+  viewCentre: [0, 0, 0] as Vec3,
+  focusDir: null,
+  vantage: null,
+  savedVantage: null,
+  cleared: null,
+  selectedAt: 0,
+  setVantage: (at, dir) => set({ vantage: { at, dir } }),
   controlsEnabled: true,
 
   ctrl: new Map(),
@@ -301,10 +408,32 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   impactOf: null,
   impactDepth: new Map(),
   impactStartedAt: 0,
+  /** the view a selection alone would show, for a lens closing behind itself */
+  restoreView: () => {
+    const { selectedId, skeletonSet, data, traffic, positions } = get()
+    const nearby =
+      selectedId && skeletonSet && data
+        ? fittingNeighbourhood(selectedId, data.edges, traffic, READABLE)
+        : skeletonSet
+    /**
+     * The same set, the same size — and the same spot, from the same side.
+     *
+     * `viewOf` recomputes the middle of the neighbourhood, which is the right
+     * answer for framing it fresh and the wrong one for handing it back: the
+     * reader may have been looking at one file rather than at the middle of
+     * everything around it. Both halves of where they stood come back, or
+     * neither — restoring the angle onto a recomputed centre is how the view
+     * ended up fifty units off on the first round trip.
+     */
+    const view = viewOf(nearby, data, positions)
+    const stood = get().savedVantage
+    return stood ? { ...view, focusTarget: stood.at, focusDir: stood.dir } : view
+  },
+
   toggleImpact: () => {
-    const { selectedId, impactOf, importers } = get()
+    const { selectedId, impactOf, importers, data, positions, vantage } = get()
     if (impactOf) {
-      set(noLens())
+      set({ ...noLens(), ...get().restoreView() })
       return
     }
     if (!selectedId) {
@@ -313,8 +442,20 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     }
     // everything that would break, and how far from the change it sits
     const depth = reachable(importers, selectedId)
+    /**
+     * The lens widens the view to the propagation it is describing.
+     *
+     * The detail view reaches two hops, which on dub's `tinybird` put 57 of
+     * the 59 visible files at the same depth: the ring-by-ring reveal had
+     * nothing to reveal, and the bar read "948 dependents" over a picture of
+     * the first circle. Whole rings up to the render budget instead, which for
+     * that file is 309 files across the four the fade is calibrated for.
+     */
     set({
       ...noLens(),
+      ...viewOf(fittingRings(depth, BUDGET), data, positions),
+      // after the spread, which cleared it: this is the angle to come back to
+      savedVantage: vantage,
       lens: "impact",
       impactOf: selectedId,
       impactDepth: depth,
@@ -456,7 +597,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   lens: "none",
-  clearLens: () => set(noLens()),
+  clearLens: () => set({ ...noLens(), ...get().restoreView() }),
   whatIf: null,
   whatIfOrphaned: new Set(),
   whatIfBroken: new Set(),
@@ -573,7 +714,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const traffic = impassable(ids, data.edges)
     const bones = skeleton(ids, data.edges, BUDGET)
 
-    const extent = reachOf(bones ? [...bones] : ids, positions).spread
+    const { at: centre, spread: extent } = reachOf(bones ? [...bones] : ids, positions)
 
     set({
       data,
@@ -598,9 +739,16 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       hoverId: null,
       selectedId: null,
       selectedEdgeId: null,
-      // including where the camera was pointed: a target left over from another
-      // codebase aims it at coordinates that mean nothing in this one
-      focusTarget: null,
+      // A target left over from another codebase aims at coordinates that mean
+      // nothing in this one, so it is replaced rather than cleared: the middle
+      // of what just arrived. Cleared, the camera would keep measuring from the
+      // origin while `extent` described a cloud sitting somewhere else.
+      focusTarget: centre,
+      viewCentre: centre,
+      // and for the same reason, an angle saved over another codebase means
+      // nothing here
+      focusDir: null,
+      savedVantage: null,
       litSet: new Set(),
       ...noLens(),
     })
@@ -653,7 +801,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const { nearby, positions } = get()
     if (!nearby) return
     const { at, spread } = reachOf([...nearby], positions)
-    set({ extent: spread, focusTarget: at })
+    set({ extent: spread, focusTarget: at, viewCentre: at })
   },
 
   setHover: (id) => {
@@ -678,11 +826,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     set({
       selectedId: id,
       selectedEdgeId: null,
-      nearby,
       // two files can share a basename without sharing a screen; qualify only
       // the ones that now do
-      names: disambiguate(nearby && data ? data.nodes.filter((n) => nearby.has(n.id)) : (data?.nodes ?? [])),
+      ...viewOf(nearby, data, get().positions),
       litSet: computeLit({ adjacency }, id),
+      selectedAt: performance.now(),
+      // choosing something else is moving on: the offer to take back the last
+      // deselection would otherwise sit there and jump the reader backwards
+      cleared: null,
       // a new selection invalidates whatever lens was answering about the old one
       ...noLens(),
     })
@@ -709,8 +860,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     if (pos) set({ focusTarget: pos })
   },
 
-  resetCamera: () => set({ focusTarget: [0, 0, 0] }),
-  clearFocus: () => set({ focusTarget: null }),
+  // back to the opening shot, which is the middle of what is drawn and not
+  // the origin: the two are the same only on a graph that happens to be centred
+  resetCamera: () => set({ focusTarget: get().viewCentre }),
+  // the asked-for side is spent with the flight that honoured it: left standing,
+  // it would drag the next flight — one going somewhere new — back to it
+  clearFocus: () => set({ focusTarget: null, focusDir: null }),
   setControlsEnabled: (v) => set({ controlsEnabled: v }),
 
   setCtrl: (edgeId, c1, c2) => {
@@ -738,14 +893,32 @@ export const useGraphStore = create<GraphState>((set, get) => ({
    * the background is also how people find out nothing was selected.
    */
   clear: () => {
-    const { skeletonSet, nearby, data, positions } = get()
+    const { skeletonSet, nearby, data, positions, selectedId, lens, vantage } = get()
     const widened = nearby !== skeletonSet
+    // what is being let go of, for as long as the offer to take it back stands
+    const cleared = selectedId ? { selectedId, lens, vantage } : null
+    if (cleared) {
+      const label = get().names.get(selectedId!) ?? selectedId!
+      toast((t) => {
+        t.toastDeselected(label, selectedId!, () => get().restoreCleared())
+        // the offer expires with the toast that carries it: an undo that
+        // outlives its own notice is a history stack, and a reader would have
+        // no way of knowing how far back it reaches
+        setTimeout(() => {
+          if (get().cleared === cleared) set({ cleared: null })
+        }, t.UNDO_MS)
+      })
+    }
     const rest = {
       hoverId: null,
       selectedId: null,
       selectedEdgeId: null,
       litSet: new Set<string>(),
+      cleared,
       ...noLens(),
+      // the map is not a return: nothing is owed the angle a lens was keeping
+      focusDir: null,
+      savedVantage: null,
     }
     if (!widened || !data) {
       set({ ...rest, focusTarget: null })
@@ -764,6 +937,57 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       // fly back rather than cut: letting go should undo the arrival
       focusTarget: at,
     })
+  },
+
+  /**
+   * Take the deselection back: the file, the lens that was answering about it,
+   * and the spot the reader was standing on.
+   *
+   * Replayed through the store's own actions rather than written in as state,
+   * for the reason `applyView` gives: an undo can then only land on a view the
+   * tool can reach on its own, and it inherits every guard those actions have.
+   *
+   * `path` and `replay` are not reopened. A path is two endpoints and a chain
+   * the reader built, which is more than a deselection threw away; the replay
+   * is a mode over the whole graph and survives `clear()` untouched.
+   */
+  restoreCleared: () => {
+    const cleared = get().cleared
+    if (!cleared) return
+    set({ cleared: null })
+    get().select(cleared.selectedId)
+    if (cleared.lens === "impact") get().toggleImpact()
+    else if (cleared.lens === "whatif") get().toggleWhatIf()
+    // last: the selection and the lens each framed themselves on the way past,
+    // and where the reader was actually standing outranks both
+    if (cleared.vantage) {
+      set({ focusTarget: cleared.vantage.at, focusDir: cleared.vantage.dir })
+    }
+  },
+
+  /**
+   * A click on nothing, as reported by the canvas.
+   *
+   * Not `clear()` directly. R3F decides a click "missed" on the `click` event,
+   * with a fresh raycast, one event after `NodeMesh` has already committed the
+   * selection on `pointerup` — and it only needs that second raycast to come
+   * back empty, anywhere in the scene. So the click that selects a file can
+   * also be the click that lets it go, and the reader sees their click do
+   * nothing at all. `stopPropagation` cannot prevent it: the test runs at the
+   * canvas, before any handler, on an event the node never sees.
+   *
+   * Why the second raycast comes back empty is not settled — the inspector
+   * opening shifts the projection by 150px inside the same gesture, which is
+   * the leading candidate. It does not need to be settled: one gesture must
+   * not both select and deselect, whatever empties the ray. `esc` is
+   * deliberately not guarded, because dropping a selection you just made is a
+   * thing a reader can mean.
+   */
+  clearFromBackground: () => {
+    // pointerup and click land within a few ms of each other; nothing a person
+    // does on purpose lands this close to their own last selection
+    if (performance.now() - get().selectedAt < 150) return
+    get().clear()
   },
 }))
 

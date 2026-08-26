@@ -191,3 +191,41 @@ export function fittingNeighbourhood(
   }
   return last
 }
+
+/**
+ * The widest whole rings of a propagation that fit inside a budget.
+ *
+ * A lens changes the question, so it should be allowed to change what is
+ * drawn. The detail view answers "what is near this file" and reaches two
+ * hops; impact answers "what would break", which on dub's `tinybird` is 948
+ * files across twelve rings. Drawn inside the ordinary neighbourhood, 57 of
+ * the 59 visible nodes sat at the same depth: the ring-by-ring reveal, which
+ * is the whole idea of the lens, had nothing to reveal.
+ *
+ * Whole rings only. Half a ring is a boundary the reader would mistake for the
+ * edge of the impact set, and the point of the wave is that it ends where the
+ * consequences do. Measured on dub, `tinybird` fills rings 0 to 4 with 309
+ * files and ring 5 alone would add 260 more, so the budget lands where the
+ * fade was already calibrated.
+ */
+export function fittingRings(depth: Map<string, number>, budget: number): Set<string> {
+  const rings = new Map<number, string[]>()
+  for (const [id, d] of depth) {
+    const ring = rings.get(d)
+    if (ring) ring.push(id)
+    else rings.set(d, [id])
+  }
+  const kept = new Set<string>()
+  let total = 0
+  for (const d of [...rings.keys()].sort((a, b) => a - b)) {
+    const ring = rings.get(d)!
+    // the first ring is what directly breaks, so it goes in whatever it costs:
+    // a universal utility can have more direct dependents than the renderer is
+    // comfortable with, and answering "948 would break" with one dot on screen
+    // is worse than a slow frame
+    if (d > 1 && total + ring.length > budget) break
+    for (const id of ring) kept.add(id)
+    total += ring.length
+  }
+  return kept
+}

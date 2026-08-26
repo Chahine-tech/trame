@@ -19,6 +19,8 @@ import { labelElements } from "./nodeLabels"
 /** Scratch vectors, reused every frame and always rewritten before read. */
 const GOAL = new THREE.Vector3()
 const DIR = new THREE.Vector3()
+/** The side the camera has been asked to come back to, when it has been. */
+const WANT = new THREE.Vector3()
 const AT = new THREE.Vector3()
 
 /**
@@ -78,6 +80,28 @@ function NameDirector() {
   return null
 }
 
+/**
+ * Every camera distance in this scene is measured from `controls.target`, and
+ * `extent` is the size of whatever sits there.
+ *
+ * Both halves matter and the second one is what kept breaking. `extent` is a
+ * size; the store's `viewCentre` is the position that goes with it. Four things
+ * turn the pair into a distance — this rig, the zoom director, OrbitControls'
+ * min and max, and the fog — and for a while two of them measured from the
+ * origin instead. They agree only on a graph that happens to be centred, and a
+ * neighbourhood is a knot off to one side, so the disagreement was exactly how
+ * far off to the side the reader had gone.
+ *
+ * A fifth used to exist: an opening shot that framed around the origin and
+ * called `lookAt(0, 0, 0)`, fighting the target outright. It was deleted rather
+ * than guarded, because the rig already does its job — `load` now asks for a
+ * flight to the middle of what arrived, and the camera flies out from the
+ * canvas's fixed 80 instead of being snapped there.
+ *
+ * If a new consumer needs a distance, it measures from the target. Anything
+ * else reintroduces the same class of bug in a new place.
+ */
+
 /** Convergence rate, in "fraction of the remaining distance closed per second". */
 const FOCUS_LAMBDA = 5
 
@@ -131,14 +155,17 @@ function FocusDepth() {
 /** Eases the OrbitControls target toward the focused node, then lets go. */
 function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl | null> }) {
   const focusTarget = useGraphStore((s) => s.focusTarget)
+  const focusDir = useGraphStore((s) => s.focusDir)
   const extent = useGraphStore((s) => s.extent)
   const clearFocus = useGraphStore((s) => s.clearFocus)
+  const setVantage = useGraphStore((s) => s.setVantage)
   const camera = useThree((s) => s.camera)
   const invalidate = useThree((s) => s.invalidate)
 
   // kick the loop when a focus starts; controls.update() keeps it alive after
   useEffect(() => {
-    if (focusTarget) invalidate()
+    if (!focusTarget) return
+    invalidate()
   }, [focusTarget, invalidate])
 
   useFrame((_, delta) => {
@@ -165,9 +192,34 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
      */
     const desired = extent * 1.35
     DIR.copy(camera.position).sub(GOAL).normalize()
+    /**
+     * Swing to the side that was asked for, when one was.
+     *
+     * Left alone, a flight is radial: it slides the camera along the ray it is
+     * already on and keeps the angle. Going somewhere new, that is what you
+     * want — the reader keeps their bearing. Coming back from a lens it is not,
+     * because the outward leg aimed at a different centre and left the camera
+     * on a different side of the one it is returning to. Same distance, rotated
+     * view, and the next round trip rotated it again.
+     *
+     * Eased on the same clock as the dolly, so the camera arcs home instead of
+     * settling its distance and then turning.
+     */
+    if (focusDir) {
+      WANT.set(...focusDir)
+      DIR.lerp(WANT, t).normalize()
+    }
     camera.position.copy(GOAL).addScaledVector(DIR, THREE.MathUtils.lerp(dist, desired, t))
 
-    if (c.target.distanceTo(GOAL) < 0.05 && Math.abs(dist - desired) < 0.5) {
+    // an arc that has not finished is not an arrival, so the angle gets a say
+    // in the release alongside the distance. 0.9995 is about a fifth of a degree
+    const aimed = !focusDir || DIR.dot(WANT) > 0.9995
+    if (aimed && c.target.distanceTo(GOAL) < 0.05 && Math.abs(dist - desired) < 0.5) {
+      // measured after the move, which is where the camera actually stops
+      const d = DIR.copy(camera.position).sub(GOAL).normalize()
+      // where the reader is standing now — the spot and the side, because a
+      // lens has to give back both or neither
+      setVantage([GOAL.x, GOAL.y, GOAL.z], [d.x, d.y, d.z])
       clearFocus() // settled: release so the user can orbit freely again
     }
     c.update()
@@ -252,7 +304,6 @@ export function Scene() {
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
   const extent = useGraphStore((s) => s.extent)
-  const camera = useThree((s) => s.camera)
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
 
@@ -269,23 +320,6 @@ export function Scene() {
       edges: data.edges.filter((e) => nearby.has(e.source) && nearby.has(e.target)),
     }
   }, [data, nearby])
-
-  /**
-   * Stand back far enough to see what was loaded.
-   *
-   * The canvas opens the camera at a fixed 80, which frames trame's own graph
-   * and lands somewhere in the middle of a large one. Keyed on the extent, so a
-   * watch-mode reload of the same codebase leaves the camera exactly where the
-   * reader put it.
-   */
-  useEffect(() => {
-    const want = extent * 1.35
-    const dir = camera.position.length() > 0.01 ? camera.position.clone().normalize() : null
-    if (dir) camera.position.copy(dir.multiplyScalar(want))
-    camera.lookAt(0, 0, 0)
-    camera.updateProjectionMatrix()
-    invalidate()
-  }, [extent, camera, invalidate])
 
   // the spin pauses while a node is lit and resumes after; in demand mode the
   // loop has already stopped by then, so it needs an explicit restart
@@ -306,7 +340,7 @@ export function Scene() {
 
       <Lighting />
 
-      <ZoomDirector />
+      <ZoomDirector controls={controls} />
       <NameDirector />
       <PanelOffset />
 

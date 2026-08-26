@@ -62,8 +62,20 @@ if (typeof document !== "undefined") {
   mq.addEventListener("change", () => setTimeout(refresh, 50))
 }
 
-function channels(hex: string): [number, number, number] {
-  const h = hex.replace("#", "")
+/**
+ * Read a colour, in either shape `mix` has to deal with.
+ *
+ * `mix` returns `rgb(…)` and used to accept only `#rrggbb`, so nesting two of
+ * them fed a string starting with `rgb(` to a hex parser. It did not throw:
+ * `"rgb(164, 108, 26)".slice(0, 2)` is `"rg"`, which parses as NaN, while the
+ * later slices happen to yield digits. `mix(mix(a, b, t), c, u)` produced
+ * `rgb(NaN, 126, 134)`, and that is the colour the impact lens drew on paper
+ * for as long as the lens existed.
+ */
+function channels(color: string): [number, number, number] {
+  const rgb = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/)
+  if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])]
+  const h = color.replace("#", "")
   const full = h.length === 3 ? h[0]! + h[0] + h[1] + h[1] + h[2] + h[2] : h
   return [
     parseInt(full.slice(0, 2), 16),

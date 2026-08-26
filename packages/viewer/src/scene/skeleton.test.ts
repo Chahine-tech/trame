@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { coreness, fittingNeighbourhood, impassable, neighbourhood, skeleton } from "./skeleton"
+import { coreness, fittingNeighbourhood, fittingRings, impassable, neighbourhood, skeleton } from "./skeleton"
 import type { GraphEdge } from "../types"
 
 function links(pairs: [string, string][]): GraphEdge[] {
@@ -168,5 +168,38 @@ describe("choosing how far to look", () => {
     const near = fittingNeighbourhood("focus", busy(2), new Set(), 1)
     expect(near.has("focus")).toBe(true)
     expect(near.size).toBeGreaterThan(1)
+  })
+})
+
+describe("fittingRings", () => {
+  const wave = (sizes: number[]) => {
+    const m = new Map<string, number>()
+    sizes.forEach((n, d) => {
+      for (let i = 0; i < n; i++) m.set(`d${d}-${i}`, d)
+    })
+    return m
+  }
+
+  it("keeps whole rings, never half of one", () => {
+    // half a ring is a boundary a reader takes for the edge of the impact set
+    const kept = fittingRings(wave([1, 5, 20, 100]), 30)
+    expect(kept.size).toBe(26)
+  })
+
+  it("takes everything when the whole propagation fits", () => {
+    expect(fittingRings(wave([1, 3, 6, 4, 1]), 400).size).toBe(15)
+  })
+
+  it("keeps what directly breaks even when it alone overruns", () => {
+    // a universal utility can have more direct dependents than the renderer is
+    // comfortable with. Answering "948 files would break" with a single dot on
+    // screen is a worse trade than a slow frame.
+    expect(fittingRings(wave([1, 900, 500]), 400).size).toBe(901)
+  })
+
+  it("stops where dub's tinybird stops", () => {
+    // rings 0-4 come to 309 files; ring 5 alone would add 260 more
+    const kept = fittingRings(wave([1, 57, 100, 85, 66, 260, 131]), 400)
+    expect(kept.size).toBe(309)
   })
 })

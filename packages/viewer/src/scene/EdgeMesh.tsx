@@ -50,6 +50,26 @@ export function tubeGrowth(extent: number): number {
   return Math.max(1, Math.sqrt(extent / TUNED_AT))
 }
 
+/**
+ * One arrowhead, shared by every edge, sized by `scale` rather than by `args`.
+ *
+ * As `args={[0.32 * growth, 0.9 * growth, 10]}` the size was part of the
+ * geometry's identity, and `growth` comes from `extent`, which a lens moves. So
+ * toggling `I` rebuilt and disposed one vertex buffer per edge inside a single
+ * frame, while WebGPU was still drawing them: *vertex buffer slot 0 … was not
+ * set, DrawIndexed(60)*. Sixty indices is this cone alone — the tube carries
+ * 1440 and steps by 36, the light-ground halo ring 288. One bad draw invalidates
+ * the whole command buffer, so the frame was rejected outright and the canvas
+ * kept showing the last one that survived: a scene frozen mid-flight, which
+ * reads exactly like a camera creeping closer. The camera was never wrong.
+ *
+ * A scale is a transform, so nothing is reallocated. Being a prop rather than a
+ * JSX child, it also escapes R3F's unmount disposal — for the same reason the
+ * tube needs `useDisposable`. Do not "fix" that with `dispose={null}`: it would
+ * spare the material too, and the material is per-edge.
+ */
+const ARROW = new THREE.ConeGeometry(1, 1, 10)
+
 const UP = new THREE.Vector3(0, 1, 0)
 
 /** Scratch hit point, written by intersectPlane and read in the same event. */
@@ -246,8 +266,8 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathEdges.has(edge.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
-  const impactHasSource = useGraphStore((s) => s.impactDepth.has(edge.source))
-  const impactHasTarget = useGraphStore((s) => s.impactDepth.has(edge.target))
+  const sourceRing = useGraphStore((s) => s.impactDepth.get(edge.source))
+  const targetRing = useGraphStore((s) => s.impactDepth.get(edge.target))
 
   if (!p0 || !p3 || !ctrl || !geometry) return null
   if (edgeFilter && edge.type !== edgeFilter) return null
@@ -259,7 +279,9 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       pathOn,
       onPath,
       impactOn,
-      impacted: impactHasSource && impactHasTarget,
+      impacted: sourceRing !== undefined && targetRing !== undefined,
+      // the outer end: an importer sits one ring further out than what it imports
+      impactRing: Math.max(sourceRing ?? 0, targetRing ?? 0),
       violated: isViolated,
       hovered,
       lit: isLit,
@@ -297,10 +319,16 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
         <meshBasicMaterial color={color} transparent opacity={opacity} />
       </mesh>
 
-      <mesh ref={arrowRef} position={arrowPos} quaternion={arrowQuat}>
-        {/* the head shrinks with the line it belongs to, or it stops reading
-            as a direction and starts reading as a speck */}
-        <coneGeometry args={[0.32 * growth, 0.9 * growth, 10]} />
+      {/* the head shrinks with the line it belongs to, or it stops reading as a
+          direction and starts reading as a speck — as a scale, so that changing
+          size costs no vertex buffer */}
+      <mesh
+        ref={arrowRef}
+        geometry={ARROW}
+        position={arrowPos}
+        quaternion={arrowQuat}
+        scale={[0.32 * growth, 0.9 * growth, 0.32 * growth]}
+      >
         <meshBasicMaterial color={color} transparent opacity={opacity} />
       </mesh>
 

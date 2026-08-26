@@ -23,7 +23,15 @@ createRoot(document.getElementById("root")!).render(
       // a settled graph is a still image: draw on change, not 60 times a second.
       // Anything that animates asks for the next frame with invalidate().
       frameloop="demand"
-      onPointerMissed={() => useGraphStore.getState().clear()}
+      onPointerMissed={() => {
+        // TEMPORARY INSTRUMENTATION — settles whether the miss belongs to the
+        // gesture that just selected. A few ms means one gesture and the guard
+        // below is doing real work; seconds means two clicks and the guard is
+        // guarding nothing.
+        const since = performance.now() - useGraphStore.getState().selectedAt
+        console.log(`[miss] ${since.toFixed(1)}ms since the last select`)
+        useGraphStore.getState().clearFromBackground()
+      }}
       gl={async (props) => {
         const renderer = new WebGPURenderer({
           ...(props as ConstructorParameters<typeof WebGPURenderer>[0]),

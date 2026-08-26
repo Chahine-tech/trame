@@ -17,6 +17,7 @@ import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
 import { FirstRunHint } from "./ui/FirstRunHint"
+import { LensBar } from "./ui/LensBar"
 import { Timeline as TimelineBar } from "./ui/Timeline"
 import { subscribeToGraph, subscribeToTimeline } from "./graph-feed"
 import { useShareLink } from "./share"
@@ -90,6 +91,15 @@ export function AppUI() {
         setPaletteOpen((v) => !v)
         return
       }
+      // only while the notice offering it is still up, which is what `cleared`
+      // tracks. Not on `esc`: that key walks *out* of the view, and one key
+      // doing both directions would bounce the reader between two floors
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        if (!useGraphStore.getState().cleared) return
+        e.preventDefault()
+        useGraphStore.getState().restoreCleared()
+        return
+      }
       if ((e.metaKey || e.ctrlKey) && e.key === "e") {
         e.preventDefault()
         useGraphStore.getState().requestPng()
@@ -161,6 +171,7 @@ export function AppUI() {
     <>
       <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} />
       <Inspector />
+      <LensBar />
       <FirstRunHint />
       <TimelineBar />
       <Palette
@@ -174,8 +185,17 @@ export function AppUI() {
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <GooeyToaster
         key={palette.base}
-        // bottom-left: the inspector owns the right edge, and two floating
-        // surfaces overlapping reads as broken
+        /**
+         * Bottom-left, and one place in the whole app: toasts that move around
+         * read as three different mechanisms. Every other edge is spoken for —
+         * the inspector owns the right, the replay timeline and the first-run
+         * hint own the centre, the top bar owns the top.
+         *
+         * The lens bar shares this corner and got covered for a while. It is
+         * cleared by lifting the stack in `styles.css`, where the rest of the
+         * screen's geometry already lives, rather than by moving the toasts
+         * somewhere they would collide with something else.
+         */
         position="bottom-left"
         theme={isDarkGround() ? "dark" : "light"}
         preset="subtle"

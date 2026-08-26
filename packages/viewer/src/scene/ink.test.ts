@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
-import { edgeInk, type EdgeMood } from "./ink"
-import type { Palette } from "../theme"
+import { edgeInk, nodeInk, type EdgeMood, type NodeMood } from "./ink"
+import { mix, type Palette } from "../theme"
 
 /**
  * The palettes as the stylesheet actually ships them.
@@ -59,6 +59,7 @@ const RESTING: EdgeMood = {
   onPath: false,
   impactOn: false,
   impacted: false,
+  impactRing: undefined,
   violated: false,
   hovered: false,
   lit: false,
@@ -134,5 +135,148 @@ describe("what the lens pushes back stays visible as distance", () => {
     const added = contrast(edgeInk(mood({ diff: "added" }), LATTE, false), LATTE.base)
     expect(removed).toBeLessThan(added)
     expect(removed).toBeGreaterThan(1.5)
+  })
+})
+
+const RESTING_NODE: NodeMood = {
+  whatIfOn: false,
+  doomed: false,
+  stranded: false,
+  breaks: false,
+  justAdded: false,
+  pathOn: false,
+  onPath: false,
+  impactOn: false,
+  impactDepth: undefined,
+  violated: false,
+  lit: false,
+  hasActive: false,
+  hovered: false,
+  selected: false,
+  typeColor: LATTE.blue,
+}
+
+const node = (over: Partial<NodeMood>): NodeMood => ({ ...RESTING_NODE, ...over })
+
+/** How far a colour has drained toward grey, 0 to 255. */
+function chroma(c: string): number {
+  const [r, g, b] = channels(c)
+  return Math.max(r!, g!, b!) - Math.min(r!, g!, b!)
+}
+
+describe("the impact wave stays in the set it belongs to", () => {
+  /**
+   * Paper used to draw distance by mixing toward `base`, which is mixing
+   * toward the page. Four hops out came to 1.86:1 against it and 1.39x against
+   * a node the lens had pushed away entirely, so the far half of the wave had
+   * dropped out of the set it was supposed to show.
+   *
+   * The hue drains toward the resting grey instead, so a distant dependent
+   * ends up looking like an ordinary node rather than like an absent one.
+   */
+  const rings = [0, 1, 2, 3, 4]
+  const onPaper = (d: number) => nodeInk(node({ impactOn: true, impactDepth: d }), LATTE, false)
+  const pushedAway = nodeInk(node({ impactOn: true }), LATTE, false)
+
+  it("keeps every ring legible against the page", () => {
+    for (const d of rings) {
+      expect(contrast(onPaper(d), LATTE.base)).toBeGreaterThan(3)
+    }
+  })
+
+  it("keeps the far end clear of what the lens dimmed", () => {
+    for (const d of rings) {
+      const ratio = contrast(onPaper(d), LATTE.base) / contrast(pushedAway, LATTE.base)
+      expect(ratio).toBeGreaterThan(2.5)
+    }
+  })
+
+  it("reads distance as drained colour, not as a fading node", () => {
+    const drained = rings.map((d) => chroma(onPaper(d).color))
+    expect(drained[0]).toBeGreaterThan(150)
+    expect(drained[4]).toBeLessThan(40)
+    // and the ink never gets lighter on the way out
+    expect(contrast(onPaper(4), LATTE.base)).toBeGreaterThan(contrast(onPaper(0), LATTE.base))
+  })
+
+  it("leaves the void alone, where dimming light is the right move", () => {
+    const near = nodeInk(node({ impactOn: true, impactDepth: 0 }), MOCHA, true)
+    const far = nodeInk(node({ impactOn: true, impactDepth: 4 }), MOCHA, true)
+    expect(near.emissiveIntensity).toBeGreaterThan(far.emissiveIntensity)
+    expect(near.opacity).toBeGreaterThan(far.opacity)
+  })
+})
+
+describe("a node answering is not a node the lens dimmed", () => {
+  const answers: [string, Partial<NodeMood>][] = [
+    ["lit", { lit: true }],
+    ["on the path", { pathOn: true, onPath: true }],
+    ["violated", { violated: true }],
+    ["doomed by a simulation", { whatIfOn: true, doomed: true }],
+    ["stranded by a simulation", { whatIfOn: true, stranded: true }],
+  ]
+  for (const [name, over] of answers) {
+    it(`${name} clears 3:1 on paper`, () => {
+      expect(contrast(nodeInk(node(over), LATTE, false), LATTE.base)).toBeGreaterThan(3)
+    })
+  }
+
+  it("still draws the map underneath rather than erasing it", () => {
+    // dimmed nodes kept their dots while their edges vanished once, and dots
+    // without lines read as dirt on the screen
+    const dimmed = nodeInk(node({ pathOn: true }), LATTE, false)
+    expect(contrast(dimmed, LATTE.base)).toBeGreaterThan(1.2)
+  })
+})
+
+describe("blending two colours", () => {
+  it("survives being nested, which is how the lens is built", () => {
+    /**
+     * `mix` returns `rgb(…)` and used to parse only `#rrggbb`, so nesting fed
+     * a hex parser a string beginning `rgb(`. It did not throw: `"rg"` parses
+     * as NaN while the later slices yield digits, so the impact lens drew
+     * `rgb(NaN, 126, 134)` on paper for as long as it existed.
+     */
+    const once = mix(LATTE.yellow, LATTE.text, 0.12)
+    const twice = mix(once, LATTE.subtext, 0.5)
+    expect(channels(twice).every(Number.isFinite)).toBe(true)
+  })
+})
+
+describe("the wave is drawn where the reader is looking", () => {
+  /**
+   * The node fade was corrected first and changed almost nothing on screen:
+   * widening to four rings pulled the camera back until a node was 1.9 CSS
+   * pixels, while every impacted edge stayed one flat ochre. Edges cover a
+   * hundred times the area of the dots, so the surface that fills the picture
+   * has to carry the distance.
+   */
+  const rings = [0, 1, 2, 3, 4]
+  const edgeAt = (r: number) =>
+    edgeInk(mood({ impactOn: true, impacted: true, impactRing: r }), LATTE, false)
+
+  it("keeps every ring of the wave legible on paper", () => {
+    for (const r of rings) expect(contrast(edgeAt(r), LATTE.base)).toBeGreaterThan(3)
+  })
+
+  it("reads distance as drained colour, like the nodes do", () => {
+    const drained = rings.map((r) => {
+      const [red, green, blue] = channels(edgeAt(r).color)
+      return Math.max(red!, green!, blue!) - Math.min(red!, green!, blue!)
+    })
+    expect(drained[0]).toBeGreaterThan(90)
+    expect(drained[3]).toBeLessThan(20)
+  })
+
+  it("stays clear of the map the lens pushed back, all the way out", () => {
+    const ground = contrast(edgeInk(mood({ impactOn: true }), LATTE, false), LATTE.base)
+    for (const r of rings) expect(contrast(edgeAt(r), LATTE.base) / ground).toBeGreaterThan(3)
+  })
+
+  it("dims with distance in the void, where light is what recedes", () => {
+    const near = edgeInk(mood({ impactOn: true, impacted: true, impactRing: 0 }), MOCHA, true)
+    const far = edgeInk(mood({ impactOn: true, impacted: true, impactRing: 4 }), MOCHA, true)
+    expect(near.opacity).toBeGreaterThan(far.opacity)
+    expect(contrast(far, MOCHA.base)).toBeGreaterThan(3)
   })
 })

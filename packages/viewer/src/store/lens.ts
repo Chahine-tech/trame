@@ -45,3 +45,26 @@ export const LENSES: Record<Exclude<LensKind, "none">, LensInfo> = {
     hint: "the architecture as it was, walking forward through git history",
   },
 }
+
+/** What the reader has, when a lens asks whether it can answer. */
+export interface LensReadiness {
+  selectedId: string | null
+  hasTimeline: boolean
+}
+
+/**
+ * Why a lens cannot answer yet, or null when it can.
+ *
+ * A lens the reader cannot use is still part of the language, so the bar dims
+ * it rather than hiding it and says what it is waiting for. The sentence is
+ * the answer to "why is this greyed out", which is the question a dimmed
+ * control always provokes.
+ */
+export function blockedBecause(
+  kind: Exclude<LensKind, "none" | "diff">,
+  { selectedId, hasTimeline }: LensReadiness,
+): string | null {
+  if (kind === "replay") return hasTimeline ? null : "Run trame replay to generate one"
+  if (selectedId) return null
+  return kind === "path" ? "Select a file, then shift-click a second" : "Select a file first"
+}

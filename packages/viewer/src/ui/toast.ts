@@ -146,3 +146,31 @@ export function toastEditorSwitched(editor: string): void {
     duration: 2200,
   })
 }
+
+/** How long the offer to take a deselection back stands, in ms. */
+export const UNDO_MS = 5000
+
+/**
+ * Letting go of a file is one click on a target that covers most of the screen,
+ * and it drops the selection, the framing and the open lens at once. The way
+ * back is to remember the filename and type it again, which on a repository of
+ * three thousand files is not a way back.
+ *
+ * An offer rather than a confirmation: the deselection has already happened and
+ * the map is already on screen, so anyone who meant it pays nothing and ignores
+ * this. Only the slip has something to click.
+ */
+export function toastDeselected(label: string, file: string, undo: () => void): void {
+  const p = getPalette()
+  gooeyToast(`Deselected ${label}`, {
+    ...tinted(p.overlay),
+    id: "deselected",
+    // the path, as `toastOpeningEditor` does: a basename is what fits on a
+    // chip, not what tells two `index.ts` apart. It also gives the action a
+    // line to sit under — without one the card is a title above an empty
+    // middle with a button adrift in it
+    description: file,
+    duration: UNDO_MS,
+    action: { label: "Undo", onClick: undo, successLabel: "Back" },
+  })
+}

@@ -22,6 +22,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
       { keys: ["hover"], label: "Light a node and its neighbours" },
       { keys: ["click"], label: "Select — opens the inspector" },
       { keys: ["O"], label: "Open the file in your editor" },
+      { keys: ["⌘Z"], label: "Take back a deselection — file, lens and vantage" },
     ],
   },
   {

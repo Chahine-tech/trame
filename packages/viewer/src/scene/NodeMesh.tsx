@@ -5,7 +5,8 @@ import { Billboard, Html } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js"
 import { useGraphStore } from "../store/graph"
 import { registerLabel } from "./nodeLabels"
-import { isDarkGround, mix, NODE_COLOR, usePalette, type Palette } from "../theme"
+import { isDarkGround, mix, NODE_COLOR, usePalette } from "../theme"
+import { nodeInk } from "./ink"
 import { nodeProgress, overshoot } from "./arrival"
 import type { GraphNode } from "../types"
 
@@ -30,37 +31,6 @@ const FACETED: Set<GraphNode["type"]> = new Set(["page", "query-key", "store", "
 
 /** Delay per hop when impact propagates outward. Slow enough to read. */
 const IMPACT_RING_MS = 90
-
-interface Surface {
-  color: string
-  emissiveIntensity: number
-  opacity: number
-}
-
-/**
- * Two grounds, two selected sets of steps, not one flipped into the other.
- *
- * Each mode picks its neutrals against its own surface. On dark, resting ink
- * is `overlay` and dimming drops opacity toward the void. On paper the same
- * roles need *darker* steps, because washing a light grey toward a light page
- * puts it below any usable contrast, which is how the graph vanished at rest.
- * Dimming still stops at a visible floor: losing the map is too high a price
- * for highlighting part of it.
- */
-function recede(dark: boolean, p: Palette, amount: number): Surface {
-  return dark
-    ? { color: p.overlay, emissiveIntensity: 0, opacity: 1 - amount * 0.84 }
-    : // washed further toward the page than it used to be: a receded node was
-      // staying fully solid while its edges all but vanished, so the background
-      // of a lens kept its dots and lost its structure
-      { color: mix(p.overlay, p.base, amount * 0.68), emissiveIntensity: 0, opacity: 1 }
-}
-
-function press(dark: boolean, p: Palette, ink: string, strength: number): Surface {
-  return dark
-    ? { color: ink, emissiveIntensity: strength, opacity: 1 }
-    : { color: mix(ink, p.text, 0.12), emissiveIntensity: 0, opacity: 1 }
-}
 
 /** Shared soft radial halo, tinted per node through the material colour. */
 let glowTexture: THREE.CanvasTexture | null = null
@@ -173,45 +143,32 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   // Colour = information: grey at rest, type colour only when attention lands.
   // Analysis overlays (path, impact, violations) take precedence, since they are
   // the question the user just asked.
-  const { color, emissiveIntensity, opacity } = useMemo(() => {
-    // the simulation reframes everything: this is the consequence, not the state
-    if (whatIfOn) {
-      if (isDoomed) return press(dark, palette, palette.red, 0.7)
-      if (isStranded) return press(dark, palette, palette.yellow, 0.5)
-      if (isBroken) return press(dark, palette, palette.peach, 0.45)
-      return recede(dark, palette, 1)
-    }
-    // during a replay, the commit's own arrivals announce themselves
-    if (justAdded) return press(dark, palette, palette.green, 0.7)
-    // diff mode reframes the whole graph: what this branch added or removed
-    if (node.diff === "added") return press(dark, palette, palette.green, 0.6)
-    if (node.diff === "removed") {
-      return dark
-        ? { color: palette.red, emissiveIntensity: 0.25, opacity: 0.35 }
-        : { color: mix(palette.red, palette.base, 0.55), emissiveIntensity: 0, opacity: 1 }
-    }
-    if (pathOn) return onPath ? press(dark, palette, palette.lav, 0.7) : recede(dark, palette, 1)
-    if (impactOn) {
-      if (impactDepth === undefined) return recede(dark, palette, 1)
-      // fade with distance from the change, so near dependents read strongest
-      const t = Math.min(impactDepth / 4, 1)
-      const ink = impactDepth === 0 ? palette.peach : palette.yellow
-      return dark
-        ? { color: ink, emissiveIntensity: 0.75 - t * 0.5, opacity: 1 - t * 0.45 }
-        : { color: mix(mix(ink, palette.text, 0.12), palette.base, t * 0.5), emissiveIntensity: 0, opacity: 1 }
-    }
-    if (isViolated) {
-      if (!dark) return press(dark, palette, palette.red, 0)
-      return { color: palette.red, emissiveIntensity: isLit ? 0.7 : 0.35, opacity: hasActive && !isLit ? 0.4 : 1 }
-    }
-    if (isLit) return press(dark, palette, typeColor, isHovered || isSelected ? 0.7 : 0.4)
-    if (hasActive) return recede(dark, palette, 1)
-    // at rest: neutral ink, present but quiet. On paper that is a pencil
-    // construction line: grey, but unmistakably drawn.
-    return dark
-      ? { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
-      : { color: palette.subtext, emissiveIntensity: 0, opacity: 1 }
-  }, [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark])
+  const { color, emissiveIntensity, opacity } = useMemo(
+    () =>
+      nodeInk(
+        {
+          diff: node.diff,
+          whatIfOn,
+          doomed: isDoomed,
+          stranded: isStranded,
+          breaks: isBroken,
+          justAdded,
+          pathOn,
+          onPath,
+          impactOn,
+          impactDepth,
+          violated: isViolated,
+          lit: isLit,
+          hasActive,
+          hovered: isHovered,
+          selected: isSelected,
+          typeColor,
+        },
+        palette,
+        dark,
+      ),
+    [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark],
+  )
 
   // Hover growth eased per-frame (interruptible), never snapped
   const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
