@@ -38,7 +38,7 @@ export function classify(file: SourceFile): NodeType {
  * Display label. Files whose own name says nothing borrow their folder's.
  *
  * `index` can take the folder name outright: there is only one per folder, so
- * nothing collides. `page` and `layout` cannot — the Next.js app router puts
+ * nothing collides. `page` and `layout` cannot, since the Next.js app router puts
  * both in the same directory, and handing them the same name produced two
  * nodes called "app" in a real project, indistinguishable in the graph, in an
  * export, and in any advice that names them. They keep the folder for context
@@ -65,14 +65,14 @@ export function firstExportLine(file: SourceFile): number {
 
 /**
  * Cluster = folder. `src/features/auth/…` → "auth", otherwise the first
- * directory under src. Files sitting at the src root belong to "src" —
+ * directory under src. Files sitting at the src root belong to "src":
  * a name the user recognizes, never parser jargon like "root".
  */
 /**
  * The package a file belongs to, when the codebase is a workspace.
  *
  * Found by walking up to the nearest package.json, which is what a package
- * actually is — no list of blessed container names to keep current. Cached per
+ * actually is, with no list of blessed container names to keep current. Cached per
  * directory because thousands of files share a handful of answers.
  *
  * Without it, clustering falls back to the first path segment, and pointing

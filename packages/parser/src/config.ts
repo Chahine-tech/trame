@@ -15,16 +15,14 @@ const CONFIG_CANDIDATES = [
  * it wrong used to pass in silence.
  *
  * `evaluateRules` dispatches on `rule.type` through three `if`s with no `else`,
- * so a rule typed `no-cycle` instead of `no-cycles` matches nothing, produces no
- * violations, and exits 0 — a green CI that checks nothing, which is the worst
- * thing this tool could do. A misspelt key inside `match` is the same bug
- * pointing the other way: `edgeMatches` returns true for every field it does not
- * recognise, so `sourceTyp` turns a targeted rule into one that flags the entire
- * codebase.
+ * so a rule typed `no-cycle` instead of `no-cycles` matches nothing, produces
+ * no violations, and exits 0: a green CI that checks nothing. A misspelt key
+ * inside `match` is the same bug pointing the other way, since `edgeMatches`
+ * returns true for every field it does not recognise, so `sourceTyp` turns a
+ * targeted rule into one that flags the whole codebase.
  *
  * So the shape is checked before it is trusted, and every problem is collected
- * rather than thrown on the first — fixing a config one error per run is a poor
- * way to spend an afternoon.
+ * rather than thrown on the first.
  */
 export class ConfigError extends Error {
   constructor(
@@ -39,9 +37,9 @@ export class ConfigError extends Error {
 /**
  * `satisfies` proves no listed value is outside its union, which is the
  * direction that matters: a stray value here would be accepted by the validator
- * and then quietly ignored by the code that consumes it. The reverse — a union
- * growing a member nobody added here — fails loudly the first time the new
- * option is used, so it does not need a compile-time guard of its own.
+ * and then quietly ignored by the code that consumes it. The reverse, a union
+ * growing a member nobody added here, fails loudly the first time the new
+ * option is used and needs no compile-time guard.
  */
 const RULE_TYPES = ["unique-caller", "no-direct-import", "no-cycles"] as const satisfies readonly Rule["type"][]
 const NODE_TYPES = [
@@ -84,8 +82,8 @@ function describe(value: unknown): string {
 /**
  * An unknown key is an error, not a warning.
  *
- * It is nearly always a typo, and the two things it can mean — a setting that
- * does nothing, or a `match` that silently widens to everything — are both worse
+ * It is nearly always a typo, and both things it can mean (a setting that does
+ * nothing, or a `match` that silently widens to everything) are worse
  * than being told to fix it.
  */
 function checkKeys(
@@ -177,7 +175,7 @@ export function validateConfig(value: unknown, file: string): TrameConfig {
 }
 
 /**
- * Load trame.config.* — .ts works directly on Node ≥23.6 thanks to native
+ * Load trame.config.*; .ts works directly on Node >=23.6 thanks to native
  * type stripping; .json is parsed as-is.
  *
  * Kept apart from rules.ts so the rule evaluation stays free of node builtins:

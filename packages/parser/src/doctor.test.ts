@@ -93,7 +93,7 @@ describe("ordering", () => {
     // a cycle is a fact about the graph; "nothing imports this" is an inference
     // that dynamic imports, framework routes and excluded tests can each
     // falsify. Four suspected dead files must not outrank two genuinely tangled
-    // ones — on cal.com that ordering buried 24 real cycles under 1327 guesses.
+    // ones: on cal.com that ordering buried 24 real cycles under 1327 guesses.
     const g = graph(
       ["main", "a", "b", "widow", "h1", "h2", "h3"],
       [

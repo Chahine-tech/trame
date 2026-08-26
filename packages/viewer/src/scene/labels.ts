@@ -17,20 +17,16 @@ export interface LabelBox {
 }
 
 /**
- * The labels a map can actually show: the most important ones, and then
- * whatever still fits between them.
+ * The labels a map can show: the most important, then whatever fits between.
  *
- * Everything drawing its own name works until there are more than a handful.
- * cal.com has 114 folders, so `i18n/ 1 file` was printed straight through the
- * middle of `trpc/ 398 files` and neither could be read; opening on a file, its
- * forty neighbours all wrote their names on the same knot. A paper map solves
- * this by not labelling everything at once — the capital is named, the village
- * beside it waits until you are closer — and dropping a name is better than
- * keeping two that cancel each other out.
+ * Everything drawing its own name works up to a handful. cal.com has 114
+ * folders, so `i18n/ 1 file` printed straight through `trpc/ 398 files` and
+ * neither could be read; opening on a file, its forty neighbours wrote their
+ * names on the same knot. Dropping a name beats keeping two that cancel out.
  *
  * Most important first, then greedily: a name is kept when its box clears every
- * name already kept. Greedy is not optimal — choosing a maximum set of
- * non-overlapping boxes is NP-hard — but taking the most important first puts
+ * name already kept. Greedy is not optimal, since a maximum set of
+ * non-overlapping boxes is NP-hard, but taking the most important first puts
  * the error where it costs least.
  */
 export function withoutOverlap(boxes: LabelBox[]): Set<string> {
@@ -56,7 +52,7 @@ export function withoutOverlap(boxes: LabelBox[]): Set<string> {
 /**
  * Roughly how much room a piece of text takes, without measuring the DOM.
  *
- * The font is monospace, so the width follows from the character count — about
+ * The font is monospace, so the width follows from the character count, about
  * 0.6 em. Reading back the real rectangles would be exact and would also force
  * a layout of every label on every camera move, which is the cost this whole
  * thing exists to avoid.
@@ -71,7 +67,7 @@ export function textSize(text: string, fontSize: number): { width: number; heigh
  *
  * Labels attach through a ref callback, so some appear a frame or two after a
  * pass has run. Switching those off as though they had lost would hide them
- * until something moved the camera — which on cal.com left the map labelled
+ * until something moved the camera, which on cal.com left the map labelled
  * with nothing but its smallest integrations.
  */
 export function applyLabels(

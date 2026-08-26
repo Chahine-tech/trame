@@ -31,8 +31,8 @@ describe("naming a folder on the map", () => {
     /**
      * This is what put `app/` in open black on dub. A mean is a point no file
      * has to occupy: spread the folder out and it falls in the gap between its
-     * members, and any lift proportional to the folder's own size — even the
-     * typical radius rather than the farthest — carries the name further into
+     * members, and any lift proportional to the folder's own size, even the
+     * typical radius rather than the farthest, carries the name further into
      * the emptiness.
      */
     const spread = at({ a: [0, 0, 0], b: [60, 0, 0], c: [30, 50, 0] })
@@ -41,7 +41,7 @@ describe("naming a folder on the map", () => {
   })
 
   it("raises the name by the gap between files, not by the size of the folder", () => {
-    // enough to clear the dot, and no more — a big folder of tightly packed
+    // enough to clear the dot, and no more: a big folder of tightly packed
     // files gets the same small lift as a small one
     const tight = Array.from({ length: 30 }, (_, i) => `n${i}`)
     const [anchor] = folderAnchors(

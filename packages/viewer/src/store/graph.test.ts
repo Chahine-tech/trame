@@ -90,7 +90,7 @@ describe("replay lens", () => {
     expect(s.data?.nodes).toHaveLength(2)
   })
 
-  it("restores the present on exit — the newest one, not the one from entry", () => {
+  it("restores the present on exit: the newest one, not the one from entry", () => {
     useGraphStore.getState().loadTimeline(timeline)
     useGraphStore.getState().enterReplay()
     // the watch poll fires while history is on screen
@@ -106,7 +106,7 @@ describe("replay lens", () => {
 })
 
 /**
- * Big enough that the skeleton actually withholds something — below the render
+ * Big enough that the skeleton actually withholds something: below the render
  * budget it returns null and a selection narrows nothing, so the bug this
  * describes cannot even happen on a small graph.
  *
@@ -157,7 +157,7 @@ describe("letting go of a selection", () => {
     /**
      * Both ways out ran through `clear`, which dropped the selection and left
      * `nearby` where the selection had put it. The result was a neighbourhood
-     * of nothing — sixty-five files of three and a half thousand, unlit — and
+     * of nothing: sixty-five files of three and a half thousand, unlit, and
      * nothing widened it again, so a reload was the only way back to the map.
      */
     const { skeletonSet } = useGraphStore.getState()
@@ -176,7 +176,7 @@ describe("letting go of a selection", () => {
     useGraphStore.getState().clear()
     const s = useGraphStore.getState()
     expect(s.extent).toBeGreaterThan(close)
-    // a target rather than a jump — the rig eases toward it and releases
+    // a target rather than a jump: the rig eases toward it and releases
     expect(s.focusTarget).not.toBeNull()
   })
 
@@ -186,7 +186,7 @@ describe("letting go of a selection", () => {
      * selected; taking the view off them for it would punish the gesture.
      *
      * The first `clear` is not ceremony. Loading opens on a finding, which
-     * selects a file — so the map is narrowed before anyone has clicked
+     * selects a file, so the map is narrowed before anyone has clicked
      * anything, and this is the state a second click has to leave alone.
      */
     useGraphStore.getState().clear()

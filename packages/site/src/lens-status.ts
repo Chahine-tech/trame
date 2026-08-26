@@ -1,17 +1,9 @@
 import { useGraphStore } from "@trame/viewer/store/graph"
 
 /**
- * What the active lens actually found, in one line.
- *
- * Deliberately not a restatement of the section's headline. The headline is the
- * promise — "see what breaks before you touch the code" — and a bubble echoing
- * it in fewer words would be decoration. These numbers are computed from the
- * graph on screen, by the same code the tool runs: they change if the codebase
- * changes, and no marketing page can fake them. That is the whole argument of
- * this page, stated in the one place a visitor is already looking.
- *
- * Returns null when no lens is on — there is nothing to report, and a bubble
- * that lingers with a stale sentence is worse than no bubble at all.
+ * What the active lens found, in one line. Not a restatement of the section
+ * headline: these numbers come from the graph on screen, through the same code
+ * the viewer runs. Null when no lens is on, so no stale bubble lingers.
  */
 export function useLensStatus(): string | null {
   const lens = useGraphStore((s) => s.lens)
@@ -41,7 +33,7 @@ export function useLensStatus(): string | null {
 
   if (lens === "whatif" && whatIf) {
     const { orphaned, broken } = whatIf
-    // plain counts, plainly plural — a bubble is not the place for a table
+    // plain counts, plainly plural: a bubble is not the place for a table
     const parts = [
       `${broken.length} import${broken.length === 1 ? "" : "s"} broken`,
       `${orphaned.length} file${orphaned.length === 1 ? "" : "s"} stranded`,
@@ -52,7 +44,7 @@ export function useLensStatus(): string | null {
   if (lens === "replay" && timeline) {
     const frame = timeline.frames[frameIndex]
     if (!frame) return null
-    // the real commit subject, walking past — a claim nobody can fake
+    // the real commit subject, walking past
     return `${frame.date.slice(0, 10)} · ${frame.subject} · ${frame.nodeCount} files`
   }
 

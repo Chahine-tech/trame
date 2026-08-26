@@ -35,7 +35,7 @@ export function AppUI() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
-  // a replay, if one was generated — it takes over from the live graph
+  // a replay, if one was generated; it takes over from the live graph
   useEffect(() => subscribeToTimeline((t) => useGraphStore.getState().loadTimeline(t)), [])
 
   // initial load + watch-mode live reload, both owned by the feed
@@ -70,12 +70,12 @@ export function AppUI() {
       const before = current.violations?.length ?? 0
       const after = next.violations?.length ?? 0
       load(next)
-      // a failed parse serves the last good graph — say so instead of
+      // a failed parse serves the last good graph, so say so instead of
       // letting a stale architecture look current
       if (next.meta.error) toastParseFailed(next.meta.error)
       else {
         toastGraphUpdated(next.meta.nodeCount, delta)
-        // that save broke a rule — surface it now, not at CI time
+        // that save broke a rule: surface it now, not at CI time
         if (after > before) toastViolations(after)
       }
     })
@@ -111,7 +111,7 @@ export function AppUI() {
         e.preventDefault()
         setShortcutsOpen((v) => !v)
       } else if (shortcutsOpen) {
-        return // the panel is the focus — no stray shortcuts behind it
+        return // the panel is the focus, no stray shortcuts behind it
       } else if (e.key === "/") {
         e.preventDefault()
         setPaletteOpen(true)

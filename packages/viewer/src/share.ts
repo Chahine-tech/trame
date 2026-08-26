@@ -5,8 +5,8 @@ import type { LensKind } from "./store/lens"
 /**
  * A view of the graph, encoded in the URL.
  *
- * Architecture conversations are about a particular file — "look at what this
- * one touches" — and until now the only way to have that conversation was to
+ * Architecture conversations are about a particular file, "look at what this
+ * one touches", and until now the only way to have that conversation was to
  * describe the clicks. This makes the view itself the message.
  *
  * In the hash rather than the query string, for two reasons: it never reaches
@@ -89,7 +89,7 @@ export function useShareLink(): void {
   const lens = useGraphStore((s) => s.lens)
   const applied = useRef(false)
 
-  // once the graph exists, an incoming link gets its turn — but only the first
+  // once the graph exists, an incoming link gets its turn, but only the first
   // one, or a watch-mode reload would drag the view back to where it started
   useEffect(() => {
     if (!data || applied.current) return

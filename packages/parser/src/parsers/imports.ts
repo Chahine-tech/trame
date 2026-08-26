@@ -10,7 +10,7 @@ export interface RawImport {
 /**
  * Extract import relationships between project source files.
  * External modules (node_modules, bare specifiers that don't resolve
- * into the project) are ignored — the graph shows *your* architecture.
+ * into the project) are ignored: the graph shows your own architecture.
  */
 export function extractImports(project: Project): RawImport[] {
   const edges: RawImport[] = []

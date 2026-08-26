@@ -7,7 +7,7 @@ const POLL_MS = 2500
 export type GraphFeedEvent =
   /** First successful read of the generated graph. */
   | { kind: "loaded"; data: GraphData }
-  /** No generated graph on disk — the bundled sample stands in. */
+  /** No generated graph on disk, so the bundled sample stands in. */
   | { kind: "demo"; data: GraphData }
   /** A later read from watch mode; the caller decides if it actually changed. */
   | { kind: "updated"; data: GraphData }
@@ -15,15 +15,15 @@ export type GraphFeedEvent =
 /**
  * The single reader of trame.json: one initial load, then a watch poll.
  *
- * Requests are strictly sequential — the next one is only scheduled once the
- * previous has settled — so a slow response can never land on top of a newer
+ * Requests are strictly sequential, the next only scheduled once the previous
+ * has settled, so a slow response can never land on top of a newer
  * graph. Unsubscribing aborts whatever is in flight and drops its result.
  */
 const REPLAY_SOURCE = "/trame-replay.json"
 
 /**
- * A generated replay, if there is one. Read once — history does not change
- * while you watch it — and aborted on unmount like the live feed.
+ * A generated replay, if there is one. Read once, since history does not
+ * change while you watch it, and aborted on unmount like the live feed.
  */
 export function subscribeToTimeline(onLoaded: (timeline: Timeline) => void): () => void {
   const controller = new AbortController()
@@ -36,7 +36,7 @@ export function subscribeToTimeline(onLoaded: (timeline: Timeline) => void): () 
       const timeline = (await r.json()) as Timeline
       if (!stopped && timeline.frames?.length) onLoaded(timeline)
     } catch {
-      /* no replay generated, or we were aborted — the live graph stands */
+      /* no replay generated, or we were aborted; the live graph stands */
     }
   })()
 
@@ -64,7 +64,7 @@ export function subscribeToGraph(onEvent: (event: GraphFeedEvent) => void): () =
         const data = await read("no-store")
         if (!stopped) onEvent({ kind: "updated", data })
       } catch {
-        /* server briefly unavailable, or we were aborted — retry next tick */
+        /* server briefly unavailable, or we were aborted; retry next tick */
       }
       scheduleNext()
     }, POLL_MS)

@@ -18,7 +18,7 @@ function problems(value: unknown): string[] {
 const validRule = { type: "no-cycles", message: "no circular dependencies" }
 
 describe("a config that is fine", () => {
-  it("accepts an empty object — every field is optional", () => {
+  it("accepts an empty object: every field is optional", () => {
     expect(problems({})).toEqual([])
   })
 
@@ -47,7 +47,7 @@ describe("a config that is fine", () => {
 describe("the silent failures this exists to catch", () => {
   it("rejects a rule type that is one letter off", () => {
     // the headline case: evaluateRules dispatches through three ifs with no
-    // else, so "no-cycle" matched nothing, reported nothing, and exited 0 —
+    // else, so "no-cycle" matched nothing, reported nothing, and exited 0,
     // a green CI that checked nothing at all
     const found = problems({ rules: [{ type: "no-cycle", message: "m" }] })
     expect(found).toHaveLength(1)

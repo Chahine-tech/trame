@@ -94,7 +94,7 @@ export function changedScope(graph: GraphData): Set<string> {
 
 /**
  * Mermaid flowchart. GitHub renders these natively in issues, PRs and
- * READMEs — which is what makes an architecture diagram postable by a bot.
+ * READMEs, which is what makes an architecture diagram postable by a bot.
  */
 export function toMermaid(graph: GraphData, options: ExportOptions = {}): string {
   const { groupByFolder = true, only } = options
@@ -146,7 +146,7 @@ export function toMermaid(graph: GraphData, options: ExportOptions = {}): string
   return lines.join("\n")
 }
 
-/** Graphviz DOT — for anyone who wants to run their own layout engine. */
+/** Graphviz DOT, for anyone who wants to run their own layout engine. */
 export function toDot(graph: GraphData, options: ExportOptions = {}): string {
   const { groupByFolder = true, only } = options
   const nodes = only ? graph.nodes.filter((n) => only.has(n.id)) : graph.nodes
@@ -200,7 +200,7 @@ export function toDot(graph: GraphData, options: ExportOptions = {}): string {
 
 /**
  * A PR comment. GitHub renders the Mermaid block natively, so this needs no
- * headless browser, no image hosting and no artifact upload — the diagram is
+ * headless browser, no image hosting and no artifact upload: the diagram is
  * just text in the comment body.
  */
 export function toMarkdown(graph: GraphData): string {

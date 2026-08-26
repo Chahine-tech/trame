@@ -3,7 +3,7 @@
  *
  * Measured on cal.com, walking outwards from its most connected file: 200 files
  * (about 1090 draw calls) and 500 files (about 4450) are both comfortable;
- * 1000 files — 3681 imports between them, some 9360 draw calls — is not.
+ * 1000 files, 3681 imports between them and some 9360 draw calls, is not.
  *
  * Note that edges, not nodes, dominate the cost: they outnumber files roughly
  * three to one at this scale, and each is a tube plus an arrowhead.
@@ -16,7 +16,7 @@ export const BUDGET = 400
  * A separate ceiling from the one above, and much lower, because the eye gives
  * out long before the renderer does. Names are the measure: only a file lit by
  * the current selection carries one, and only as many as clear each other on
- * screen survive — about twenty-five, whatever is drawn behind them. So a view
+ * screen survive, about twenty-five whatever is drawn behind them. So a view
  * of three hundred files shows twenty-five names over two hundred and seventy
  * five anonymous dots, and the dots are decoration.
  *

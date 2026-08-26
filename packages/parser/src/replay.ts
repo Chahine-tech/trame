@@ -25,12 +25,12 @@ export interface ReplayFrame {
   violations: number
   cycles: number
   /**
-   * The whole architecture — carried by the first frame only.
+   * The whole architecture, carried by the first frame only.
    *
    * Every frame used to hold one. Measured on dub, forty frames of a 3547-file
-   * codebase came to 7.3 MB gzipped, and 97% of the nodes in any frame were
-   * byte-identical to the one before: the file was the same graph written out
-   * forty times. Older replays still carry it on every frame and still read.
+   * codebase came to 7.3 MB gzipped with 97% of the nodes in any frame
+   * byte-identical to the one before. Older replays still carry it on every
+   * frame and still read.
    */
   graph?: GraphData
   /** what this commit changed, for every frame after the first */
@@ -38,15 +38,13 @@ export interface ReplayFrame {
 }
 
 /**
- * One commit's worth of change, enough to rebuild the frame from the one
- * before it.
+ * One commit's worth of change, enough to rebuild the frame from the one before.
  *
  * Additions and removals are the obvious part. Changes are not: a file that
- * stays put can still move to another line, get renamed, or stop being a module
- * and start being a component — and that last one is drawn, since type decides
- * a node's shape and colour. Measured on dub they are rare (3% move a line, a
- * dozen change type across forty frames) and cheap to carry, and leaving them
- * out would make the format quietly lossy.
+ * stays put can move to another line, get renamed, or stop being a module and
+ * start being a component, and that last one is drawn, since type decides shape
+ * and colour. Measured on dub they are rare (3% move a line, a dozen change
+ * type across forty frames) and leaving them out would be quietly lossy.
  */
 export interface FrameDelta {
   addedNodes: GraphNode[]
@@ -84,10 +82,10 @@ function git(repo: string, args: string[]): string {
 /**
  * Pick at most `maxFrames` commits, evenly spread, oldest first.
  *
- * Counting frames rather than days is what makes this work on any repo: a
- * fixed interval in days collapses a week of intense work into one frame, and
- * explodes a five-year history into hundreds. The budget is what the reader
- * can watch; the stride follows from it.
+ * Counting frames rather than days is what makes this work on any repository: a
+ * fixed interval collapses a week of intense work into one frame and explodes a
+ * five-year history into hundreds. The budget is what the reader can watch, and
+ * the stride follows from it.
  */
 /**
  * Every commit in the window, oldest first.
@@ -115,7 +113,7 @@ export function listCommits(repo: string, since: string): Commit[] {
   return all
 }
 
-/** At most `maxFrames` of them, evenly spread — what a replay can sit through. */
+/** At most `maxFrames` of them, evenly spread: what a replay can sit through. */
 export function sampleCommits(repo: string, since: string, maxFrames: number): Commit[] {
   return pickEvenly(listCommits(repo, since), maxFrames)
 }
@@ -153,9 +151,9 @@ export function pickEvenly(all: Commit[], maxFrames: number): Commit[] {
  * Run something against a throwaway checkout of one commit.
  *
  * A worktree rather than a checkout, so the copy you are editing is never
- * touched — this is safe to run while you keep working. Returns null when the
- * commit does not parse: history contains broken states, and refusing to walk
- * past them would make every history feature useless on a real repository.
+ * touched. Returns null when the commit does not parse: history contains broken
+ * states, and refusing to walk past them would make every history feature
+ * useless on a real repository.
  */
 export function atCommit<T>(
   repo: string,
@@ -198,10 +196,9 @@ export function forEachCommit(
 /**
  * What one commit did to the graph, as the difference from the frame before.
  *
- * Written whole, a replay of a real codebase is mostly repetition — the same
- * three and a half thousand files, forty times over. Written as differences it
- * is fifteen times smaller and rebuilds byte for byte, which is the only reason
- * a replay of anything larger than a toy is worth downloading.
+ * Written whole, a replay of a real codebase is the same three and a half
+ * thousand files forty times over. Written as differences it is fifteen times
+ * smaller and rebuilds byte for byte.
  */
 function changesBetween(before: GraphData, after: GraphData): FrameDelta {
   const wasNode = new Map(before.nodes.map((n) => [n.id, n]))

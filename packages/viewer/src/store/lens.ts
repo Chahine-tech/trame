@@ -1,5 +1,5 @@
 /**
- * A lens is a question asked of the graph — "what depends on this?", "what
+ * A lens is a question asked of the graph: "what depends on this?", "what
  * would break?", "how did this branch change it?". Only one can be active,
  * because each one repaints every node and edge to answer *its* question.
  *

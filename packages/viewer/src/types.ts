@@ -81,7 +81,7 @@ export interface GraphData {
     /**
      * Absolute path the node paths hang off, so a file can be opened locally.
      *
-     * Absent on a graph somebody else parsed and published — which is the point:
+     * Absent on a graph somebody else parsed and published, which is the point:
      * one field carries the shape of the machine that produced the graph, so one
      * field can be dropped to anonymise it.
      */
@@ -111,7 +111,7 @@ export type Vec3 = [number, number, number]
  *
  * Additions and removals are the obvious part. Changes are not: a file that
  * stays put can still move to another line, get renamed, or stop being a module
- * and start being a component — and that one is drawn, since type decides a
+ * and start being a component, and that one is drawn, since type decides a
  * node's shape and colour.
  */
 export interface FrameDelta {
@@ -135,7 +135,7 @@ export interface ReplayFrame {
   violations: number
   cycles: number
   /**
-   * The whole architecture, on the first frame — and on every frame of a
+   * The whole architecture, on the first frame, and on every frame of a
    * replay generated before the format carried differences, which still reads.
    */
   graph?: GraphData

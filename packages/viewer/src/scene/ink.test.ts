@@ -80,7 +80,7 @@ describe("an answer is legible on the ground it is drawn on", () => {
   /**
    * 3:1 is what `tokens.css` tunes the light accents to reach as fills, and
    * what WCAG asks of a graphical mark. The impact lens shipped at 2.06:1 for
-   * months because it named the accent and then drew it at 0.6 opacity — on
+   * months because it named the accent and then drew it at 0.6 opacity: on
    * white, the 40% that shows through is the background you were trying to
    * stand out from.
    */
@@ -97,10 +97,9 @@ describe("an answer is legible on the ground it is drawn on", () => {
 
 describe("an answer stands clear of the map it is drawn over", () => {
   /**
-   * Contrast alone is not separation. What makes a lens read is the gap
-   * between the edges that answer and the ones that merely stayed on screen —
-   * on paper that gap was 1.9x against the dark ground's 5.2x, which is the
-   * whole of "incroyable" versus "cool mais sans plus".
+   * Contrast alone is not separation. What makes a lens read is the gap between
+   * the edges that answer and the ones that merely stayed on screen: on paper
+   * that gap was 1.9x against the dark ground's 5.2x.
    */
   for (const [name, over] of ANSWERS) {
     if (name.startsWith("diff")) continue // a diff dims nothing; every edge speaks

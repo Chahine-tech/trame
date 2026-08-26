@@ -57,7 +57,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
 ]
 
 /**
- * Always-available reference — the honest alternative to a guided tour.
+ * Always-available reference, the honest alternative to a guided tour.
  *
  * Native <dialog>: the platform supplies the modal semantics, focus trapping,
  * focus restore, top-layer stacking and ::backdrop that a role="dialog" div

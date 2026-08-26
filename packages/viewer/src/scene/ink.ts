@@ -10,13 +10,13 @@ export interface Ink {
 /**
  * How present an edge stays once a lens has pushed it into the background.
  *
- * It used to be 0.03 — effectively deleted — while dimmed *nodes* stayed fully
+ * It used to be 0.03, effectively deleted, while dimmed nodes stayed fully
  * opaque and merely turned pale. That asymmetry is what made a lens look
  * cloudy: the background kept its dots and lost its lines, and dots without
  * lines read as dirt on the screen rather than as distance.
  *
  * Low enough that the lit answer still shouts, high enough that the map
- * survives underneath it — losing the structure is too high a price for
+ * survives underneath it. Losing the structure is too high a price for
  * highlighting part of it.
  */
 function dimmedEdge(dark: boolean): number {
@@ -46,7 +46,7 @@ export interface EdgeMood {
 /**
  * What an edge looks like, given what the view is currently asking.
  *
- * The four analysis overlays — diff, path, impact, violation — used to name a
+ * The four analysis overlays (diff, path, impact, violation) used to name a
  * raw accent and an opacity chosen against the dark ground, on both grounds.
  * The resting language below them did not: it already walked the accent toward
  * the page's own ink and drew it at 0.95. Only the lenses were left behind,
@@ -58,7 +58,7 @@ export interface EdgeMood {
  *   dark     5.50:1    1.05:1      5.2x
  *   paper    2.06:1    1.09:1      1.9x
  *
- * The hue was never the problem — Latte's yellow is a dark ochre, tuned by
+ * The hue was never the problem. Latte's yellow is a dark ochre, tuned by
  * `tokens.css` to reach 3:1 as a fill. It was drawn at 0.6 opacity, which
  * composites it to a pale tan and throws the tuning away before it reaches the
  * screen. On black, giving up 40% of a colour costs almost nothing, because
@@ -72,7 +72,7 @@ export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
    * An accent drawn as an answer rather than as decoration.
    *
    * On paper that means ink: near-full strength, walked toward the colour the
-   * page is written in. `mix` already says why, for nodes — lowering opacity on
+   * page is written in. `mix` says why, for nodes: lowering opacity on
    * white pushes a mark toward the background, which is the opposite of
    * emphasis.
    */

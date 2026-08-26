@@ -3,7 +3,7 @@ import type { GraphNode } from "../types"
 /**
  * What to write beside each file, given who else is on screen.
  *
- * A file's name is its basename, which is short and usually enough — until two
+ * A file's name is its basename, short and usually enough, until two
  * of them are drawn at once. cal.com holds a `PaymentService.ts` for every
  * payment integration and a `zod-utils.ts` in two places, so a neighbourhood
  * could show the same four letters four times over with no way to tell which
@@ -29,7 +29,7 @@ export function disambiguate(nodes: GraphNode[]): Map<string, string> {
     }
 
     // walk up a directory at a time until the names come apart, or the paths
-    // run out — two files can genuinely differ only by a segment nobody sees
+    // run out: two files can genuinely differ only by a segment nobody sees
     const parts = sharing.map((n) => n.id.split("/").slice(0, -1))
     const deepest = Math.max(0, ...parts.map((p) => p.length))
     for (let up = 1; up <= deepest + 1; up++) {

@@ -50,7 +50,7 @@ describe("findCycles", () => {
   it("does not report a file that imports itself", () => {
     // documenting the current contract, not endorsing it: Tarjan yields a
     // single-node component here and the filter drops it. A self-import is
-    // arguably a cycle — if that changes, this test should change with it.
+    // arguably a cycle; if that changes, this test should change with it.
     expect(findCycles(graph(["a"], [["a", "a"]]))).toEqual([])
   })
 
@@ -119,7 +119,7 @@ describe("findOrphans", () => {
   })
 
   it("still reports a file that merely sits beside the conventions", () => {
-    // the guard is on the filename, not the folder — dead code under app/
+    // the guard is on the filename, not the folder: dead code under app/
     // is still dead code
     const g = graph(["app/api/links/helpers.ts", "app/api/links/route.ts"], [])
     expect(findOrphans(g)).toEqual(["app/api/links/helpers.ts"])

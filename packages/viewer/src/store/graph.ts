@@ -10,15 +10,12 @@ import { replayOf, type Replay } from "./timeline"
 import type { LensKind } from "./lens"
 
 /**
- * Toasts, fetched at the moment one is needed rather than up front.
+ * Toasts, fetched when one is needed.
  *
- * The toast library pulls in framer-motion — 55 kB gzip that the landing was
- * shipping in its critical chunk for messages it never shows, because the
- * store is the only thing it imports from the tool. The viewer keeps paying
- * nothing: App.tsx imports the module statically, so by the time anyone can
- * click, it is already there and this resolves from cache.
- *
- * Both call sites are user gestures, never first paint.
+ * The toast library pulls in framer-motion, 55 kB gzip that the landing shipped
+ * in its critical chunk for messages it never shows, since the store is all it
+ * imports from the viewer. App.tsx imports the module statically, so in the
+ * viewer this resolves from cache. Both call sites are user gestures.
  */
 function toast(show: (m: typeof import("../ui/toast")) => void): void {
   void import("../ui/toast").then(show)
@@ -27,11 +24,8 @@ function toast(show: (m: typeof import("../ui/toast")) => void): void {
 /**
  * Everything that transitively reaches `from`, with the number of hops.
  *
- * The blast radius of a change: what would have to be recompiled, and how far
- * each file sits from the edit. Exported because the answer is wanted outside
- * the lens too — anything choosing a file to demonstrate on should choose it by
- * the very walk the amber wave will draw, and two walks that can drift apart
- * are one walk too many.
+ * Exported because the landing picks its demo subject by this same walk: two
+ * walks that can drift apart are one too many.
  *
  * `neighbours` is a direction, not a fixed map: pass `importers` for "what
  * depends on this", `adjacency` for "what is near this".
@@ -75,7 +69,7 @@ function noLens() {
   }
 }
 
-/** E cycles through: everything → each edge type → everything */
+/** E cycles through: everything, then each edge type, then everything */
 const EDGE_FILTER_CYCLE: (EdgeType | null)[] = [
   null,
   "import",
@@ -100,27 +94,27 @@ interface GraphState {
 
   /** camera focus target, consumed by the CameraRig */
   focusTarget: Vec3 | null
-  /** OrbitControls gate — off while dragging a Bézier handle */
+  /** OrbitControls gate, off while dragging a Bezier handle */
   controlsEnabled: boolean
 
   /** user-edited Bézier control points, by edge id */
   ctrl: Map<string, { c1: Vec3; c2: Vec3 }>
 
-  /** rule violations — red highlighting */
+  /** rule violations, drawn red */
   violatedNodes: Map<string, string[]>
   violatedEdges: Map<string, string[]>
 
-  /** nodes nothing imports — likely dead code */
+  /** nodes nothing imports: likely dead code */
   orphans: Set<string>
 
   /** directed adjacency, for impact and path queries */
   importers: Map<string, Set<string>>
   imports: Map<string, Set<string>>
 
-  /** "if I change this, what breaks?" — depth per transitive dependent (I) */
+  /** "if I change this, what breaks?": depth per transitive dependent (I) */
   impactOf: string | null
   impactDepth: Map<string, number>
-  /** when the current impact query started — drives the ring-by-ring reveal */
+  /** when the current impact query started, for the ring-by-ring reveal */
   impactStartedAt: number
   toggleImpact: () => void
 
@@ -137,7 +131,7 @@ interface GraphState {
   showLabels: boolean
   toggleLabels: () => void
 
-  /** edge type filter (E cycles) — null shows everything */
+  /** edge type filter (E cycles); null shows everything */
   edgeFilter: EdgeType | null
   cycleEdgeFilter: () => void
 
@@ -146,20 +140,17 @@ interface GraphState {
   requestPng: () => void
   clearPng: () => void
 
-  /** reposition a node (drag) — connected edges follow */
+  /** reposition a node (drag); connected edges follow */
   moveNode: (id: string, pos: Vec3) => void
-  /** nodes the user placed by hand — frozen out of the simulation */
+  /** nodes the user placed by hand, frozen out of the simulation */
   pinned: Set<string>
 
   /** true when no trame.json was served and the demo graph stands in */
   isDemo: boolean
 
   /**
-   * When the current graph started arriving, or 0 to skip the entrance.
-   *
-   * The landing turns this on so the graph assembles itself in front of the
-   * visitor; the tool leaves it off, because someone who just saved a file
-   * wants their architecture back, not a performance.
+   * When the current graph started arriving, or 0 to skip the entrance. Only
+   * the landing turns it on; a watch reload should not replay a build-in.
    */
   arrivedAt: number
   playArrival: () => void
@@ -169,14 +160,11 @@ interface GraphState {
   setDistrictMode: (v: boolean) => void
 
   /**
-   * Which files the detail view is allowed to draw — `null` when the whole
-   * graph fits and nothing needs holding back.
+   * Which files the detail view may draw, `null` when the whole graph fits.
    *
-   * Districts already stand in for files from a distance, but stepping inside
-   * used to mount every node and every edge in the repository. On cal.com that
-   * is 3451 files and 9458 imports, around 25 800 draw calls, and the scene
-   * stopped being either fast or readable. Measured on that graph: 500 files
-   * are comfortable, 1000 are neither.
+   * Stepping inside used to mount every node and edge in the repository: on
+   * cal.com, 3451 files and 9458 imports, around 25 800 draw calls. Measured on
+   * that graph, 500 files are comfortable and 1000 are not.
    */
   nearby: Set<string> | null
   setNearby: (ids: Set<string> | null) => void
@@ -189,11 +177,10 @@ interface GraphState {
   /**
    * How far the arrangement reaches, as the ninetieth percentile radius.
    *
-   * Every camera distance in the scene used to be a number written for a graph
-   * the size of trame's own — start at 80, collapse to districts past 115, never
-   * pull back beyond 220. cal.com's skeleton reaches 402, so all four sat inside
-   * the cloud and there was no way to rise above the map. They are ratios of
-   * this now, and the ratios are the ones trame was already using.
+   * Every camera distance used to be a constant written for a graph the size of
+   * trame's own: start at 80, collapse to districts past 115, never pull back
+   * beyond 220. cal.com's skeleton reaches 402, so all four sat inside the
+   * cloud with no way to rise above the map. They are ratios of this now.
    */
   extent: number
 
@@ -212,12 +199,12 @@ interface GraphState {
   frameAdded: Set<string>
   frameRemoved: Set<string>
 
-  /** which question the colours are currently answering — only one at a time */
+  /** which question the colours are answering; only one at a time */
   lens: LensKind
   /** drop the lens but keep the selection: esc walks back one step at a time */
   clearLens: () => void
 
-  /** "what if I deleted this?" — the consequences, computed but not applied */
+  /** "what if I deleted this?": the consequences, computed but not applied */
   whatIf: WhatIfReport | null
   whatIfOrphaned: Set<string>
   whatIfBroken: Set<string>
@@ -241,13 +228,9 @@ interface GraphState {
 /**
  * Where a set of files sits, and how far it spreads around that.
  *
- * Every camera distance is a multiple of the spread, so it has to describe what
- * is on screen rather than what exists — and measured from the middle of that,
- * not from the origin. A neighbourhood is a knot somewhere off to one side; its
- * distance *from the origin* says how far away it is, which is not the same
- * question as how big it is, and answering the wrong one framed a thumbnail in
- * an empty screen. The percentile rather than the maximum, because one stray
- * file should not push the camera into orbit.
+ * Measured from the middle of the set, not from the origin. A neighbourhood is
+ * a knot off to one side, so its distance from the origin says how far away it
+ * is, not how big it is, and using that framed a thumbnail in an empty screen.
  */
 function reachOf(
   ids: string[],
@@ -268,16 +251,14 @@ function reachOf(
   /**
    * Frame everything, unless one file has wandered absurdly far.
    *
-   * Trimming the outermost tenth was the first attempt: it keeps a stray among
-   * three thousand from pushing the camera into orbit, and on the forty files
-   * around a selection it quietly dropped four of them off the screen — one of
-   * them a hub, cut in half at the left margin. Framing to the very furthest is
-   * no better: cal.com's cancellation neighbourhood runs to 81 at the median
-   * and 187 at the ninety-fifth, with a single file out at 323, and letting
-   * that one file decide would shrink the other thirty-nine by half.
+   * Trimming the outermost tenth was the first attempt: on the forty files
+   * around a selection it dropped four off screen, one of them a hub cut in
+   * half at the margin. Framing to the very furthest is no better. cal.com's
+   * cancellation neighbourhood runs to 81 at the median and 187 at the
+   * ninety-fifth with a single file at 323, and letting that one decide would
+   * halve the other thirty-nine.
    *
-   * So the whole set counts, up to a few times the middle of it. Nothing is
-   * excluded for being merely far — only for being out of all proportion.
+   * So the whole set counts, up to a few times the middle of it.
    */
   const median = radii[Math.floor(radii.length / 2)] ?? 60
   const furthest = radii[radii.length - 1] ?? 60
@@ -457,9 +438,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const frame = timeline?.frames[index]
     if (!frame || !replay) return
     /**
-     * Rebuilt from the first frame and the changes since, because a frame no
-     * longer carries the whole architecture — forty copies of the same three
-     * thousand files is most of what a replay used to weigh.
+     * Rebuilt from the first frame and the changes since: a frame no longer
+     * carries the whole architecture, and forty copies of the same three
+     * thousand files was most of what a replay used to weigh.
      */
     const graph = replay.at(index)
     if (!graph) return
@@ -583,12 +564,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     /**
      * What the detail view opens on, decided before the first render.
      *
-     * A large repository opens on its skeleton — the files that hold it up —
-     * rather than on whichever four hundred happened to sit near the camera.
-     * Selecting a file then swaps the skeleton for that file's neighbourhood.
-     * Both are settled here so the scene never mounts the whole graph even
-     * once: deciding a frame later meant building cal.com's 25 800 draw calls
-     * and throwing them away in the same breath.
+     * A large repository opens on its skeleton, the files that hold it up, and
+     * selecting one swaps that for its neighbourhood. Both are settled here so
+     * the scene never mounts the whole graph even once: deciding a frame later
+     * built cal.com's 25 800 draw calls and threw them away immediately.
      */
     const ids = data.nodes.map((n) => n.id)
     const traffic = impassable(ids, data.edges)
@@ -627,14 +606,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     })
 
     /**
-     * Open on a question rather than on a graph.
-     *
-     * A repository too big to draw whole is also too big to *read* whole, so
-     * landing on all of it asks the reader to find their own way in. Landing on
-     * the worst thing the codebase is actually doing gives them somewhere to
-     * stand — and the neighbourhood view answers it immediately.
-     *
-     * Only for graphs that already needed a skeleton: a small one shows
+     * Open on a question rather than on a graph, so the reader has somewhere to
+     * stand. Only for graphs that already needed a skeleton: a small one shows
      * everything at once and has nothing to lead with.
      */
     if (bones) get().openOnFinding()
@@ -648,12 +621,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     /**
      * The biggest finding is rarely the one worth opening on.
      *
-     * cal.com's is a 106-file loop through generated Prisma models — the
-     * largest by a distance, and architecture nobody wrote. Not one of those
-     * files survives the peeling that leaves the skeleton, while the cycle a
-     * reader should care about (`getCalendar → CalendarSubscriptionService →
-     * …`) is 87% load-bearing. So the skeleton picks the question, and the
-     * ranking only orders what is left.
+     * cal.com's is a 106-file loop through generated Prisma models: the largest
+     * by a distance, and architecture nobody wrote. Not one of those files
+     * survives the peeling that leaves the skeleton, while the cycle a reader
+     * should care about (`getCalendar -> CalendarSubscriptionService -> ...`)
+     * is 87% load-bearing. So the skeleton picks the question and the ranking
+     * only orders what is left.
      */
     const worth = diagnose(data).find(
       (f) => f.kind === "cycle" && f.nodeIds.some((id) => skeletonSet.has(id)),
@@ -670,14 +643,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     get().select(focus)
 
     /**
-     * Frame the answer, not the repository.
+     * Frame the answer, not the repository. `extent` was measured over the
+     * skeleton, some four hundred units across, and the neighbourhood is a
+     * fraction of that, so the scene showed a thumbnail in an empty frame.
      *
-     * The camera works in multiples of `extent`, which was measured over the
-     * skeleton — some four hundred units across. The neighbourhood it has just
-     * opened on is a tight knot a fraction of that, so left alone the scene
-     * showed a thumbnail adrift in an empty frame. Only on the opening move:
-     * re-framing on every later click would snatch the camera out of the
-     * reader's hands.
+     * Only on the opening move: re-framing on every later click would take the
+     * camera out of the reader's hands.
      */
     const { nearby, positions } = get()
     if (!nearby) return
@@ -695,12 +666,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   select: (id) => {
     const { adjacency, data, skeletonSet, traffic } = get()
     /**
-     * Selecting a file is asking about it, so answer with what it talks to.
-     *
-     * Two hops: on cal.com the median file reaches 32 others that way, and the
-     * few that would reach hundreds do it through the same handful of universal
-     * utilities, which are drawn but not travelled through. Letting go of the
-     * selection puts the skeleton back — the map you came from.
+     * Selecting a file answers with what it talks to, out to two hops: on
+     * cal.com the median file reaches 32 others that way, and the few that
+     * would reach hundreds do it through the same handful of universal
+     * utilities, which are drawn but not travelled through.
      */
     const nearby =
       id && skeletonSet && data
@@ -759,21 +728,14 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   /**
    * Letting go of a file gives the map back.
    *
-   * This used to drop the selection and leave `nearby` where the selection had
-   * put it, so both ways out — escape and a click on the background — landed
-   * on the neighbourhood of nothing: sixty-five files of three thousand five
-   * hundred, unlit, with the camera still parked on a knot that no longer had
-   * a reason to be the subject. Nothing widened it again, so once you had
-   * opened a file the only way back to the map was a reload.
+   * This used to drop the selection and leave `nearby` narrowed, so escape and
+   * a click on the background both landed on 65 files of 3547, unlit, with the
+   * camera still on a knot that was no longer the subject. Nothing widened it
+   * again, so the only way back to the map was a reload. `select` already knew
+   * how, but `select(null)` was never called from anywhere.
    *
-   * `select` already knew how — its own null branch falls back to the skeleton
-   * — but nothing ever called `select(null)`, and the branch sat unreachable
-   * from the interface.
-   *
-   * The camera comes back only when the view was actually narrowed. Clicking
-   * the background with nothing selected is how people deselect, and how they
-   * find out that nothing was selected; taking the camera off them for it
-   * would punish the gesture.
+   * The camera comes back only when the view was actually narrowed: clicking
+   * the background is also how people find out nothing was selected.
    */
   clear: () => {
     const { skeletonSet, nearby, data, positions } = get()
@@ -806,8 +768,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 }))
 
 /**
- * The graph as it looks right now — curves you bent and the layout you
- * arranged — in the trame.json shape, so reopening restores your composition.
+ * The graph as it looks right now, curves and layout included, in the
+ * trame.json shape, so reopening restores the composition.
  */
 export function currentGraph(): GraphData | null {
   const { data, ctrl, positions } = useGraphStore.getState()

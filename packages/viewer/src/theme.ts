@@ -75,7 +75,7 @@ function channels(hex: string): [number, number, number] {
 /**
  * Blend two palette colours. On a light ground this is how a node is dimmed:
  * washed toward the paper, never made transparent. Lowering opacity on white
- * pushes a node toward the background — the opposite of receding.
+ * pushes a node toward the background, which is the opposite of receding.
  */
 export function mix(a: string, b: string, t: number): string {
   const [r1, g1, b1] = channels(a)
@@ -118,7 +118,7 @@ export function getThemePref(): ThemePref {
   return v === "dark" || v === "light" ? v : "auto"
 }
 
-/** Stamp data-theme on the root — the MutationObserver refreshes the palette. */
+/** Stamp data-theme on the root; the MutationObserver refreshes the palette. */
 export function applyThemePref(pref: ThemePref): void {
   if (pref === "auto") delete document.documentElement.dataset.theme
   else document.documentElement.dataset.theme = pref

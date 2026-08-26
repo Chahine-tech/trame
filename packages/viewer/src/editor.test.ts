@@ -12,7 +12,7 @@ describe("finding a node's file on this machine", () => {
 
   it("refuses to guess when the graph carries no root", () => {
     // a published graph drops its root, and the file it names lives on somebody
-    // else's disk — sending the editor after it would open nothing, or worse,
+    // else's disk, so sending the editor after it would open nothing, or worse,
     // open an unrelated file that happens to sit at the same relative path
     expect(locate("src/App.tsx", undefined)).toBeNull()
   })

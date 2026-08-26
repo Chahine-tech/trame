@@ -3,15 +3,10 @@ import { Component, type ReactNode } from "react"
 /**
  * Keeps a failing 3D scene from taking the page down with it.
  *
- * Without this, an exception anywhere in the canvas — no WebGL, hardware
- * acceleration switched off, an old driver, a GPU that gives up — propagates to
- * the root and React unmounts everything. The visitor gets a blank white page:
- * no headline, no pitch, no link. And it happens on exactly the machines that
- * cannot be tested from here.
- *
- * On failure it renders nothing at all. The copy is written to stand on its own
- * and the page degrades to what it says rather than to nothing, which is the
- * difference between a plain landing and a broken one.
+ * No WebGL, hardware acceleration off, an old driver: without this the
+ * exception reaches the root and React unmounts the whole page, headline and
+ * links included, on exactly the machines that cannot be tested from here.
+ * On failure it renders nothing and the copy stands on its own.
  */
 export class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }

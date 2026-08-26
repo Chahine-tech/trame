@@ -69,7 +69,7 @@ describe("rebuilding a frame", () => {
   })
 
   it("carries a file that changed without arriving or leaving", () => {
-    // a module that becomes a component is drawn differently — the type decides
+    // a module that becomes a component is drawn differently: the type decides
     // shape and colour, so a delta that only tracked arrivals would lose it
     const changed = timeline([
       frame({ graph: graph([node("a")]) }),

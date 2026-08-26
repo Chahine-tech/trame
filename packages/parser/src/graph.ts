@@ -50,7 +50,7 @@ export function buildGraph(project: Project, srcRoot: string, projectName: strin
       id: rel,
       label: labelFor(file),
       type: classify(file),
-      // relative, with the root recorded once in meta — a graph is a thing
+      // relative, with the root recorded once in meta, because a graph is a thing
       // people share, and it should not carry the layout of their machine
       file: rel,
       line: firstExportLine(file),

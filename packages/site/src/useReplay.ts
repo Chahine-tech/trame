@@ -6,17 +6,12 @@ import type { Timeline } from "@trame/viewer/types"
 const FRAME_MS = 1100
 
 /**
- * The architecture growing through git history, driven by the page.
+ * Playback for the replay section. The other sections ask one question and the
+ * answer stays put; this one walks a sequence and winds it back on the way out.
  *
- * This is the one section that cannot be a single store call: the others ask a
- * question and the answer stays on screen, while a replay is a sequence that
- * has to be walked and then wound back when the visitor leaves. So the section
- * declares the lens and this owns the playback.
- *
- * The timeline is 222 kB against the graph's 17 — an order of magnitude more —
- * so it is fetched on approach rather than up front. Everything the page did
- * today to keep the first paint clear would be undone by loading it eagerly for
- * a section most visitors never reach.
+ * The timeline is 222 kB against the graph's 17, so it is fetched on approach.
+ * Loading it up front would undo the rest of the page's first-paint work for a
+ * section most visitors never reach.
  */
 export function useReplay(active: boolean, armed: boolean): void {
   const timeline = useGraphStore((s) => s.timeline)
@@ -47,8 +42,8 @@ export function useReplay(active: boolean, armed: boolean): void {
     tick.current = setInterval(() => {
       i++
       if (i >= timeline.frames.length) {
-        // hold on the present rather than looping — the point is that this is
-        // where the codebase arrived, not that it keeps arriving
+        // hold on the present rather than looping: this is where the codebase
+        // arrived, not somewhere it keeps arriving
         if (tick.current) clearInterval(tick.current)
         return
       }

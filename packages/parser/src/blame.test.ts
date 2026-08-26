@@ -5,7 +5,7 @@ import { firstWhere } from "./blame.js"
  * The search, without a repository.
  *
  * Every probe here is a git worktree and a full parse in real use, so the
- * count is not an implementation detail — it is what the command costs, and
+ * count is not an implementation detail: it is what the command costs, and
  * the difference between a few seconds and a few minutes on a long history.
  */
 

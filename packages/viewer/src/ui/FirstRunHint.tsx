@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 const SEEN_KEY = "trame-seen-hint"
 
 /**
- * One line, once. Not a tour — just enough to reveal that nodes respond and
+ * One line, once. Not a tour, just enough to reveal that nodes respond and
  * edges are clickable (the differentiator nobody discovers on their own).
  * Dismisses on the first real interaction.
  */

@@ -2,12 +2,9 @@ import { findCycles, findOrphans } from "./analysis.js"
 import type { GraphData, GraphEdge } from "./types.js"
 
 /**
- * What to fix, worst first.
- *
- * `check` answers "is anything broken" and gates CI on it. This answers the
- * question people actually have in front of a graph they did not draw: of
- * everything wrong here, what is worth my afternoon? A list of problems is not
- * advice until it is ordered and each item says what to do.
+ * What to fix, worst first. `check` answers "is anything broken" and gates CI
+ * on it; this answers "of everything wrong here, what is worth my afternoon",
+ * so every item is ranked and says what to do.
  */
 export interface Finding {
   kind: "cycle" | "orphan" | "violation"
@@ -15,7 +12,7 @@ export interface Finding {
   title: string
   /** what to do about it */
   fix: string
-  /** how much this one buys — the ranking key, comparable within a kind */
+  /** how much this one buys: the ranking key, comparable within a kind */
   impact: number
   nodeIds: string[]
 }
@@ -72,11 +69,9 @@ function bestCut(
 }
 
 /**
- * Everything that would disappear along with an unreferenced file.
- *
- * Dead code is rarely one file. A module nothing imports usually drags its own
- * private helpers with it, and those only look alive because it imports them —
- * so the honest cost of keeping it is the whole subtree, not the single node.
+ * Everything that would disappear along with an unreferenced file. A module
+ * nothing imports drags its private helpers with it, and those only look alive
+ * because it imports them, so the cost of keeping it is the whole subtree.
  */
 function deadWeight(graph: GraphData, orphan: string): string[] {
   const importers = new Map<string, Set<string>>()
@@ -138,14 +133,13 @@ export function diagnose(graph: GraphData): Finding[] {
   /**
    * Dead code is an inference, and a weaker one than it looks.
    *
-   * "Nothing imports this" is true of the graph, and the graph does not contain
-   * dynamic imports, framework conventions like a Next.js route, registries
-   * keyed by string, or the test files trame excludes on purpose — on cal.com,
-   * 14% of the files reported here are imported by a test and nothing else.
+   * "Nothing imports this" is true of the graph, and the graph holds no dynamic
+   * imports, no framework conventions, no registries keyed by string, and none
+   * of the test files trame excludes on purpose: on cal.com, 14% of the files
+   * reported here are imported by a test and nothing else.
    *
-   * So it is phrased as a question rather than an instruction, and ranked below
-   * cycles, which are facts about the graph rather than guesses about the world.
-   * A tool that confidently tells you to delete 1327 working files gets closed.
+   * So it is phrased as a question and ranked below cycles, which are facts
+   * about the graph rather than guesses about the world.
    */
   for (const orphan of findOrphans(graph)) {
     const weight = deadWeight(graph, orphan)

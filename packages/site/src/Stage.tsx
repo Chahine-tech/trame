@@ -28,20 +28,14 @@ export function Stage({
 
   useEffect(() => {
     // positions are baked into the file, so load() seeds from them instead of
-    // running a solver — the flat preview and the scene agree exactly
+    // solving, and the flat preview matches the scene exactly
     load(data)
     setReady(true)
   }, [data, load])
 
   useHeroScript(ready && scripted, setCaption)
 
-  /**
-   * The hero narrates itself; a section is narrated by what its lens found.
-   *
-   * Same bubble, same place, two sources — because the visitor is watching one
-   * continuous thing and a second widget appearing lower down would say the
-   * page had changed mode.
-   */
+  // one bubble, two sources: the hero's caption, then whatever the lens found
   const status = useLensStatus()
   const line = scripted ? caption : status
 

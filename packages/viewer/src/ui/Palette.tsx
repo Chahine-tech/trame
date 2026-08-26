@@ -40,7 +40,7 @@ async function copyDiagram(label: string, serialize: (g: GraphData) => string): 
 
 /**
  * ⌘K command palette. Opened 100+ times a day → zero animation, ever
- * (frequency rule — Raycast has no open/close animation either).
+ * (frequency rule; Raycast has no open/close animation either).
  */
 export function Palette({
   open,

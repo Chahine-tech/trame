@@ -1,13 +1,9 @@
 /**
- * The entrance: the graph assembles itself instead of appearing.
+ * The entrance: the graph assembles itself instead of appearing. A static graph
+ * fading in reads as an image; nodes landing in a cascade with edges drawing
+ * between them costs nothing extra, since the positions are already known.
  *
- * A landing visitor's first second decides whether they stay, and a static
- * graph fading in reads as an image. Building it in front of them — nodes
- * landing in a cascade, edges drawing between them — is the demonstration
- * itself, and it costs nothing extra: the positions are already known.
- *
- * The tool leaves this off. Someone who just saved a file wants their
- * architecture back, not a performance.
+ * The viewer leaves this off. A watch reload should not replay a build-in.
  */
 
 /** How long one node takes to land. */
@@ -19,7 +15,7 @@ const EDGE_DRAW_MS = 420
 /** Spacing between consecutive arrivals. */
 const STAGGER_MS = 34
 
-/** Distinct start slots — the cascade repeats past this, which keeps it tight. */
+/** Distinct start slots; the cascade repeats past this, which keeps it tight. */
 const SLOTS = 24
 
 /**
@@ -36,7 +32,7 @@ function arrivalSlot(id: string): number {
 
 /**
  * How far along a node's landing is: 0 before it starts, 1 once it is home.
- * `arrivedAt` of 0 means no entrance was requested — everything is already home.
+ * `arrivedAt` of 0 means no entrance was requested: everything is already home.
  */
 export function nodeProgress(arrivedAt: number, id: string, now: number): number {
   if (arrivedAt <= 0) return 1

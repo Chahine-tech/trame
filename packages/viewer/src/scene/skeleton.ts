@@ -11,7 +11,7 @@ import type { GraphEdge } from "../types"
  * It does *not*, however, get rid of the universal utilities: on cal.com
  * `prisma`, `constants` and `logger` all sit in the deepest shell, because
  * everything in the core imports them and so they are densely connected by
- * construction. They have to be excluded on purpose — see `impassable`. Ten of
+ * construction. They have to be excluded on purpose, see `impassable`. Ten of
  * them account for thirty per cent of the edges inside cal.com's core, and
  * removing them leaves it connected, which is the tell: they carry no
  * structure, only traffic.
@@ -59,8 +59,8 @@ export function coreness(ids: string[], edges: GraphEdge[]): Map<string, number>
  *
  * `k` is not a setting: it is the shallowest depth whose core comes in under
  * budget, so a small repository keeps everything and a large one shows its
- * skeleton. On cal.com that lands at 6 or 7 — around two hundred files out of
- * three and a half thousand — and on trame's own thirty files it withholds
+ * skeleton. On cal.com that lands at 6 or 7, around two hundred files out of
+ * three and a half thousand; on trame's own thirty files it withholds
  * nothing at all.
  *
  * Returns null when the whole graph already fits, which is how every graph the
@@ -77,7 +77,7 @@ export function skeleton(
    * The utilities come out first, and it is worth being clear that this is a
    * second rule and not a consequence of the first.
    *
-   * Coreness puts them at the very centre — they are imported by everything
+   * Coreness puts them at the very centre, since they are imported by everything
    * that matters, so they are as densely connected as anything can be. But a
    * file every part of the system reaches for says nothing about how the system
    * is arranged, and it drags a line to each of its neighbours: on cal.com, ten
@@ -105,8 +105,8 @@ export function skeleton(
  *
  * Two hops is the readable distance: on cal.com the median file reaches 94
  * others that way, and 8% of files blow past four hundred. Every one of those
- * explosions runs through the same handful of files — `logger`, `constants`,
- * `prisma` — which connect everything to everything and so say nothing about
+ * explosions runs through the same handful of files (`logger`, `constants`,
+ * `prisma`) which connect everything to everything and so say nothing about
  * where a file sits. Declining to *route* through them (they are still drawn if
  * they are adjacent) brings the median to 35 and the worst case inside budget,
  * and it does so without discarding a single real relationship.
@@ -134,7 +134,7 @@ export function neighbourhood(
   for (let hop = 0; hop < hops; hop++) {
     const next: string[] = []
     for (const id of frontier) {
-      // shown, but not travelled through — the focus itself always expands
+      // shown, but not travelled through; the focus itself always expands
       if (id !== focus && impassable.has(id)) continue
       for (const other of neighbours.get(id) ?? []) {
         if (seen.has(other)) continue
@@ -170,7 +170,7 @@ export function impassable(ids: string[], edges: GraphEdge[], share = 0.03): Set
 /**
  * The widest view of a file's surroundings that still fits on screen.
  *
- * Two hops is the readable distance and almost always affordable — on cal.com
+ * Two hops is the readable distance and almost always affordable: on cal.com
  * the median file reaches 32 others and only one in a hundred passes four
  * hundred. Almost always is not always: opening on `handleCancelBooking`, which
  * is exactly the kind of well-connected file worth opening on, reached 426. So

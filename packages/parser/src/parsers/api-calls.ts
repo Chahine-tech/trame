@@ -12,7 +12,7 @@ export interface ApiCallUsage {
 const HTTP_CLIENTS = new Set(["axios", "ky"])
 const HTTP_METHODS = new Set(["get", "post", "put", "patch", "delete", "head"])
 
-/** `/users/${id}` → `/users/:id` — stable identity across call sites. */
+/** `/users/${id}` becomes `/users/:id`, a stable identity across call sites. */
 function normalizeEndpoint(raw: string): string {
   return raw
     .replace(/^[`'"]|[`'"]$/g, "")

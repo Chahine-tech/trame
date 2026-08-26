@@ -22,7 +22,7 @@ describe("pickEvenly", () => {
   })
 
   it("never exceeds the budget", () => {
-    // the budget is what a viewer can watch — going over it turns the replay
+    // the budget is what a viewer can watch; going over it turns the replay
     // into something nobody sits through
     for (const n of [50, 500, 5000]) {
       expect(pickEvenly(commits(n), 40).length).toBeLessThanOrEqual(40)

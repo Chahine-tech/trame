@@ -1,21 +1,18 @@
-// Bake the layout into the demo data so the landing runs no solver at all.
+// Bake the layout into the demo data so the landing runs no solver at all:
+// nothing settles before the first paint, and the arrival cascade can be
+// choreographed because every node already knows where it lands.
 //
-// Two things depend on this. Nothing has to settle before the first paint, so
-// the graph is on screen at its final shape; and the arrival cascade can be
-// choreographed at all, because every node already knows where it lands.
-//
-// The solver is the viewer's own — imported, not reimplemented. A second copy
-// here would drift from the one the tool runs, and the baked file would stop
-// matching what a visitor clicking through actually sees.
+// The solver is imported from the viewer, not reimplemented, so the baked file
+// matches what a visitor clicking through sees.
 import { readFileSync, writeFileSync } from "node:fs"
 import { runLayout } from "@trame/viewer/scene/Layout"
 
 const path = new URL("../public/demo.json", import.meta.url)
 const graph = JSON.parse(readFileSync(path, "utf8"))
 
-// runLayout warm-starts from positions already in the file — right for a file
-// save in watch mode, wrong here: re-baking would nudge the layout a little
-// further every run. Stripping them forces the full cold solve, which d3 seeds
+// runLayout warm-starts from positions already in the file, which is right for
+// a save in watch mode and wrong here: re-baking would nudge the layout further
+// every run. Stripping them forces the cold solve, which d3 seeds
 // deterministically, so the same graph always bakes to the same coordinates.
 const cold = {
   ...graph,

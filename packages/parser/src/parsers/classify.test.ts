@@ -20,7 +20,7 @@ describe("labelFor", () => {
 
   it("keeps page and layout apart when they share a folder", () => {
     // the Next.js app router puts both in the same directory. Handing them the
-    // folder name alone produced two nodes called "app" in a real project —
+    // folder name alone produced two nodes called "app" in a real project,
     // indistinguishable in the graph, in a Mermaid export, and in any advice
     // that names them.
     expect(label("/app/page.tsx")).toBe("app/page")

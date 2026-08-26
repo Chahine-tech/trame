@@ -6,32 +6,22 @@ const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
 const REPO = "https://github.com/Chahine-tech/trame"
 
 /**
- * Where the tool lives. It is a separate application with its own deployment,
- * so this is the one place that knows about it.
+ * Set VITE_VIEWER_URL at build time to the hosted viewer.
  *
- * Set VITE_VIEWER_URL at build time to the hosted viewer's URL. The fallbacks
- * differ by environment on purpose: locally it points at the port the viewer's
- * dev server uses, so the link works with nothing configured — but shipping
- * that same localhost URL to production would put a dead link on the page's
- * primary call to action, silently, on every visitor's machine but the
- * author's. Unset in a production build, it sends people somewhere real.
+ * The fallbacks differ by environment: unset in production the localhost URL
+ * would be a dead link on the primary call to action, on every machine but
+ * the author's.
  */
 const DEMO_URL =
   import.meta.env.VITE_VIEWER_URL ?? (import.meta.env.DEV ? "http://localhost:5173/" : REPO)
 
-/**
- * The first screen: the promise, and the graph proving it behind.
- *
- * It owns no canvas of its own — the page pins one behind every section, so
- * scrolling never restarts the graph. This is only the copy.
- */
+/** Copy only. The page pins one canvas behind every section. */
 export function Hero() {
   const [theme, setTheme] = useState(getThemePref)
 
   return (
     <section className="hero">
-      {/* The product ships two deliberate visual worlds — a lit space and an
-          inked plate — and the landing is the product, so it offers both. */}
+      {/* the viewer ships both grounds, so the landing offers both */}
       <button
         className="theme-toggle"
         onClick={() => setTheme(cycleThemePref())}
@@ -66,14 +56,10 @@ export function Hero() {
           </a>
         </div>
 
-        {/* The strongest claim on the page, and it costs a sentence.
-         *
-         * The graph is not a mock-up: every one of its nodes is a real file in
-         * packages/viewer/src, parsed by the real parser. NodeMesh and EdgeMesh
-         * are in there — so the code drawing this graph is part of what it
-         * draws. "This is the tool itself, running" said the same thing and
-         * asked to be taken on trust; this version can be checked by clicking
-         * a node. */}
+        {/* Every node is a real file in packages/viewer/src, NodeMesh and
+            EdgeMesh included. The earlier wording, "this is the tool itself,
+            running", asked to be taken on trust; this one can be checked by
+            clicking a node. */}
         <p className="hero-hint">
           <span className="live">live</span>
           trame parsed its own source — the files drawing this graph are in it. Scroll

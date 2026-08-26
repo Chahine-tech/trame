@@ -9,7 +9,7 @@ interface CapturableRenderer {
   domElement: HTMLCanvasElement
 }
 
-/** Lives inside the Canvas — renders a fresh frame, then downloads it (⌘E). */
+/** Lives inside the Canvas: renders a fresh frame, then downloads it (⌘E). */
 export function CaptureFrame() {
   const gl = useThree((s) => s.gl)
   const scene = useThree((s) => s.scene)
@@ -20,7 +20,7 @@ export function CaptureFrame() {
     if (!requested) return
     const renderer = gl as unknown as CapturableRenderer
     void (async () => {
-      // draw right before capture — the WebGPU canvas holds the last presented frame
+      // draw right before capture: the WebGPU canvas holds the last presented frame
       if (renderer.renderAsync) await renderer.renderAsync(scene, camera)
       else renderer.render(scene, camera)
       renderer.domElement.toBlob((blob) => {

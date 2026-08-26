@@ -21,7 +21,7 @@ export function setEditor(scheme: EditorScheme): void {
   localStorage.setItem(EDITOR_KEY, scheme)
 }
 
-/** "Try the next one" — the right affordance for the toast's recovery button. */
+/** "Try the next one": the affordance for the toast's recovery button. */
 export function cycleEditor(): EditorScheme {
   const next = EDITORS[(EDITORS.indexOf(getEditor()) + 1) % EDITORS.length]!
   setEditor(next)
@@ -32,7 +32,7 @@ export function cycleEditor(): EditorScheme {
  * Where a node's file lives on this machine, or null when it lives on none.
  *
  * Nodes carry a path relative to the parsed root, and the root itself is
- * recorded once in the graph's metadata — so a published graph simply omits it
+ * recorded once in the graph's metadata, so a published graph simply omits it
  * and no longer describes anybody's disk. A graph without a root is a graph
  * somebody else parsed: there is nothing here to open, and guessing would send
  * the editor after a file that does not exist.

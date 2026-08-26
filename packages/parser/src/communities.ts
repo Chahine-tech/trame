@@ -3,21 +3,19 @@ import type { GraphData } from "./types.js"
 /**
  * Where the module boundaries actually are, as opposed to where the folders say.
  *
- * A folder tree is a claim about structure that nobody re-checks after the
- * first week. This finds the groups of files that genuinely depend on each
- * other far more than on anything else, and then reports where that disagrees
- * with the directories — a folder holding three unrelated things, or two
- * folders that are really one module wearing two names.
+ * Finds the groups of files that depend on each other far more than on anything
+ * else, then reports where that disagrees with the directories: a folder
+ * holding three unrelated things, or two folders that are one module.
  *
  * Louvain, on the import graph treated as undirected: if A imports B the two
- * are coupled, and which way the arrow points says nothing about whether they
+ * are coupled, and the arrow's direction says nothing about whether they
  * belong together.
  */
 
-/** An undirected, weighted view of the graph — parallel edges become weight. */
+/** An undirected, weighted view of the graph; parallel edges become weight. */
 interface Weighted {
   ids: string[]
-  /** neighbour index → weight, per node index */
+  /** neighbour index mapped to weight, per node index */
   adj: Map<number, number>[]
   /** summed weight incident to each node, self-loops counted twice */
   degree: number[]
@@ -150,12 +148,10 @@ export interface Communities {
 }
 
 /**
- * Endpoints and query keys are not files.
- *
- * They are synthetic nodes trame adds to show what the code talks to, and they
- * are leaves by construction — every one of them pulls its callers toward a
- * community of its own and reports "api/ holds two groups" about things that
- * were never in a folder. Module boundaries are a question about source files.
+ * Endpoints and query keys are not files. They are synthetic nodes trame adds
+ * to show what the code talks to, and they are leaves by construction: each
+ * pulls its callers toward a community of its own and reports "api/ holds two
+ * groups" about things that were never in a folder.
  */
 const SYNTHETIC = new Set(["api", "query-key"])
 
@@ -212,11 +208,9 @@ export interface Disagreement {
 }
 
 /**
- * Where the tree and the graph disagree.
- *
- * This is the part worth reading. The partition itself is an implementation
- * detail; what a person can act on is "this folder is three things" and "these
- * two folders are one".
+ * Where the tree and the graph disagree. The partition itself is an
+ * implementation detail; what a person can act on is "this folder is three
+ * things" and "these two folders are one".
  */
 export function disagreements(graph: GraphData, found: Communities): Disagreement {
   graph = { ...graph, nodes: graph.nodes.filter((n) => found.of.has(n.id)) }
@@ -240,12 +234,9 @@ export function disagreements(graph: GraphData, found: Communities): Disagreemen
       groups.get(c)!.push(f)
     }
     /**
-     * A part has to be substantial in both senses before it counts.
-     *
      * Three files, and a real share of the folder. On cal.com's 607-file `v2`
-     * package the loose threshold reported 28 groups, twenty-four of which
-     * were pairs — technically separate communities, and worthless as advice.
-     * A claim that a folder holds two things has to survive being read.
+     * package the loose threshold reported 28 groups, twenty-four of them
+     * pairs: separate communities, and worthless as advice.
      */
     const parts = [...groups.values()].filter(
       (g) => g.length >= 3 && g.length >= files.length * 0.15,

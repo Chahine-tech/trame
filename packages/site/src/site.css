@@ -1,33 +1,28 @@
-/* The viewer's tokens carry over untouched: same palette, same easings, same
-   type. The landing is not "inspired by" the product — it is the product with
-   a different tempo. */
+/* The viewer's tokens carry over untouched: same palette, easings and type. */
 
 html,
 body,
 #root {
   margin: 0;
-  /* min-height, not height, and nothing hidden: the page is taller than the
-     viewport now. It used to be exactly one screen, where `height: 100%` plus
-     `overflow: hidden` was a cheap way to forbid a stray scrollbar — carried
-     forward unchanged it forbade scrolling itself. */
+  /* min-height, not height: the page is taller than the viewport. The old
+     `height: 100%` plus `overflow: hidden`, from when it was one screen,
+     forbade scrolling itself. */
   min-height: 100%;
   background: var(--base);
   color: var(--text);
-  /* the tokens define the faces; something has to apply them, and the viewer's
-     own stylesheet — which used to do it — is deliberately not imported here */
+  /* the tokens define the faces; the viewer's stylesheet, which used to apply
+     them, is deliberately not imported here */
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* The canvas is pinned, so only the copy ever moves. Nothing wide enough to
-   scroll sideways should exist; if it does, that is the bug, not the axis. */
+/* the canvas is pinned, so nothing should ever be wide enough to scroll */
 html {
   overflow-x: hidden;
 }
 
-/* Where the canvas starts. Declared once on the page because three things
-   depend on it: the canvas, the status bubble that has to ignore it, and the
-   width of every copy column that must not sit under it. */
+/* Where the canvas starts. On .page because three things read it: the canvas,
+   the status bubble that ignores it, and the copy column that avoids it. */
 .page {
   position: relative;
   --canvas-left: 38vw;
@@ -45,8 +40,7 @@ html {
   width: 100%;
 }
 
-/* Each scrolled section is a screen of its own, so exactly one holds the
-   viewport at a time and the observer has an unambiguous answer. */
+/* one screen each, so exactly one section holds the viewport at a time */
 .beat {
   position: relative;
   height: 100vh;
@@ -58,17 +52,10 @@ html {
 
 /* One canvas, pinned, owning the right side of every screen.
  *
- * Pinned rather than per-section: the graph is never rebuilt, never crossfaded,
- * never swapped for a screenshot. Scrolling only changes the question being
- * asked of it, and that argument holds only if what is on screen never resets.
- *
- * Bounded to the right side rather than aimed off-centre — a world-space camera
- * offset rotates with the orbit, so the graph swung back across the headline
- * every half turn. An element boundary is fixed in screen space by construction,
- * and since the scene's background is the page's own token, the seam is invisible.
- *
- * No fade-in: the graph builds itself on arrival, and cross-fading a build-in
- * decorates the wait twice.
+ * Bounded by the element rather than by a world-space camera offset: an offset
+ * rotates with the orbit, so the graph swung back across the headline every
+ * half turn. The scene's background is the page's own token, so the seam does
+ * not show. No fade-in, since the graph already builds itself on arrival.
  */
 .stage {
   position: fixed;
@@ -76,38 +63,28 @@ html {
   z-index: 0;
 }
 /* The graph dissolves as it approaches the text instead of stopping at an
- * invisible edge. The canvas starts where the copy ends, so anything drifting
- * into that band lands in the whitespace the composition depends on — and a
- * distant node there reads as a smudge, not as depth.
+ * edge.
  *
- * This is the only fade at that boundary. A scrim used to do the same job from
- * the other side, painting page colour over the seam, but it lived inside the
- * copy column's stacking context (z-index 10) and so painted over anything
- * below it too — it was washing out the left third of the status bubble. A
- * mask attenuates the renderer's own output and can only ever affect the
- * graph, which is what was wanted in the first place.
+ * A scrim did this from the other side and lived in the copy column's stacking
+ * context (z-index 10), so it painted over the left third of the status bubble
+ * too. A mask attenuates the renderer's output and can only reach the graph.
  *
- * Masked on the <canvas>, not the wrapper: the bubble is a sibling and stays
- * fully opaque. The band is wide enough to still cover the copy column at its
- * widest (46vw) on narrow windows. */
+ * On the <canvas>, not the wrapper, so the bubble stays opaque. The band still
+ * covers the copy column at its widest (46vw) on narrow windows. */
 .stage canvas {
   display: block;
-  /* Three's OrbitControls stamps `touch-action: none` inline on connect, which
-     on a phone means a finger on the graph cannot scroll the page — the same
-     bug as the wheel, one input device further. pan-y hands vertical gestures
-     back to the document and keeps horizontal ones for the camera. Inline
-     styles win, so this has to shout. */
+  /* OrbitControls stamps `touch-action: none` inline on connect, so a finger
+     on the graph could not scroll the page. pan-y hands vertical gestures back
+     to the document. Inline styles win, so this has to shout. */
   touch-action: pan-y !important;
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16%);
   mask-image: linear-gradient(to right, transparent 0, black 16%);
 }
 
-/* Copy sits on the left, the graph breathes on the right — nothing is centred
-   over the thing it is meant to let you see. */
+/* copy left, graph right: nothing is centred over what it lets you see */
 .hero-copy {
   position: relative;
-  /* above the scene's DOM labels (drei Html goes up to 5): a node name
-     rendered through the headline reads as broken, not as depth */
+  /* above the scene's DOM labels (drei Html goes up to 5) */
   z-index: 10;
   height: 100%;
   width: min(560px, 46vw);
@@ -188,12 +165,8 @@ html {
   max-width: 34em;
 }
 
-/* The status marker, not a decoration: it asserts the graph is live data.
- *
- * The dot does not pulse. A blinking indicator is the convention, but this
- * page already has a graph assembling itself and a camera in slow orbit — one
- * more permanent motion would be noise, and the moving graph is the proof of
- * liveness anyway. */
+/* The dot does not pulse: the page already has a cascade and a slow orbit,
+   and the moving graph is the proof of liveness. */
 .hero-hint .live {
   display: inline-flex;
   align-items: center;
@@ -216,8 +189,7 @@ html {
   background: var(--green);
 }
 
-/* Both worlds are on offer, because both ship in the product: the observatory
-   and the technical plate. Switching them is itself an argument for the craft. */
+/* both grounds ship in the viewer, so the landing offers both */
 .theme-toggle {
   position: absolute;
   top: 26px;
@@ -235,13 +207,8 @@ html {
 }
 .theme-toggle:active { transform: scale(0.96); }
 
-/* Centred on the page, not on the canvas.
- *
- * It reads as a label but behaves as a status bar: it never points at a
- * particular node, it says what the page is doing. That belongs on the page's
- * own axis — bottom centre, where every interface puts this kind of message.
- * Anchored to the canvas it sat at 69% of the width, and drifted further right
- * every time the window widened.
+/* Centred on the page, not on the canvas. Anchored to the canvas it sat at
+ * 69% of the width and drifted further right as the window widened.
  *
  * It still lives inside the canvas element, so `left` is measured from the
  * canvas's left edge: subtracting that offset lands it on the page centre. */
@@ -261,8 +228,8 @@ html {
   backdrop-filter: blur(12px) saturate(160%);
   /* On paper the fill cannot carry it: --mantle sits at 1.07:1 against --base,
      so the pill had no body and only its text read. A light ground conveys
-     elevation with a cast shadow, not with a lighter fill — and on the dark
-     ground this is black on near-black, so it simply does not show. */
+     elevation with a cast shadow. On the dark ground this is black on
+     near-black and does not show at all. */
   box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.22);
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -271,10 +238,9 @@ html {
   pointer-events: none;
   animation: caption-in 320ms var(--ease-out) both;
 }
-/* A legend, not an ornament: --dot is set to the active lens' own accent, so
-   the dot is amber exactly while amber propagates through the graph. Falls
-   back to a neutral when no lens is on and there is no colour to echo. The
-   colour eases rather than snapping — the lens it reports fades in too. */
+/* --dot carries the active lens' accent, so the dot is amber exactly while
+   amber propagates through the graph. Neutral when no lens is on. Eased, since
+   the lens it reports fades in too. */
 .status::before {
   content: "";
   width: 6px;
@@ -310,9 +276,7 @@ html {
   position: relative;
   z-index: 10;
   pointer-events: auto;
-  /* The copy arrives with its section rather than being there all along —
-     it is the answer to a question the graph is being asked at that moment.
-     Cheap and interruptible: opacity and transform only, no layout. */
+  /* opacity and transform only, so it stays cheap and interruptible */
   opacity: 0;
   transform: translateY(14px);
   transition:
@@ -324,10 +288,10 @@ html {
   transform: none;
 }
 
-/* The label wears its lens' colour, so the word and the wave crossing the
-   graph are one statement. It was lavender for every section — which is the
-   *path* lens' colour, announcing the wrong feature while impact ran amber.
-   The -ink variants are the same hues corrected for small-text contrast. */
+/* The label wears its lens' colour. It was lavender for every section, which
+   is the path lens' colour, announcing the wrong feature while impact ran
+   amber. The -ink variants are the same hues corrected for small-text
+   contrast. */
 .eyebrow {
   display: block;
   font-family: var(--font-mono);
@@ -367,13 +331,12 @@ html {
   color: var(--subtext);
 }
 
-/* Motion is the page's argument, so it is not removed here — it is reduced to
-   what carries meaning. The copy still appears, without travelling. */
+/* reduced, not removed: the copy still appears, without travelling */
 
 
 /* ── One column: the graph moves behind the whole page ──────────────────────────────────────────── */
 @media (max-width: 820px) {
-  /* the variable lives on .page — the canvas is its child, not the hero's */
+  /* the variable lives on .page: the canvas is its child, not the hero's */
   .page {
     --canvas-left: 0px;
   }
@@ -411,8 +374,7 @@ html {
 }
 
 
-/* ── Reduced motion. Motion is this page's argument, so it is not removed —
- * it is reduced to what carries meaning: things still appear, they stop travelling ──────────────────────────────────────────── */
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .cta {
     transition: none;

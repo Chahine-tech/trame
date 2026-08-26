@@ -25,7 +25,7 @@ interface DistrictLink {
   weight: number
 }
 
-/** Scratch vectors — rewritten before every read, never held across frames. */
+/** Scratch vectors, rewritten before every read, never held across frames. */
 const PROJECTED = new THREE.Vector3()
 const MIDPOINT = new THREE.Vector3()
 
@@ -83,7 +83,7 @@ function DistrictBody({
           document.body.style.cursor = ""
         }}
         onClick={(e) => {
-          // clicking a district flies you into it — the camera crossing the
+          // clicking a district flies you into it, the camera crossing the
           // threshold is what expands it back into files
           e.stopPropagation()
           const first = useGraphStore
@@ -107,7 +107,7 @@ function DistrictBody({
       </mesh>
 
       {/* the name sits on the region and always faces you, the way a map
-          labels a district — an offset label gets swallowed by the body as
+          labels a district; an offset label gets swallowed by the body as
           soon as the camera orbits */}
       {showLabel && (
       <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
@@ -181,7 +181,7 @@ function DistrictEdge({
 /**
  * The district layer: every folder becomes one body, and the imports between
  * two folders become one weighted line. This is the zoomed-out level of the
- * map — you read the shape of the system, not its filenames.
+ * map: you read the shape of the system, not its filenames.
  */
 export function Districts() {
   const data = useGraphStore((s) => s.data)
@@ -262,7 +262,7 @@ export function Districts() {
 
   useFrame(({ camera, size }) => {
     /**
-     * Recompute when the view moves — or when the cast changes.
+     * Recompute when the view moves, or when the cast changes.
      *
      * Labels attach through a ref callback, so some arrive a frame or two after
      * the first pass. Keying only on the camera meant those were never

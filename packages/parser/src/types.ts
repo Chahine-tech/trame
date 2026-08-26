@@ -10,7 +10,7 @@ export type NodeType =
 
 export type EdgeType = "import" | "api-call" | "query-key" | "component" | "context"
 
-/** Set only in diff mode — how this item changed between base and head. */
+/** Set only in diff mode: how this item changed between base and head. */
 export type DiffStatus = "same" | "added" | "removed"
 
 export interface GraphNode {
@@ -60,7 +60,7 @@ export interface GraphData {
      * Absolute path the file paths are relative to, so a node can be opened in
      * an editor.
      *
-     * Kept here, once, rather than repeated on every node — which is what makes
+     * Kept here once rather than repeated on every node, which is what makes
      * a graph safe to publish. Every node used to carry the full path from the
      * root of the machine that parsed it, so sharing a graph meant sharing the
      * shape of somebody's disk, three thousand times over. Dropping this one
@@ -75,7 +75,7 @@ export interface GraphData {
   clusters: GraphCluster[]
   violations?: Violation[]
   analysis?: Analysis
-  /** the rules that produced `violations` — shipped so the viewer can re-run
+  /** the rules that produced `violations`, shipped so the viewer can re-run
    *  them on a hypothetical graph ("what if I deleted this?") */
   rules?: Rule[]
   diff?: {
@@ -110,7 +110,7 @@ export interface TrameConfig {
    * Substring matches, not globs: `"generated"` skips anything whose path
    * contains it, which is what people reach for and is predictable without
    * having to reason about a pattern language. Lives here rather than in a
-   * second dotfile — the config is already found automatically, and two files
+   * second dotfile: the config is already found automatically, and two files
    * describing one project is two files that can disagree.
    */
   exclude?: string[]
@@ -124,7 +124,7 @@ export interface Violation {
 }
 
 export interface Analysis {
-  /** node ids nothing imports — likely dead code */
+  /** node ids nothing imports: likely dead code */
   orphans: string[]
   /** each entry is a dependency cycle (list of node ids) */
   cycles: string[][]

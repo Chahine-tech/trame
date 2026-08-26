@@ -7,7 +7,7 @@ export interface FolderAnchor {
   id: string
   label: string
   color: string
-  /** the position of an actual member — never a computed average */
+  /** the position of an actual member, never a computed average */
   at: Vec3
   lift: number
 }
@@ -24,7 +24,7 @@ const COHESION = 0.5
 
 /**
  * Cohesion is a proportion, so it can be estimated from a sample. The whole
- * graph can be drawn — 2238 files on dub — and measuring every pair against
+ * graph can be drawn (2238 files on dub) and measuring every pair against
  * every other would be five million distances recomputed on every frame of a
  * replay.
  */
@@ -54,7 +54,7 @@ const median = (sorted: number[]) => sorted[Math.floor(sorted.length / 2)] ?? 0
  * itself; a folder strewn between the others has someone else's file nearest
  * to almost every one of its own.
  *
- * `spacing` is the typical gap between two files of this folder — the right
+ * `spacing` is the typical gap between two files of this folder: the right
  * scale for lifting a name clear of a dot without drifting off it, and it
  * follows the local density rather than the size of the folder.
  */
@@ -95,12 +95,12 @@ function neighboursOf(
  *
  * Two things went wrong before, and both put a name in empty space.
  *
- * The centre used to come from every file a folder holds, drawn or not — so a
+ * The centre used to come from every file a folder holds, drawn or not, so a
  * detail view showing a subset had its labels describing a different
  * population than its dots. That is fixed by passing `nearby`.
  *
  * The position was the folder's mean, lifted by the distance to its farthest
- * drawn file — the top of a bounding sphere rather than anywhere near its
+ * drawn file: the top of a bounding sphere rather than anywhere near its
  * files. On a neighbourhood of dub's tinybird that put `app/` in open black
  * with its route handlers strewn below and to the left. Lifting by the typical
  * radius instead of the farthest one moved the name a little closer and left
@@ -110,7 +110,7 @@ function neighboursOf(
  * So the name is hung on a file rather than on an average: the member nearest
  * the mean, raised by the typical gap between two of the folder's own files.
  * That is enough to clear the dot, follows the local density instead of the
- * size of the folder, and cannot land in a void — there is a file underneath
+ * size of the folder, and cannot land in a void, since there is a file under
  * it by construction.
  */
 export function folderAnchors(

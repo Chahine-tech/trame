@@ -3,21 +3,19 @@ import { isDarkGround, usePalette } from "../theme"
 /**
  * The rig, in one place, because two surfaces render the same meshes.
  *
- * Dark is a lit space — a key light and a cool rim sculpt the facets. Light is
- * a printed plate: strong lights would blow every colour toward white, so the
- * material colour carries and shading only hints at form. Two physical models,
- * not one with a flipped switch, which is why the light branch has no rim.
+ * Dark is a lit space: a key light and a cool rim sculpt the facets. Light is a
+ * printed plate, where strong lights would blow every colour toward white, so
+ * the material colour carries and shading only hints at form. That is why the
+ * light branch has no rim.
  *
- * What is shared is the structure: which lamps exist, where they sit, what
- * colour they are. Those were copied byte for byte between the tool and the
- * landing, so re-aiming one silently left the other behind.
+ * Shared: which lamps exist, where they sit, what colour they are. Those were
+ * copied byte for byte between viewer and landing, so re-aiming one left the
+ * other behind.
  *
- * The intensities are *not* shared. The landing runs brighter because a
- * resting node must read on near-black before anything lights it up; the tool
- * is dimmer because you are already working inside it and contrast is spent on
- * the answer. Those ratios are 1.73, 1.46 and 1.78 — deliberately uneven, so a
- * single "boost" factor would quietly restyle one of the two. They are
- * parameters with the tool's values as defaults.
+ * Not shared: the intensities. The landing runs brighter because a resting node
+ * must read on near-black; the viewer is dimmer because contrast is spent on
+ * the answer. The ratios are 1.73, 1.46 and 1.78, uneven enough that a single
+ * "boost" factor would restyle one of the two.
  */
 export function Lighting({
   hemisphere = 0.55,

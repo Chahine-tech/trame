@@ -18,14 +18,14 @@ function widthOf(extent: number, canvasHeight = 950): number {
 describe("keeping an edge a line at any zoom", () => {
   it("leaves the hand-tuned arrangement exactly as it was", () => {
     // 60 is the store's default extent and the size of the graph these widths
-    // were chosen against — trame's own
+    // were chosen against: trame's own
     expect(tubeGrowth(60)).toBe(1)
     expect(tubeGrowth(24)).toBe(1)
   })
 
   it("lifts a large arrangement back over one pixel", () => {
     // dub's tinybird neighbourhood spreads to 255, where an edge came out at
-    // 0.57 CSS px — not a thin line, a wash
+    // 0.57 CSS px, which is a wash rather than a thin line
     expect(widthOf(255)).toBeGreaterThan(1)
     expect(widthOf(453)).toBeGreaterThan(0.85)
   })
@@ -36,7 +36,7 @@ describe("keeping an edge a line at any zoom", () => {
      * full 2.4 px back on a hub with 150 edges converging: the nodes vanished
      * under their own connections.
      *
-     * The hand-tuned width encoded sparsity, not only scale — trame's own
+     * The hand-tuned width encoded sparsity, not only scale: trame's own
      * graph is 24 files. A big arrangement is also a denser one, so the growth
      * has to stay well under proportional.
      */

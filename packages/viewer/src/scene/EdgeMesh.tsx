@@ -12,7 +12,7 @@ import { edgeProgress, easeOut } from "./arrival"
 const RADIAL_SEGMENTS = 6
 
 /**
- * The arrangement these tube widths were chosen against — trame's own graph,
+ * The arrangement these tube widths were chosen against: trame's own graph,
  * and still the store's default extent.
  */
 const TUNED_AT = 60
@@ -25,12 +25,12 @@ const TUNED_AT = 60
  * cancel: hold the radius fixed and an edge occupies a constant *fraction* of
  * the view, which on a large graph is a fraction of a pixel. At 60 units and a
  * 60° field of view a lit edge is 2.4 CSS pixels; around dub's tinybird, which
- * spreads to 255, the same edge is 0.57 — antialiased into a wash rather than
+ * spreads to 255, the same edge is 0.57, antialiased into a wash rather than
  * drawn as a line. The dark ground got away with it, because a thin bright
  * line on black survives being smeared and a thin dark line on white does not.
  * It was never a colour problem, and no amount of opacity would have fixed it.
  *
- * Restoring the *same* width everywhere — growing straight with the extent —
+ * Restoring the same width everywhere, growing straight with the extent,
  * was the obvious repair and it was wrong. It put 2.4 pixels back on a hub
  * with a hundred and fifty edges converging on it and buried the nodes under
  * their own connections. The hand-tuned width was never only a width: trame's
@@ -38,7 +38,7 @@ const TUNED_AT = 60
  * arrangement is not just further away, it is denser, and lines that read when
  * they are few will blot when they are many.
  *
- * So the growth is sub-linear — the usual answer for a linear measure fighting
+ * So the growth is sub-linear: the usual answer for a linear measure fighting
  * something that scales like an area. It buys back enough to clear a pixel,
  * not enough to restore the weight of a sparse map:
  *
@@ -52,7 +52,7 @@ export function tubeGrowth(extent: number): number {
 
 const UP = new THREE.Vector3(0, 1, 0)
 
-/** Scratch hit point — written by intersectPlane and read in the same event. */
+/** Scratch hit point, written by intersectPlane and read in the same event. */
 const HIT = new THREE.Vector3()
 
 /** Handle entrance, in ms. Short enough to feel like a response, not a show. */
@@ -84,7 +84,7 @@ function DraggableHandle({
 }: {
   position: Vec3
   color: string
-  /** seconds to wait before appearing — the two handles land one after the other */
+  /** seconds to wait before appearing; the two handles land one after another */
   delay: number
   onDrag: (p: Vec3) => void
 }) {
@@ -147,7 +147,7 @@ function DraggableHandle({
   )
 }
 
-/** Thin tube from a to b — guide line that works on every renderer. */
+/** Thin tube from a to b: a guide line that works on every renderer. */
 function GuideLine({ from, to, color }: { from: Vec3; to: Vec3; color: string }) {
   const geometry = useMemo(() => {
     const curve = new THREE.LineCurve3(new THREE.Vector3(...from), new THREE.Vector3(...to))
@@ -208,7 +208,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       drawn.current = true
       return
     }
-    // rings are 6 indices per radial segment — keep the range on a ring boundary
+    // rings are 6 indices per radial segment, so keep the range on a boundary
     const ring = RADIAL_SEGMENTS * 6
     tube.geometry.setDrawRange(0, Math.floor((total * easeOut(t)) / ring) * ring)
     tube.visible = t > 0
@@ -239,7 +239,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     const arrowQuat = new THREE.Quaternion().setFromUnitVectors(UP, tangent)
     return { geometry, arrowPos, arrowQuat }
   }, [p0, p3, ctrl, isSelected, isLit, hovered, growth])
-  // the tube is rebuilt on every hover and selection change — release the old one
+  // the tube is rebuilt on every hover and selection change, so release the old
   useDisposable(geometry)
 
   const edgeFilter = useGraphStore((s) => s.edgeFilter)

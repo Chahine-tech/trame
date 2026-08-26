@@ -6,7 +6,7 @@ import type { TrameConfig, GraphData, GraphEdge, GraphNode, Rule, RuleMatch, Vio
  *
  * Every one of these lookups used to be `graph.nodes.find(...)` inside a loop
  * over the edges, which makes the rule engine quadratic in the size of the
- * codebase — measured at ×9.9 for a ×4 graph, where linear would be ×4. It ran
+ * codebase, measured at x9.9 for a x4 graph where linear would be x4. It ran
  * in CI on every pull request, so the cost fell on the repositories least able
  * to afford it: the big ones.
  */

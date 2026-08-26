@@ -1,36 +1,27 @@
 import { useGraphStore } from "@trame/viewer/store/graph"
 
 /**
- * The page, declared rather than choreographed.
+ * One entry per beat of the page.
  *
- * Scroll is the clock. Each section names a question, poses the camera, and
- * asks the store the same thing a visitor's keystroke would — so the landing
- * cannot drift from the tool, and adding a beat is adding an entry here.
- *
- * Nothing is scroll-jacked. The page scrolls at its natural speed and a flick
- * to the bottom lands at the bottom; sections only decide *what is shown*
- * while they hold the viewport, never how fast you get there.
+ * Each section drives the store through the same actions a keystroke would, so
+ * the landing cannot show a behaviour the viewer does not have. Sections decide
+ * what is shown while they hold the viewport, never how fast you scroll.
  */
 export interface Section {
   id: string
   /**
    * Which lens this section turns on, or null when it turns them all off.
-   *
-   * Named here rather than inferred from `enter`, because the eyebrow has to be
-   * that lens' colour — a label whose colour disagrees with the wave crossing
-   * the graph is the exact defect this page keeps having to fix.
+   * Named rather than inferred from `enter`, because the eyebrow is drawn in
+   * that lens' colour.
    */
   lens: "impact" | "path" | "whatif" | "replay" | null
   /** small label above the title */
   eyebrow: string
   title: string
   body: string
-  /**
-   * Orbit radius while this section holds the viewport. Larger reads as
-   * standing back to take in the shape; smaller as moving in among the files.
-   */
+  /** orbit radius while this section holds the viewport */
   distance: number
-  /** how high the slow orbit rides — a change of angle, not just of zoom */
+  /** how high the slow orbit rides, which changes the angle as well as the zoom */
   height: number
   /** put the graph in this section's state. Given the subject and its far end. */
   enter: (subject: string, far: string | null) => void

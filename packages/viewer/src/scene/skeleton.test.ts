@@ -28,7 +28,7 @@ function clique(prefix: string, n: number): { ids: string[]; edges: GraphEdge[] 
 }
 
 describe("coreness", () => {
-  it("puts a chain in the first shell — every file is a leaf of the next", () => {
+  it("puts a chain in the first shell: every file is a leaf of the next", () => {
     const { ids, edges } = chain("c", 6)
     expect([...coreness(ids, edges).values()].every((k) => k === 1)).toBe(true)
   })
@@ -74,7 +74,7 @@ describe("the skeleton", () => {
     // the correction that cost an evening: a file everything imports is as
     // densely connected as anything can be, so peeling never reaches it. On
     // cal.com ten such files carried 30% of the edges inside the core while
-    // holding none of it together — traffic, not structure.
+    // holding none of it together: traffic, not structure.
     const core = clique("core", 14)
     const rest = Array.from({ length: 90 }, (_, i) => `f${i}`)
     const ids = [...core.ids, ...rest, "logger"]
@@ -157,8 +157,8 @@ describe("choosing how far to look", () => {
   })
 
   it("falls back to one hop rather than overflowing", () => {
-    // opening on handleCancelBooking — exactly the sort of well-connected file
-    // worth opening on — reached 426 at two hops, past the budget it exists to
+    // opening on handleCancelBooking, exactly the sort of well-connected file
+    // worth opening on, reached 426 at two hops, past the budget it exists to
     // respect. Better a smaller true view than a screenful nobody can read.
     const near = fittingNeighbourhood("focus", busy(60), new Set(), 400)
     expect(near.size).toBe(61) // focus + its 60 neighbours, and no further

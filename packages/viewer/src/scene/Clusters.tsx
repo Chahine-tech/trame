@@ -31,7 +31,7 @@ function FolderLabel({
     const dist = camera.position.distanceTo(centroid)
     // hidden below 35, fully visible above 60
     const opacity = THREE.MathUtils.clamp((dist - 35) / 25, 0, 1) * 0.9
-    // only touch the DOM when the value actually moved — otherwise this is a
+    // only touch the DOM when the value actually moved, or this becomes a
     // style write per label per frame, forever
     if (Math.abs(opacity - lastOpacity.current) < 0.01) return
     lastOpacity.current = opacity
@@ -49,7 +49,7 @@ function FolderLabel({
 }
 
 /**
- * Folder labels only — no filled bubbles. Grouping is carried by the
+ * Folder labels only, no filled bubbles. Grouping is carried by the
  * layout's cluster force (proximity), the label just names the district.
  * Toggle with G.
  */

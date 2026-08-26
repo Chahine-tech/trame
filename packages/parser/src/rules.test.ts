@@ -47,7 +47,7 @@ describe("unique-caller", () => {
   it("only counts callers the match selects", () => {
     // one import edge and one api-call edge into the same target: with the
     // rule scoped to api-call there is a single matching caller, so no
-    // violation — the filter must be applied before counting, not after
+    // violation: the filter must be applied before counting, not after
     const g = graph(
       [["a", "module"], ["b", "module"], ["t", "module"]],
       [["a", "t", "import"], ["b", "t", "api-call"]],

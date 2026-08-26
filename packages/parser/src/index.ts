@@ -39,14 +39,9 @@ interface Args {
 }
 
 /**
- * Command-line exclusions plus whatever the config adds.
- *
- * The flag stays the escape hatch for a one-off run; the config is where a
- * project states, once, which of its folders are not architecture — generated
- * clients, vendored code, a legacy corner nobody wants on the map. Before this
- * the only way to say it was to retype the flag on every invocation, which
- * stopped being tolerable the moment the tool started being run through npx
- * instead of a wrapper script.
+ * Command-line exclusions plus whatever the config adds. The flag is the escape
+ * hatch for a one-off run; the config is where a project states once which of
+ * its folders are not architecture.
  */
 function resolveExclude(args: Args, config: TrameConfig | null): string[] {
   return config?.exclude ? [...args.exclude, ...config.exclude] : args.exclude
@@ -72,12 +67,10 @@ const FORMATS = ["json", "mermaid", "dot", "markdown"] as const
 
 /**
  * Where the built viewer lives, which differs between the two ways trame runs.
- *
- * Installed from npm the viewer ships inside the package, beside dist/. Inside
- * this repository it is another workspace, two levels up. Checking for the
- * bundled copy first means a published install never reaches for a monorepo
- * path that is not there — and an explicit --dist always wins, for anyone
- * serving a viewer they built themselves.
+ * Installed from npm it ships inside the package beside dist/; in this
+ * repository it is another workspace two levels up. The bundled copy is checked
+ * first so a published install never reaches for a monorepo path. An explicit
+ * --dist always wins.
  */
 function viewerDist(override: string | undefined): string {
   if (override) return path.resolve(override)
@@ -221,15 +214,13 @@ function parseArgs(argv: string[]): Args {
 /**
  * The nearest tsconfig.json at or above the source root.
  *
- * Without one, every `@/thing` import resolves to nothing — and since that is
- * how most React projects have been written since roughly 2022, the default
- * run produced a graph with no edges and called it a success. Measured on one
- * ordinary portfolio: 1 edge and 13 orphans out of 19 files, against 19 edges
- * and 1 orphan with the flag. A cloud of dots that claims to be an
- * architecture is worse than an error.
+ * Without one every `@/thing` import resolves to nothing, which is how most
+ * React projects have been written since roughly 2022, so the default run
+ * produced a graph with no edges and reported success. Measured on one ordinary
+ * portfolio: 1 edge and 13 orphans out of 19 files, against 19 edges and 1
+ * orphan with the flag.
  *
- * Found rather than required, because a tool whose first run is wrong unless
- * you knew to pass a flag has already lost the person who ran it.
+ * Found rather than required: the first run has to be right without a flag.
  */
 function findTsconfig(from: string): string | undefined {
   let dir = from
@@ -245,14 +236,11 @@ function findTsconfig(from: string): string | undefined {
 /**
  * Every .ts/.tsx under a root, pruning excluded directories before entering.
  *
- * The glob used to be handed straight to ts-morph, with the exclusions applied
- * to the result. Pointing --src at a repository root — the obvious first
- * thing anyone tries — therefore walked node_modules in full: a 4 GB heap and
- * a fatal out-of-memory crash before a single line of the codebase was read.
- * Negative globs did not help, because the traversal itself is what dies.
- *
- * Deciding not to descend is the only thing that works, and it has to be
- * decided about the directory, not about the files inside it.
+ * The glob used to go straight to ts-morph with the exclusions applied to the
+ * result, so pointing --src at a repository root walked node_modules in full: a
+ * 4 GB heap and a fatal out-of-memory crash before a line of the codebase was
+ * read. Negative globs do not help, because the traversal itself is what dies.
+ * The decision has to be about the directory, not the files inside it.
  */
 function sourceFilesUnder(root: string, exclude: string[]): string[] {
   const found: string[] = []
@@ -266,7 +254,7 @@ function sourceFilesUnder(root: string, exclude: string[]): string[] {
     for (const entry of entries) {
       const full = path.join(dir, entry.name)
       if (exclude.some((pattern) => full.includes(pattern))) continue
-      // real directories only — following symlinks invites a loop
+      // real directories only: following symlinks invites a loop
       if (entry.isDirectory()) walk(full)
       else if (entry.isFile() && /\.tsx?$/.test(entry.name)) found.push(full)
     }
@@ -278,15 +266,12 @@ function sourceFilesUnder(root: string, exclude: string[]): string[] {
 /**
  * Warn when a workspace monorepo has not been installed.
  *
- * Packages like `@scope/thing` in a pnpm or npm workspace resolve through the
- * symlinks `install` puts in node_modules, not through tsconfig paths — cal.com
- * maps `~/*` and `@components/*` in its tsconfig and leaves `@calcom/*` to the
- * workspace. Without node_modules those imports cannot be resolved by anything,
- * `tsc` included, and the graph comes out as one island per package: on cal.com,
- * 200 cross-package edges where there should be thousands.
- *
- * A wrong graph delivered in silence is the worst outcome. Saying so costs a
- * line and turns "this tool is broken" into "run install first".
+ * Packages like `@scope/thing` resolve through the symlinks `install` puts in
+ * node_modules, not through tsconfig paths: cal.com maps `~/*` and
+ * `@components/*` in its tsconfig and leaves `@calcom/*` to the workspace.
+ * Without node_modules nothing can resolve those, `tsc` included, and the graph
+ * comes out as one island per package: on cal.com, 200 cross-package edges
+ * where there should be thousands.
  */
 function warnIfUninstalledWorkspace(srcRoot: string): void {
   let dir = srcRoot
@@ -312,12 +297,9 @@ function warnIfUninstalledWorkspace(srcRoot: string): void {
 }
 
 /**
- * `quiet` for parses the user did not ask for.
- *
- * Reading history means parsing a throwaway checkout over and over, and each
- * one announced the tsconfig it had found inside a temp directory: sixteen
- * lines of noise around three actual answers. What a probe discovers about a
- * worktree that no longer exists is nobody's business.
+ * `quiet` for parses the user did not ask for. Reading history parses a
+ * throwaway checkout over and over, and each announced the tsconfig it found
+ * inside a temp directory: sixteen lines of noise around three answers.
  */
 function parseOnce(
   args: Args,
@@ -348,14 +330,10 @@ function parseOnce(
   graph.analysis = { orphans: findOrphans(graph), cycles: findCycles(graph) }
 
   /**
-   * A graph on its way to the public web should not describe the machine that
-   * made it.
-   *
-   * Node paths are relative already; the source root is the one absolute thing
-   * left, and it is the whole of the leak — "/Users/someone/Documents/work/…"
-   * says who you are and how you file your life. Dropping it costs only the
-   * jump-to-editor button, which was never going to work on a stranger's
-   * machine anyway.
+   * A published graph should not describe the machine that made it. Node paths
+   * are already relative, so the source root is the one absolute thing left.
+   * Dropping it costs only the jump-to-editor button, which could never have
+   * worked on a stranger's machine.
    */
   if (args.anonymous) delete graph.meta.root
 
@@ -407,21 +385,14 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
 }
 
 /**
- * Advice, not a gate.
- *
- * `check` exits 1 so CI can refuse a merge. This one always exits 0: an
- * unreferenced file is worth knowing about and is nobody's emergency, and a
- * command that fails the build over a suggestion would be turned off within a
- * week. The two are deliberately different tools.
+ * Advice, not a gate. `check` exits 1 so CI can refuse a merge; this always
+ * exits 0, because a command that fails a build over a suggestion gets turned
+ * off.
  */
 /**
- * Where the module boundaries actually are.
- *
- * The folder tree is a claim about structure made once and rarely revisited.
- * This finds the groups of files that genuinely depend on each other far more
- * than on anything else, then reports only where the two disagree — a
- * partition on its own is a curiosity, "this folder is two things" is a
- * decision waiting to be made.
+ * Where the module boundaries actually are. Finds the groups of files that
+ * depend on each other far more than on anything else, then reports only where
+ * that disagrees with the folder tree.
  */
 async function runModules(args: Args, srcRoot: string): Promise<void> {
   const config = await loadConfig(args.config)
@@ -494,8 +465,8 @@ async function runBlame(args: Args, srcRoot: string): Promise<void> {
     const hit = cache.get(commit.sha)
     if (hit !== undefined) return hit
     checkouts++
-    // only when someone is watching: piped into a file or another command,
-    // carriage returns are not animation, they are litter in the output
+    // only when someone is watching: piped to a file, carriage returns are
+    // litter rather than animation
     if (process.stdout.isTTY) {
       process.stdout.write(`\r  reading history · ${checkouts} checkouts   `)
     }
@@ -546,11 +517,9 @@ async function runDoctor(args: Args, srcRoot: string): Promise<void> {
     violation: "\x1b[31m✗\x1b[0m",
   }
   /**
-   * A wall of findings is a list, not advice.
-   *
-   * On a real 412-file project this produced 104 items, and past the first
-   * dozen nobody reads any of them — the ranking exists precisely so the tail
-   * can be left out. The count is still reported, so nothing is hidden.
+   * On a real 412-file project this produced 104 items. The ranking exists so
+   * the tail can be left out; the count is still reported, so nothing is
+   * hidden.
    */
   const SHOWN = 12
   const shown = findings.slice(0, SHOWN)
@@ -684,13 +653,12 @@ async function runReplay(args: Args, srcRoot: string): Promise<void> {
 }
 
 /**
- * A graph file this tool wrote earlier — the only input that is a file the
- * caller names rather than one we just produced.
+ * A graph file this tool wrote earlier: the only input the caller names rather
+ * than one we just produced.
  *
  * Pointed at the wrong path, or at a graph truncated by an interrupted write,
  * the failure used to surface far from here as a property read on undefined
- * somewhere inside the diff. Two `Array.isArray` calls buy a message that names
- * the file and says how to make a real one.
+ * inside the diff. Two `Array.isArray` calls buy a message that names the file.
  */
 function readGraph(file: string): GraphData {
   const p = path.resolve(file)

@@ -2,11 +2,7 @@ import { gooeyToast } from "goey-toast"
 import { cycleEditor, EDITOR_LABEL } from "../editor"
 import { getPalette } from "../theme"
 
-/**
- * trame speaks quietly: subtle preset, minimal bounce, Catppuccin fills,
- * mono type like the rest of the app. The morph stays, the playfulness
- * doesn't — this is a precision instrument, and toasts here are rare.
- */
+/** Subtle preset, minimal bounce, Catppuccin fills, mono type. */
 const BASE = {
   preset: "subtle" as const,
   bounce: 0.08,
@@ -21,9 +17,8 @@ function tinted(color: string) {
 }
 
 /**
- * Watch mode rewrote the graph — explain the layout that just moved.
- * Fixed id: saving several files in a row updates one toast in place
- * instead of stacking a wall of them.
+ * Watch mode rewrote the graph: explain the layout that just moved. Fixed id,
+ * so saving several files updates one toast instead of stacking a wall.
  */
 export function toastGraphUpdated(nodeCount: number, delta: number): void {
   const p = getPalette()
@@ -35,18 +30,18 @@ export function toastGraphUpdated(nodeCount: number, delta: number): void {
   })
 }
 
-/** A save just broke the architecture — say it now, not at CI time. */
+/** A save just broke the architecture: say it now, not at CI time. */
 export function toastViolations(count: number): void {
   const p = getPalette()
   gooeyToast.error(`${count} rule violation${count > 1 ? "s" : ""}`, {
     ...tinted(p.red),
     id: "violations",
-    description: "Highlighted in red — select one to read the rule",
+    description: "Highlighted in red. Select one to read the rule.",
     duration: 5000,
   })
 }
 
-/** The code didn't compile — the graph on screen is no longer current. */
+/** The code didn't compile, so the graph on screen is no longer current. */
 export function toastParseFailed(message: string): void {
   const p = getPalette()
   gooeyToast.error("Parse failed", {
@@ -67,7 +62,7 @@ export function toastToggled(what: string, on: boolean): void {
   })
 }
 
-/** Shift-click found nothing — say so instead of doing nothing. */
+/** Shift-click found nothing: say so instead of doing nothing. */
 export function toastNoPath(from: string, to: string): void {
   const p = getPalette()
   gooeyToast.warning("No dependency path", {
@@ -109,7 +104,7 @@ export function toastCopied(what: string, state?: string): void {
   gooeyToast.success(`${what} copied`, {
     ...tinted(p.green),
     description: state
-      ? `The architecture at ${state} — not the present`
+      ? `The architecture at ${state}, not the present`
       : "Paste it into a PR, an issue or a README",
     duration: state ? 5000 : 3200,
   })
@@ -120,12 +115,12 @@ export function toastCopyFailed(what: string): void {
   const p = getPalette()
   gooeyToast.error(`Could not copy ${what}`, {
     ...tinted(p.red),
-    description: "Clipboard access was blocked — use the CLI --format flag",
+    description: "Clipboard access was blocked. Use the CLI --format flag.",
   })
 }
 
 /**
- * Protocol handlers fail silently, so confirm we heard the key — and offer
+ * Protocol handlers fail silently, so confirm we heard the key, and offer
  * the fix for the actual failure mode: the wrong editor is configured.
  */
 export function toastOpeningEditor(editor: string, file: string): void {

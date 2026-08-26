@@ -9,46 +9,20 @@ import { subjectOf, farthestFrom } from "./subject"
 import { SceneBoundary } from "./SceneBoundary"
 
 /**
- * The engine is code-split so the headline paints on its own, and requested
- * immediately so it does not queue behind anything.
+ * Started at module scope, not left to `lazy`.
  *
- * Three.js is ~300 kB gzip whatever we do; blocking the first paint on it
- * would mean a second of empty page for someone arriving from a link — the
- * worst possible first impression for a page that promises something visual.
- *
- * The import starts here, at module scope, rather than being left to `lazy` to
- * trigger on first render. Render is gated on the graph having arrived, so
- * leaving it to `lazy` put 1.1 MB of renderer *behind* a 16 kB fetch that has
- * nothing to do with it. Started here the two race instead of queueing, and
- * the browser still paints the copy while the chunk lands.
+ * Render is gated on the graph having arrived, so `lazy` would fire the import
+ * only after the fetch resolved: 1.1 MB of renderer queued behind a 16 kB
+ * fetch. Started here the two run in parallel.
  */
 const enginePromise = import("./Stage")
 const Stage = lazy(() => enginePromise.then((m) => ({ default: m.Stage })))
 
-/**
- * One canvas, pinned, with the whole page scrolling over it.
- *
- * The graph is never rebuilt, never crossfaded, never swapped for a screenshot:
- * it is the same running instance from the first pixel to the last section, and
- * scrolling only changes which question is being asked of it. That is the whole
- * argument of the page — you are not reading about the tool, you are watching
- * it work — and it only holds if the thing on screen never resets.
- *
- * Scroll is a clock, not a hijack. The page scrolls at its natural speed, a
- * flick to the bottom lands at the bottom, and nothing waits for an animation
- * to finish before letting you move.
- */
 export function Page() {
   const [data, setData] = useState<GraphData | null>(null)
   const { active, register } = useActiveSection(SECTIONS.length)
 
-  /**
-   * The data is fetched here, in the light chunk, not inside the engine.
-   *
-   * It used to live in Stage — which meant 16 kB of graph queued behind
-   * 300 kB of renderer for no reason. Preloaded from the HTML and read here,
-   * it arrives long before the engine.
-   */
+  // fetched in the light chunk. In Stage it sat behind 300 kB of renderer.
   useEffect(() => {
     const controller = new AbortController()
     fetch("/demo.json", { signal: controller.signal })
@@ -60,14 +34,8 @@ export function Page() {
     return () => controller.abort()
   }, [])
 
-  /**
-   * Put the graph in the active section's state.
-   *
-   * Every section calls the same store actions a visitor's keystroke would, so
-   * the page cannot show a behaviour the tool does not have. The subject is
-   * derived from the graph rather than hard-coded, so this survives a change of
-   * demo codebase.
-   */
+  // sections drive the store through the same actions a keystroke would, and
+  // the subject is derived from the graph so a change of demo codebase holds
   const replayIndex = SECTIONS.findIndex((s) => s.lens === "replay")
   // armed one section early so 222 kB has landed before the visitor arrives
   useReplay(active === replayIndex, active >= replayIndex - 1)

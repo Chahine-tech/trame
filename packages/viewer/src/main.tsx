@@ -8,7 +8,7 @@ import { useGraphStore } from "./store/graph"
 import { applyThemePref, getThemePref } from "./theme"
 import "./styles.css"
 
-// stamp the saved theme before first paint — no flash
+// stamp the saved theme before first paint, so there is no flash
 applyThemePref(getThemePref())
 
 /**

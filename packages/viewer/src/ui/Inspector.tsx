@@ -27,7 +27,7 @@ export function Inspector() {
       ? (violatedEdges.get(edge.id) ?? [])
       : []
 
-  // keep last content while sliding out — the panel exits the way it entered
+  // keep last content while sliding out, so the panel exits as it entered
   return (
     <aside className={`inspector${open ? " open" : ""}`} aria-hidden={!open}>
       {node && (

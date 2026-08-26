@@ -16,7 +16,7 @@ import { CaptureFrame } from "./CaptureFrame"
 import { applyLabels, textSize, withoutOverlap, type LabelBox } from "./labels"
 import { labelElements } from "./nodeLabels"
 
-/** Scratch vectors, reused every frame — always rewritten before they are read. */
+/** Scratch vectors, reused every frame and always rewritten before read. */
 const GOAL = new THREE.Vector3()
 const DIR = new THREE.Vector3()
 const AT = new THREE.Vector3()
@@ -24,16 +24,13 @@ const AT = new THREE.Vector3()
 /**
  * Keeps file names from writing over one another.
  *
- * Labels appear for the neighbourhood around whatever is in hand, which is the
- * right set to name and far too many to name at once: opening cal.com on
- * `handleCancelBooking` put forty of them on one knot, and the middle of the
- * screen became a smudge. The one the reader is actually asking about is
- * ranked first and the rest fill the gaps around it.
+ * Labels cover the neighbourhood in hand, which is the right set to name and
+ * too many to name at once: opening cal.com on `handleCancelBooking` put forty
+ * on one knot. The file being asked about is ranked first and the rest fill the
+ * gaps around it.
  *
- * Written straight to the DOM, and only when the view has moved — the same
- * reasoning as the district names, and for the same reason: re-rendering forty
- * meshes several times a second would cost more than the arithmetic deciding
- * them.
+ * Written straight to the DOM, only when the view has moved. Re-rendering forty
+ * meshes several times a second costs more than the arithmetic deciding them.
  */
 function NameDirector() {
   const positions = useGraphStore((s) => s.positions)
@@ -59,13 +56,11 @@ function NameDirector() {
         id,
         x: ((AT.x + 1) / 2) * size.width,
         /**
-         * Where the label actually sits, not where the node does.
-         *
-         * `.node-label` carries `translate(-50%, -180%)` and drei anchors its
-         * top-left corner at the projected point, so the box ends up centred
-         * 1.3 of its own heights above the node. Reckoning on one height put
-         * the rectangles a third of a line below the ink, and two names the
-         * arbitration believed were clear of each other touched on screen.
+         * Where the label sits, not where the node does. `.node-label` carries
+         * `translate(-50%, -180%)` and drei anchors its top-left corner at the
+         * projected point, so the box is centred 1.3 of its own heights above.
+         * Reckoning on one height put the rectangles a third of a line low, and
+         * names the arbitration believed were clear touched on screen.
          */
         y: ((1 - AT.y) / 2) * size.height - height * 1.3,
         width,
@@ -87,18 +82,17 @@ function NameDirector() {
 const FOCUS_LAMBDA = 5
 
 /**
- * Pulls the fog in while something is selected so everything around it
- * recedes — the cheap half of a depth-of-field effect, no postprocessing.
+ * Pulls the fog in while something is selected, so everything around it
+ * recedes. The cheap half of a depth-of-field effect, no postprocessing.
  */
 /**
  * Fog distances, as multiples of how far the arrangement reaches.
  *
- * These were absolute — 120 and 320 on paper — which frames a graph the size of
- * trame's own and swallows anything larger whole. Pulling the camera back to
- * suit cal.com's skeleton put every file past the far plane, so the scene was
- * painted entirely in the background colour and only the HTML labels came
- * through: a map of names floating over nothing. The ratios here are the ones
- * those absolute numbers already had.
+ * These were absolute, 120 and 320 on paper, which frames a graph the size of
+ * trame's own and swallows anything larger. Pulling the camera back for
+ * cal.com's skeleton put every file past the far plane, so the scene painted
+ * entirely in the background colour and only the HTML labels came through. The
+ * ratios here are the ones those absolute numbers already had.
  */
 const FOG = {
   paper: { near: 2.0, far: 5.4 },
@@ -116,10 +110,10 @@ function FocusDepth() {
   useFrame((_, dt) => {
     const fog = scene.fog as THREE.Fog | null
     if (!fog) return
-    // Only on dark. Fog is the colour of the ground, so tightening it makes
-    // things sink into the void — but on paper it bleaches them into the page,
-    // on top of the dimming the ink language already does. Two washes, and the
-    // scene faded out about a second after every hover.
+    // Only on dark. Fog is the colour of the ground, so tightening it sinks
+    // things into the void; on paper it bleaches them into the page, on top of
+    // the dimming the ink language already does. Two washes, and the scene
+    // faded out about a second after every hover.
     const band = dark && attentive ? FOG.attentive : dark ? FOG.void : FOG.paper
     const near = band.near * extent
     const far = band.far * extent
@@ -161,20 +155,20 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
     /**
      * Outside what you are looking at, not inside it.
      *
-     * This was 26 units, which is an arm's length from trame's own graph and
-     * deep inside a neighbourhood of cal.com's — where every import that passes
-     * near the lens becomes a grey band across the screen, because a tube seen
-     * from two units away fills half the frame. Those bands had been blamed on
-     * the renderer for two days; they were the camera standing in the middle of
-     * the thing it was meant to be showing. The same ratio the opening shot
-     * uses, so flying somewhere frames it the way arriving does.
+     * This was 26 units: an arm's length from trame's own graph, and deep
+     * inside a neighbourhood of cal.com's, where a tube seen from two units
+     * away fills half the frame and every import passing near the lens becomes
+     * a grey band. Those bands were blamed on the renderer for two days.
+     *
+     * The same ratio the opening shot uses, so flying somewhere frames it the
+     * way arriving does.
      */
     const desired = extent * 1.35
     DIR.copy(camera.position).sub(GOAL).normalize()
     camera.position.copy(GOAL).addScaledVector(DIR, THREE.MathUtils.lerp(dist, desired, t))
 
     if (c.target.distanceTo(GOAL) < 0.05 && Math.abs(dist - desired) < 0.5) {
-      clearFocus() // settled — release so the user can orbit freely again
+      clearFocus() // settled: release so the user can orbit freely again
     }
     c.update()
   })
@@ -186,12 +180,11 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
 const PANEL = 300
 
 /**
- * Centre the scene in the part of it the reader can actually see.
+ * Centre the scene in the part of it the reader can see.
  *
- * The inspector slides over the right three hundred pixels of the canvas, and
- * the camera has always framed the whole thing — so the middle of the picture
- * sits behind the panel and the right of the neighbourhood is hidden under it.
- * Shifting the projection rather than the camera means nothing moves in the
+ * The inspector covers the right three hundred pixels of the canvas while the
+ * camera frames the whole thing, so the middle of the picture sits behind the
+ * panel. Shifting the projection rather than the camera moves nothing in the
  * scene: the same view, recentred on the window that is left.
  *
  * Cleared when the panel is away, or every graph would sit permanently askew.
@@ -224,9 +217,9 @@ const REDUCE_MOTION =
 const INTRO_SPIN_MS = 12000
 
 /**
- * The slow turn is an arrival, not a permanent state: it shows the scene has
- * depth, then stops. Under frameloop="demand" it is also the one thing that
- * would keep the render loop running forever, so it has to end.
+ * The slow turn is an arrival: it shows the scene has depth, then stops. Under
+ * frameloop="demand" it is also the one thing that would keep the render loop
+ * running forever, so it has to end.
  */
 function useIntroSpin(): boolean {
   const [spinning, setSpinning] = useState(!REDUCE_MOTION)
@@ -264,11 +257,9 @@ export function Scene() {
   const invalidate = useThree((s) => s.invalidate)
 
   /**
-   * The detail view draws its neighbourhood, not the repository.
-   *
-   * An edge needs both ends present or it would trail off into nothing, which
-   * reads as a bug rather than as a boundary. `nearby` is null whenever the
-   * whole graph fits, and then this is the same list it always was.
+   * The detail view draws its neighbourhood, not the repository. An edge needs
+   * both ends present or it trails off into nothing, which reads as a bug
+   * rather than a boundary. `nearby` is null whenever the whole graph fits.
    */
   const visible = useMemo(() => {
     if (!data || !nearby) return data
@@ -307,7 +298,7 @@ export function Scene() {
   return (
     <>
       <color attach="background" args={[palette.base]} />
-      {/* depth fog — far nodes recede into the void, never a flat board.
+      {/* depth fog: far nodes recede into the void, never a flat board.
           It tightens on selection: the surroundings lose contrast like a
           shallow depth of field, without paying for a blur pass. */}
       <fog attach="fog" args={[palette.base, extent, extent * 2.5]} />

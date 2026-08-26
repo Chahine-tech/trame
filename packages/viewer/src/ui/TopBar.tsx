@@ -33,7 +33,7 @@ export function TopBar({
 
   const impactLabel = impactOf ? data?.nodes.find((n) => n.id === impactOf)?.label : null
 
-  /** How much of the repository is on screen — null when all of it is. */
+  /** How much of the repository is on screen; null when all of it is. */
   const shown = useMemo(() => {
     if (!data || !nearby || nearby.size >= data.meta.nodeCount) return null
     const folders = new Set<string>()
@@ -97,7 +97,7 @@ export function TopBar({
       )}
       {data && !data.diff && !whatIf && !impactLabel && pathNodes.length === 0 && (
         <span className="counts">
-          {/* the project first, then how much of it you are looking at — a
+          {/* the project first, then how much of it you are looking at: a
               bare stat line says nothing about the thing itself. Skipped when
               it repeats the wordmark, as it does when trame parses itself. */}
           {data.meta.project !== "trame" && (

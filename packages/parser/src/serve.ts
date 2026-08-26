@@ -22,7 +22,7 @@ export interface ServeOptions {
 
 /**
  * Static server for the built viewer. `/trame.json` is read from disk on
- * every request — run `trame watch` next to it and the browser follows.
+ * every request, so `trame watch` next to it makes the browser follow.
  */
 export function serve({ dataFile, distDir, port }: ServeOptions): void {
   if (!fs.existsSync(path.join(distDir, "index.html"))) {

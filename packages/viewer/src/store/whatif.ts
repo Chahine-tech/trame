@@ -6,7 +6,7 @@ export interface WhatIfReport {
   /** the node being removed in the simulation */
   nodeId: string
   label: string
-  /** files that nothing would import any more — new dead code */
+  /** files that nothing would import any more: new dead code */
   orphaned: string[]
   /** files that import it directly, and would stop compiling */
   broken: string[]
@@ -21,7 +21,7 @@ export interface WhatIfReport {
  * Answer "what if I deleted this?" without touching the codebase.
  *
  * The whole graph is already in memory and the rule engine is pure, so the
- * simulation is just the same analysis run on a copy with one node removed —
+ * simulation is the same analysis run on a copy with one node removed,
  * which makes an architectural decision testable before it is made.
  */
 export function simulateDelete(
@@ -42,7 +42,7 @@ export function simulateDelete(
     })),
   }
 
-  // orphans that only appear once the node is gone — the node was their
+  // orphans that only appear once the node is gone: the node was their
   // last importer, so deleting it strands them
   const before = new Set(findOrphans(data))
   const orphaned = findOrphans(without).filter((id) => !before.has(id))

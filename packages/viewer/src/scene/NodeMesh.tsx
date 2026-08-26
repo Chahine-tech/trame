@@ -38,12 +38,12 @@ interface Surface {
 }
 
 /**
- * Two grounds, two selected sets of steps — not one flipped into the other.
+ * Two grounds, two selected sets of steps, not one flipped into the other.
  *
  * Each mode picks its neutrals against its own surface. On dark, resting ink
  * is `overlay` and dimming drops opacity toward the void. On paper the same
  * roles need *darker* steps, because washing a light grey toward a light page
- * puts it below any usable contrast — that is how the graph vanished at rest.
+ * puts it below any usable contrast, which is how the graph vanished at rest.
  * Dimming still stops at a visible floor: losing the map is too high a price
  * for highlighting part of it.
  */
@@ -62,7 +62,7 @@ function press(dark: boolean, p: Palette, ink: string, strength: number): Surfac
     : { color: mix(ink, p.text, 0.12), emissiveIntensity: 0, opacity: 1 }
 }
 
-/** Shared soft radial halo — the moodboard glow, tinted per node via material color. */
+/** Shared soft radial halo, tinted per node through the material colour. */
 let glowTexture: THREE.CanvasTexture | null = null
 function getGlowTexture(): THREE.CanvasTexture {
   if (glowTexture) return glowTexture
@@ -84,7 +84,7 @@ function getGlowTexture(): THREE.CanvasTexture {
  * it, so it marks without emitting and without painting over what it marks.
  *
  * Both are drawn inside the node's own scale, which is what makes them work at
- * any zoom — the halo is a multiple of the node, never a fraction of its edge.
+ * any zoom: the halo is a multiple of the node, never a fraction of its edge.
  * The centre is left empty because this one is composited normally rather than
  * added: a filled disc would tint the node it is meant to point at.
  */
@@ -95,7 +95,7 @@ function getHaloTexture(): THREE.CanvasTexture {
   canvas.width = canvas.height = 128
   const ctx = canvas.getContext("2d")!
   const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
-  // the hole clears the largest geometry in the set — a component's rounded
+  // the hole clears the largest geometry in the set: a component's rounded
   // box reaches a corner at about half the sprite's radius
   g.addColorStop(0, "rgba(255,255,255,0)")
   g.addColorStop(0.36, "rgba(255,255,255,0)")
@@ -171,7 +171,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
 
 
   // Colour = information: grey at rest, type colour only when attention lands.
-  // Analysis overlays (path, impact, violations) take precedence — they are
+  // Analysis overlays (path, impact, violations) take precedence, since they are
   // the question the user just asked.
   const { color, emissiveIntensity, opacity } = useMemo(() => {
     // the simulation reframes everything: this is the consequence, not the state
@@ -193,7 +193,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     if (pathOn) return onPath ? press(dark, palette, palette.lav, 0.7) : recede(dark, palette, 1)
     if (impactOn) {
       if (impactDepth === undefined) return recede(dark, palette, 1)
-      // fade with distance from the change — near dependents shout, far ones whisper
+      // fade with distance from the change, so near dependents read strongest
       const t = Math.min(impactDepth / 4, 1)
       const ink = impactDepth === 0 ? palette.peach : palette.yellow
       return dark
@@ -207,7 +207,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     if (isLit) return press(dark, palette, typeColor, isHovered || isSelected ? 0.7 : 0.4)
     if (hasActive) return recede(dark, palette, 1)
     // at rest: neutral ink, present but quiet. On paper that is a pencil
-    // construction line — grey, but unmistakably drawn.
+    // construction line: grey, but unmistakably drawn.
     return dark
       ? { color: palette.overlay, emissiveIntensity: 0.12, opacity: 0.92 }
       : { color: palette.subtext, emissiveIntensity: 0, opacity: 1 }
@@ -319,7 +319,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         if (!d.moved) {
           if (Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < 6) return
           d.moved = true
-          setControlsEnabled(false) // commit to the drag — freeze the camera
+          setControlsEnabled(false) // commit to the drag: freeze the camera
           document.body.style.cursor = "grabbing"
         }
         e.stopPropagation()
@@ -359,7 +359,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         // hollow: dead code, or a node this branch removed (a ghost)
         wireframe={(isOrphan && !isLit) || node.diff === "removed" || isDoomed}
       />
-      {/* "this one" — a bloom in the void, a ring on paper.
+      {/* "this one": a bloom in the void, a ring on paper.
        *
        * Paper had an inverted hull at 1.14 instead, the classic way to outline
        * a solid, and it was right about emission and wrong about arithmetic. A
@@ -409,7 +409,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         </mesh>
       )}
 
-      {/* static selection ring — state indication without motion on data */}
+      {/* static selection ring: state without motion on the data */}
       {isSelected && (
         <Billboard>
           <mesh raycast={() => null}>

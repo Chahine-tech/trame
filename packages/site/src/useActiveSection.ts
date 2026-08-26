@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 
 /**
- * Which section currently holds the viewport, by observation rather than by
- * arithmetic on every scroll event.
+ * Which section holds the viewport. Index -1 is the hero.
  *
- * An IntersectionObserver fires only when a boundary is actually crossed, so
- * flinging to the bottom of the page costs a handful of callbacks instead of
- * a hundred scroll handlers each recomputing the same layout. It also means
- * the page never has to know the scroll position — the browser does.
- *
- * Index -1 is the hero: the top of the page, before any section has taken over.
+ * An IntersectionObserver fires only when a boundary is crossed, so a fling to
+ * the bottom costs a handful of callbacks instead of a scroll handler
+ * recomputing layout on every frame.
  */
 export function useActiveSection(count: number): {
   active: number
@@ -33,16 +29,10 @@ export function useActiveSection(count: number): {
           // stage on its own, so there is nothing to hand back
           if (entry.boundingClientRect.top <= 0) continue
           /**
-           * Left downward — we scrolled up past it — so hand back to the
-           * previous section, but only if this one was actually holding it.
-           *
-           * The observer reports every target once on connect, and at the top
-           * of the page they are all below the band and all "not intersecting
-           * with top > 0". Stepping back unconditionally meant each of those
-           * first callbacks pushed the index along, and the page opened on the
-           * last section instead of the hero: no script, no bubble, a lens
-           * already applied. Guarding on the current value makes that opening
-           * burst a no-op, since none of them is active yet.
+           * Scrolled up past it: hand back, but only if this section was the
+           * one holding the viewport. The observer reports every target once on
+           * connect, all below the band with top > 0, so stepping back
+           * unconditionally opened the page on the last section.
            */
           setActive((current) => (current === index ? index - 1 : current))
         }

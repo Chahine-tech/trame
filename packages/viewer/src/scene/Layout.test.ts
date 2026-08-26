@@ -54,7 +54,7 @@ function apart(a: Vec3, b: Vec3): number {
 describe("disconnected components", () => {
   it("keeps two components apart instead of letting them overlap", () => {
     // pulling every component to the origin packs them concentrically: measured
-    // on trame's own monorepo, centroids 32 apart with radii of 130 and 99 —
+    // on trame's own monorepo, centroids 32 apart with radii of 130 and 99,
     // a 44-file package threaded through a 17-file one
     const a = chain("a", 12)
     const b = chain("b", 8)
@@ -124,7 +124,7 @@ describe("large graphs", () => {
     // the multi-level pass places each file at its group's position, so without
     // a final settling they arrive stacked. Measured on cal.com: nearest
     // neighbour 0.52 with no settling, 23.8 after ten ticks, and no better
-    // after forty — this is the property those ten ticks are bought for.
+    // after forty: this is the property those ten ticks are bought for.
     const positions = runLayout(repo(600))
     const all = [...positions.values()]
     let closest = Infinity
@@ -176,7 +176,7 @@ describe("graphs that are whole", () => {
 describe("warm starts", () => {
   it("never moves a node the reader pinned, even to tidy its component", () => {
     // packing translates whole components, so a component holding a pinned node
-    // has to hold its ground and let the others arrange themselves around it —
+    // has to hold its ground and let the others arrange themselves around it,
     // otherwise dragging a node somewhere on purpose lasts until the next save
     const a = chain("a", 6)
     const b = chain("b", 4)

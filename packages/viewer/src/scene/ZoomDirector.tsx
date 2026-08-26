@@ -3,15 +3,15 @@ import { useGraphStore } from "../store/graph"
 
 /**
  * Semantic zoom, the Google Maps rule: far away you read districts, up close
- * you read streets. The two thresholds are deliberately apart — a single one
+ * you read streets. The two thresholds are deliberately apart: a single one
  * would flip the whole scene back and forth on the smallest camera drift.
  */
 /**
  * As multiples of how far the arrangement reaches, not as distances.
  *
  * These were 115 and 85, which is right for a graph the size of trame's own and
- * hopelessly close for anything larger: on cal.com the camera opened at 80 —
- * well inside a skeleton reaching 402 — so a big repository dropped you into the
+ * hopelessly close for anything larger: on cal.com the camera opened at 80,
+ * well inside a skeleton reaching 402, so a big repository dropped you into the
  * middle of the file level and never offered the map. The ratios below are the
  * ones those two numbers already had.
  */

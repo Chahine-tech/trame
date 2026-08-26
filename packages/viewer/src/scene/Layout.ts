@@ -3,9 +3,8 @@ import type { SimNode } from "d3-force-3d"
 import type { GraphData, Vec3 } from "../types"
 
 /**
- * Gentle pull of every node toward its folder's centroid. Folders become
- * compact, separated neighbourhoods — the grouping lives in the geometry
- * itself (Gestalt proximity), not in a drawing layered on top.
+ * Gentle pull of every node toward its folder's centroid, so the grouping lives
+ * in the geometry (Gestalt proximity) rather than in a drawing over it.
  */
 function forceCluster(strength = 0.08) {
   let nodes: SimNode[] = []
@@ -70,24 +69,22 @@ const COMPONENT_GAP = 18
  * Park each disconnected component beside the others instead of letting it
  * drift away.
  *
- * `forceLink` only pulls along edges, so it acts inside a component and never
- * between two of them; `forceCenter` translates the whole cloud rather than
- * attracting anything. That leaves nothing but repulsion between components,
- * and repulsion has no upper bound on range — so they accelerate away from one
- * another until the camera fits a box of empty space and the graph reads as a
- * handful of specks. A monorepo whose packages do not import each other lands
- * here immediately, and so does any repository read before its dependencies are
- * installed, which is exactly the first run a newcomer gets.
+ * `forceLink` pulls only along edges, so it acts inside a component and never
+ * between two; `forceCenter` translates the cloud rather than attracting
+ * anything. Nothing but unbounded repulsion is left between components, so they
+ * accelerate apart until the camera frames empty space. A monorepo whose
+ * packages do not import each other lands here, and so does any repository read
+ * before its dependencies are installed.
  *
- * Attracting them all to the origin instead is worse, not better: asked for the
- * same destination they arrive concentric, and a 44-file package ends up
- * threaded through a 17-file one. Measured that way, the two centroids sat 32
- * apart with radii of 130 and 99 — no longer lost, merely indistinguishable.
+ * Attracting them all to the origin is worse: asked for the same destination
+ * they arrive concentric, and a 44-file package ends up threaded through a
+ * 17-file one. Measured, the two centroids sat 32 apart with radii of 130 and
+ * 99.
  *
- * So they are placed rather than pulled. Each component keeps the shape the
- * simulation gave it — this only ever translates — and is dropped at the first
+ * So they are placed rather than pulled. This only ever translates, so each
+ * component keeps the shape the simulation gave it, and is dropped at the first
  * position on an outward spiral that clears everything already placed. Biggest
- * first, so the component carrying the most meaning holds the middle.
+ * first, so the largest holds the middle.
  */
 function packComponents(
   positions: Map<string, Vec3>,
@@ -111,13 +108,10 @@ function packComponents(
        * How wide the component reads, not how far its furthest stray reaches.
        *
        * A large component is hollow at the rim: on cal.com the biggest holds
-       * 3066 files with 90% of them inside a radius of 862, and a tail running
-       * out to 1470. Reserving the bounding sphere pushed every one of the 122
-       * lone files past 1470 — a scene 3000 wide to hold a graph whose mass sat
-       * in the middle third, which is what made the camera pull back until
-       * everything turned to confetti. The p90 is the edge a reader perceives;
-       * past it the cloud is thin enough that a neighbour resting there costs
-       * nothing.
+       * 3066 files with 90% inside a radius of 862 and a tail out to 1470.
+       * Reserving the bounding sphere pushed all 122 lone files past 1470, a
+       * scene 3000 wide for a graph whose mass sat in the middle third. Past
+       * the p90 the cloud is thin enough that a neighbour there costs nothing.
        */
       const spread = ids
         .map((id) => {
@@ -132,8 +126,8 @@ function packComponents(
       const anchored = pinned !== undefined && ids.some((id) => pinned.has(id))
       return { index, ids, centre, radius, anchored }
     })
-    // anchored first because they cannot move, then biggest — and ties broken
-    // by index so two runs of the tool agree
+    // anchored first because they cannot move, then biggest, ties broken by
+    // index so two runs agree
     .sort(
       (a, b) =>
         Number(b.anchored) - Number(a.anchored) ||
@@ -216,11 +210,10 @@ const REFINE_TICKS = 30
 /**
  * Ticks left for the real graph once it starts from a considered arrangement.
  *
- * The flat layout spent 300 of these discovering global structure one local
- * nudge at a time — on cal.com, 3451 nodes and 9458 edges at about 31 ms a
- * tick, close to eight seconds of blocked main thread before anything could be
- * drawn. Arriving with the structure already found, all that is left is to stop
- * files sitting on top of one another, and that converges almost at once.
+ * The flat layout spent 300 of these discovering global structure one nudge at
+ * a time: on cal.com, 3451 nodes and 9458 edges at about 31 ms a tick, close to
+ * eight seconds of blocked main thread before anything could be drawn. Starting
+ * from the structure, all that is left is to stop files overlapping.
  *
  * Measured on cal.com by the distance from each file to its nearest neighbour:
  * with no ticks the median is 0.52 and the graph is a pile; by ten it is 23.8,
@@ -232,7 +225,7 @@ const FINE_TICKS = 10
 interface Level {
   /** how many nodes this level holds */
   size: number
-  /** index at the finer level → index at this one */
+  /** index at the finer level, mapped to its index at this one */
   up: number[]
   links: { a: number; b: number; w: number }[]
 }
@@ -248,23 +241,20 @@ function adjacencyOf(size: number, links: { a: number; b: number; w: number }[])
 }
 
 /**
- * Fold the graph by grouping each node with the neighbours it is most tied to —
+ * Fold the graph by grouping each node with the neighbours it is most tied to:
  * one pass of Louvain's local moves, keeping the grouping and discarding the
  * modularity it was chosen for.
  *
- * The classic coarsener here is Walshaw's heavy-edge matching, which pairs each
- * node with its strongest free neighbour. It fails badly on import graphs, and
- * the reason is worth recording: a node can only pair with a neighbour nobody
- * has taken yet, so a utility imported by two hundred files pairs with exactly
- * one of them and leaves the other hundred and ninety-nine with no free
- * neighbour at all. Measured on cal.com, matching went 3451 → 2361 → 1806 and
- * then crawled, still at 1075 nodes after fourteen levels — the coarse graph
- * was never coarse, so none of the work was ever saved.
+ * The classic coarsener is Walshaw's heavy-edge matching, which pairs each node
+ * with its strongest free neighbour. It fails on import graphs: a node can only
+ * pair with a neighbour nobody has taken, so a utility imported by two hundred
+ * files pairs with one of them and leaves the other 199 with no free neighbour.
+ * Measured on cal.com, matching went 3451 to 2361 to 1806 and then crawled,
+ * still at 1075 nodes after fourteen levels, so none of the work was saved.
  *
- * Communities have no such limit: the whole star collapses in one step. The
- * same graph folds 3451 → 588 → 216. Skewed degree is the normal shape of a
- * dependency graph — a handful of primitives that everything imports — so this
- * is not a detail of one repository.
+ * Communities have no such limit: the whole star collapses in one step, and the
+ * same graph folds 3451 to 588 to 216. Skewed degree is the normal shape of a
+ * dependency graph, so this is not a detail of one repository.
  */
 function coarsen(size: number, links: { a: number; b: number; w: number }[]): Level | null {
   const adjacent = adjacencyOf(size, links)
@@ -371,15 +361,13 @@ function settle(
  * Open a coarse arrangement out into the finer level below it.
  *
  * Each fine node starts where its coarse representative sits, nudged apart so
- * the simulation has a gradient to work with — two nodes at identical
- * coordinates feel no repulsion between them and would stay welded together.
- * The whole arrangement is scaled by the cube root of the growth in node count,
- * which is the factor by which a volume has to grow to keep its density.
+ * the simulation has a gradient: two nodes at identical coordinates feel no
+ * repulsion and stay welded. The arrangement is scaled by the cube root of the
+ * growth in node count, the factor by which a volume grows at constant density.
  *
- * Which nudge hardly matters: the multi-level drawing literature compares
- * placing members on a small circle, at their neighbours' barycentre, or at the
- * parent with a jitter, and reports no significant difference in the layout
- * that results.
+ * Which nudge hardly matters. The multi-level drawing literature compares a
+ * small circle, the neighbours' barycentre, and the parent with a jitter, and
+ * reports no significant difference in the result.
  */
 function openOut(up: number[], coarse: Vec3[], fineSize: number): Vec3[] {
   const growth = Math.cbrt(Math.max(1, fineSize / Math.max(1, coarse.length)))
@@ -401,12 +389,10 @@ function openOut(up: number[], coarse: Vec3[], fineSize: number): Vec3[] {
  * A starting position for every node, found by shrinking the graph until it is
  * small, arranging that, and opening it back out.
  *
- * This is the multi-level paradigm: a hierarchy of approximations, solved at
- * the coarsest level and refined downwards. It is faster than settling the full
- * graph — the expensive levels start from an arrangement that is already
- * broadly right — and the result is better, because a flat simulation only ever
- * sees local neighbourhoods and settles into whichever local minimum it fell
- * towards first.
+ * The multi-level paradigm: a hierarchy of approximations solved at the
+ * coarsest level and refined downwards. Faster, since the expensive levels
+ * start from an arrangement that is broadly right, and better, since a flat
+ * simulation only sees local neighbourhoods.
  */
 function multilevelSeed(data: GraphData): Map<string, Vec3> {
   const index = new Map(data.nodes.map((n, i) => [n.id, i]))
@@ -443,7 +429,7 @@ function multilevelSeed(data: GraphData): Map<string, Vec3> {
 }
 
 export interface LayoutOptions {
-  /** positions from the previous graph — keeps the mental map stable on reload */
+  /** positions from the previous graph, so the mental map survives a reload */
   previous?: Map<string, Vec3>
   /** nodes the user dragged: frozen, never moved by the simulation */
   pinned?: Set<string>
@@ -451,17 +437,15 @@ export interface LayoutOptions {
 
 /**
  * Static 3D force layout: settle synchronously, then the scene is calm.
- * On a watch-mode reload the simulation restarts from the previous positions
- * and pinned nodes stay put, so a file save never rearranges work you did
- * by hand — only genuinely new nodes have to find a place.
  *
- * Deliberately synchronous, having been tried the other way. Handing the
- * arrangement over early and settling it a slice per frame sounds better than
- * it looks: one tick of the full graph costs about 31 ms, already two frames,
- * so no slice is ever small enough to keep up and the scene judders instead of
- * moving. A short wait reads better than a stutter, and once the multi-level
- * pass had brought the whole thing under a second there was nothing left worth
- * slicing.
+ * On a watch-mode reload the simulation restarts from the previous positions
+ * and pinned nodes stay put, so only genuinely new nodes find a place.
+ *
+ * Synchronous, having been tried the other way. Settling a slice per frame
+ * cannot work: one tick of the full graph costs about 31 ms, already two
+ * frames, so no slice is small enough to keep up and the scene judders. Once
+ * the multi-level pass brought the whole thing under a second there was
+ * nothing left worth slicing.
  */
 export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<string, Vec3> {
   const { previous, pinned } = options
@@ -503,25 +487,22 @@ export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<str
 
 
   /**
-   * A file where every node already carries a position *is* the layout.
+   * A file where every node already carries a position is the layout.
    *
-   * The warm start exists to place newcomers among nodes that are already
-   * settled; with no newcomer there is nothing to place, and ticking anyway
-   * walks the whole graph away from the coordinates it was given. Measured on
-   * the landing's baked file: every node moved 14 units on average and the
-   * graph inflated 28% (p90 radius 33.7 → 43.1), which is what kept pushing
-   * nodes out of frame. It also ran synchronously in the effect that mounts
-   * the scene, while the renderer was compiling shaders.
+   * The warm start exists to place newcomers among settled nodes; with no
+   * newcomer, ticking walks the graph away from the coordinates it was given.
+   * Measured on the landing's baked file: every node moved 14 units on average
+   * and the graph inflated 28% (p90 radius 33.7 to 43.1), which pushed nodes
+   * out of frame. It also ran synchronously in the effect that mounts the
+   * scene, while the renderer compiled shaders.
    */
   const settled = data.nodes.length > 0 && unseeded === 0 && !previous
 
   /**
-   * Nothing to build on, and big enough that building blindly hurts.
-   *
-   * A warm start already knows where everything goes, and a small graph settles
-   * in a few hundred cheap ticks; neither is worth coarsening for. This is the
-   * cold open on a real repository — the case that blocked the main thread for
-   * eight seconds behind a blank page.
+   * Nothing to build on, and big enough that building blindly hurts. A warm
+   * start already knows where everything goes and a small graph settles in a
+   * few hundred cheap ticks, so neither is worth coarsening for. This is the
+   * cold open that blocked the main thread for eight seconds.
    */
   const cold = !hadPrevious && !settled && data.nodes.length > COARSEST
   if (cold) {
@@ -542,16 +523,14 @@ export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<str
   for (const n of nodes) positions.set(n.id, [n.x ?? 0, n.y ?? 0, n.z ?? 0])
 
   /**
-   * Only when the graph is genuinely in pieces.
+   * Only when the graph is genuinely in pieces. A connected graph is one
+   * component, and packing one component is a translation to the origin that
+   * `forceCenter` has already performed.
    *
-   * A connected graph — the ordinary case, and every layout tuned by hand so
-   * far — is a single component, and packing one component is a translation to
-   * the origin that `forceCenter` has already performed.
-   *
-   * A warm start has to be packed as well, though it is tempting to skip: those
-   * 60 ticks run with nothing holding the components together either, and they
-   * drift about 80 units apart each time. Left alone, a watch-mode session
-   * would walk them back out to where they started, one save at a time.
+   * A warm start has to be packed too, tempting as it is to skip: those 60
+   * ticks also run with nothing holding the components together, and they drift
+   * about 80 units apart each time. A watch-mode session would walk them back
+   * out one save at a time.
    */
   const parts = components(data)
   if (parts.count > 1) packComponents(positions, parts.of, parts.count, pinned)
