@@ -86,7 +86,14 @@ html, body, #root {
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: color 140ms ease;
+  transition:
+    color 140ms ease,
+    transform 140ms var(--ease-out);
+}
+/* text rather than a chip, so the press is smaller: 0.97 on a line of type
+   reads as the text jumping */
+.insp-path-link:not(:disabled):active {
+  transform: scale(0.985);
 }
 .insp-path-link:hover:not(:disabled) { color: var(--lav); }
 .insp-path-link:disabled { cursor: default; }
@@ -495,7 +502,14 @@ html, body, #root {
   transition:
     color 180ms var(--ease-out),
     border-color 180ms var(--ease-out),
-    opacity 180ms var(--ease-out);
+    opacity 180ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+/* it is a button, and a button that does not move under the finger has not
+   said it heard you. Subtle: the chip is 26px tall, so anything below 0.97
+   reads as a glitch rather than a press */
+.lens-chip:not(:disabled):active {
+  transform: scale(0.97);
 }
 .lens-chip .dot {
   width: 6px;

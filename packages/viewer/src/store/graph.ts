@@ -110,35 +110,25 @@ interface GraphState {
    */
   viewCentre: Vec3
   /**
-   * Which side to look from, when the answer is "the side you were on".
+   * The direction to approach `focusTarget` from. Null keeps the current angle.
    *
-   * A flight only ever changes the camera's distance: the rig rebuilds its
-   * direction each frame from the centre it is flying to, so it keeps whatever
-   * angle the camera already held. That is right for going somewhere and wrong
-   * for coming back. A lens flies to its own centre, off to one side of the
-   * selection, and closing it flies back to the selection's centre — from the
-   * side the lens left the camera on, not the side the reader chose. Same
-   * distance, different vantage, so the view came back rotated and every round
-   * trip rotated it further. Null means "keep the angle you have", which is
-   * what going somewhere new should do.
+   * The rig rebuilds its direction each frame from the centre it is flying to,
+   * so a flight only ever changes distance. Restoring a lens that way came back
+   * rotated, because the outbound leg aimed at a different centre.
    */
   focusDir: Vec3 | null
   /**
    * Where the reader is standing: the point they are looking at, and the side
    * they are looking from. The rig publishes it when a flight settles.
    *
-   * `at` is not always `viewCentre`. Following a link, or pressing `F`, aims
-   * the camera at one file — `focus()` sets `focusTarget` and deliberately
-   * leaves `viewCentre` on the middle of what is drawn. So on dub's tinybird
-   * the reader lands looking at the file, at [260.1, 7.5, 140.6], while the
-   * middle of its sixty-five neighbours is [243.4, -2.8, 95.0], fifty units
-   * away. Recomputing the centre on the way back out of a lens therefore
-   * silently moved the camera to a place the reader had never chosen — once,
-   * on the first round trip, and never again.
+   * `at` is not always `viewCentre`: `focus()`, which a shared link and `F`
+   * both call, aims at one file and leaves `viewCentre` on the middle of what
+   * is drawn. On dub's tinybird those are [260.1, 7.5, 140.6] and
+   * [243.4, -2.8, 95.0], fifty units apart, so recomputing the centre on the
+   * way out of a lens moved the camera by that much.
    *
-   * Null until a flight has actually settled. There is no honest default here:
-   * inventing one sent a lens "back" to a place the reader had never been —
-   * the origin — on any graph where nothing had landed yet.
+   * Null until a flight has settled. A default was tried and sent a lens back
+   * to the origin on any graph where nothing had landed yet.
    */
   vantage: { at: Vec3; dir: Vec3 } | null
   /** …captured the moment a lens takes the camera, spent when it gives it back. */
@@ -146,9 +136,7 @@ interface GraphState {
   setVantage: (at: Vec3, dir: Vec3) => void
   /**
    * What the last `clear()` let go of, while the offer to take it back stands.
-   *
-   * Null the rest of the time, which is what gates the undo: the gesture is
-   * only ever offered against a notice the reader can still see.
+   * Null otherwise, which is what gates `⌘Z` against a notice still on screen.
    */
   cleared: { selectedId: string; lens: LensKind; vantage: { at: Vec3; dir: Vec3 } | null } | null
   restoreCleared: () => void
@@ -415,16 +403,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedId && skeletonSet && data
         ? fittingNeighbourhood(selectedId, data.edges, traffic, READABLE)
         : skeletonSet
-    /**
-     * The same set, the same size — and the same spot, from the same side.
-     *
-     * `viewOf` recomputes the middle of the neighbourhood, which is the right
-     * answer for framing it fresh and the wrong one for handing it back: the
-     * reader may have been looking at one file rather than at the middle of
-     * everything around it. Both halves of where they stood come back, or
-     * neither — restoring the angle onto a recomputed centre is how the view
-     * ended up fifty units off on the first round trip.
-     */
+    // `viewOf` recomputes the middle of the neighbourhood, which frames it
+    // fresh but does not hand it back: restoring the angle onto a recomputed
+    // centre left the view fifty units off on the first round trip. Both
+    // halves of where the reader stood, or neither.
     const view = viewOf(nearby, data, positions)
     const stood = get().savedVantage
     return stood ? { ...view, focusTarget: stood.at, focusDir: stood.dir } : view
@@ -940,16 +922,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   },
 
   /**
-   * Take the deselection back: the file, the lens that was answering about it,
-   * and the spot the reader was standing on.
+   * Take the deselection back: the file, its lens, and the spot it was read
+   * from. Replayed through the store's own actions for the reason `applyView`
+   * gives, so an undo inherits their guards.
    *
-   * Replayed through the store's own actions rather than written in as state,
-   * for the reason `applyView` gives: an undo can then only land on a view the
-   * tool can reach on its own, and it inherits every guard those actions have.
-   *
-   * `path` and `replay` are not reopened. A path is two endpoints and a chain
-   * the reader built, which is more than a deselection threw away; the replay
-   * is a mode over the whole graph and survives `clear()` untouched.
+   * `path` and `replay` are not reopened: a path is a chain the reader built,
+   * more than a deselection threw away, and the replay survives `clear()`.
    */
   restoreCleared: () => {
     const cleared = get().cleared
@@ -969,19 +947,15 @@ export const useGraphStore = create<GraphState>((set, get) => ({
    * A click on nothing, as reported by the canvas.
    *
    * Not `clear()` directly. R3F decides a click "missed" on the `click` event,
-   * with a fresh raycast, one event after `NodeMesh` has already committed the
-   * selection on `pointerup` — and it only needs that second raycast to come
-   * back empty, anywhere in the scene. So the click that selects a file can
-   * also be the click that lets it go, and the reader sees their click do
-   * nothing at all. `stopPropagation` cannot prevent it: the test runs at the
-   * canvas, before any handler, on an event the node never sees.
+   * with a fresh raycast, one event after `NodeMesh` commits the selection on
+   * `pointerup`, and it fires whenever that second raycast comes back empty
+   * anywhere in the scene. `stopPropagation` cannot prevent it: the test runs
+   * at the canvas, before any handler, on an event the node never sees.
    *
-   * Why the second raycast comes back empty is not settled — the inspector
-   * opening shifts the projection by 150px inside the same gesture, which is
-   * the leading candidate. It does not need to be settled: one gesture must
-   * not both select and deselect, whatever empties the ray. `esc` is
-   * deliberately not guarded, because dropping a selection you just made is a
-   * thing a reader can mean.
+   * Why the ray comes back empty is unsettled; `PanelOffset` shifting the
+   * projection by 150px inside the same gesture is the leading candidate. It
+   * need not be settled — one gesture must not both select and deselect. `esc`
+   * is not guarded: dropping a selection you just made is a thing you can mean.
    */
   clearFromBackground: () => {
     // pointerup and click land within a few ms of each other; nothing a person

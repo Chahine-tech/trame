@@ -192,19 +192,10 @@ function CameraRig({ controls }: { controls: React.RefObject<OrbitControlsImpl |
      */
     const desired = extent * 1.35
     DIR.copy(camera.position).sub(GOAL).normalize()
-    /**
-     * Swing to the side that was asked for, when one was.
-     *
-     * Left alone, a flight is radial: it slides the camera along the ray it is
-     * already on and keeps the angle. Going somewhere new, that is what you
-     * want — the reader keeps their bearing. Coming back from a lens it is not,
-     * because the outward leg aimed at a different centre and left the camera
-     * on a different side of the one it is returning to. Same distance, rotated
-     * view, and the next round trip rotated it again.
-     *
-     * Eased on the same clock as the dolly, so the camera arcs home instead of
-     * settling its distance and then turning.
-     */
+    // Left alone a flight is radial: it slides along the ray it is already on
+    // and keeps the angle, which is right for going somewhere new and wrong for
+    // coming back, since the outward leg aimed at another centre. Eased on the
+    // dolly's clock so the camera arcs home rather than turning after it lands.
     if (focusDir) {
       WANT.set(...focusDir)
       DIR.lerp(WANT, t).normalize()
