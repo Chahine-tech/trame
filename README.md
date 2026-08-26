@@ -174,7 +174,9 @@ every pull request with what the branch did to the architecture, and edits that
 comment in place rather than adding one. [Details below](#in-ci).
 
 **Calm by design.** Nodes rest grey. Colour only lands with your attention, in
-Catppuccin Mocha or Latte to match your terminal.
+Catppuccin Mocha or Latte to match your terminal. Both grounds are held to the
+same measured bar: every lens clears 3:1 against the surface it is drawn on, and
+a test computes it from the palette that ships rather than trusting the eye.
 
 ## Quickstart
 
@@ -203,6 +205,8 @@ pnpm install && pnpm build
 pnpm dev            # viewer   → http://localhost:5173
 pnpm dev:site       # landing  → http://localhost:5174
 pnpm parse -- --src ./path/to/src --out ./packages/viewer/public/trame.json
+pnpm knip           # exports, files and dependencies nothing reaches
+pnpm check:package  # publint + are-the-types-wrong on the published package
 ```
 
 ## Tests
@@ -211,13 +215,22 @@ pnpm parse -- --src ./path/to/src --out ./packages/viewer/public/trame.json
 pnpm test
 ```
 
-141 tests, on the parts where being wrong is silent: Tarjan's SCC detection
-(including a 20 000-node chain, since the implementation promises to be
-iterative), the three constraint rules `trame check` exits on and the validation
-that stops a misspelt rule passing quietly, the commit sampler that decides
-whether a replay reads as growth or as a slideshow, the layout's handling of
-codebases whose packages do not import one another, and the arbitration that
-decides which labels get the space when more want it than fit.
+187 tests, on the parts where being wrong is silent.
+
+In the parser: Tarjan's SCC detection, including a 20 000-node chain since the
+implementation promises to be iterative; the three constraint rules `trame
+check` exits on, and the validation that stops a misspelt rule passing quietly;
+the dead-code rule, which has to know that a `route.ts` nobody imports is a
+router convention rather than a corpse; the commit sampler that decides whether
+a replay reads as growth or as a slideshow.
+
+In the viewer, mostly geometry and colour, because those fail quietly and look
+like taste: that a replay frame rebuilt from forty deltas equals the graph it
+came from, that a folder name lands on a file rather than in the gap between
+several, that an edge stays a line rather than a wash when the camera pulls
+back, and that every lens clears 3:1 against the ground it is drawn on. That
+last one reads `tokens.css` off disk and computes real contrast ratios, so it
+asserts the palette that actually ships.
 
 ## Diagrams for docs and PRs
 
