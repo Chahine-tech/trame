@@ -1,9 +1,13 @@
 import { useRef } from "react"
+import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import { useGraphStore } from "@trame/viewer/store/graph"
 import { isDarkGround, usePalette } from "@trame/viewer/theme"
 import { HERO_CAMERA, REFERENCE_ASPECT, type CameraPose } from "./camera"
+
+/** Scratch, rewritten before every read. */
+const AIM = new THREE.Vector3()
 import { Lighting } from "@trame/viewer/scene/Lighting"
 import { NodeMesh } from "@trame/viewer/scene/NodeMesh"
 import { EdgeMesh } from "@trame/viewer/scene/EdgeMesh"
@@ -86,6 +90,26 @@ function SlowDrift({ pose }: { pose: CameraPose }) {
   const angle = useRef(0)
   const radius = useRef(HERO_CAMERA.distance)
   const height = useRef(HERO_CAMERA.position[1])
+  /**
+   * What the orbit turns around, which is not always the origin.
+   *
+   * `lookAt(0, 0, 0)` frames the world origin, and nothing puts a graph there:
+   * the layout centres on its own mass and a lens answers about a subset that
+   * can sit anywhere in it. Measured on the deployed page at 723x642, three of
+   * the four located lenses drew part of their answer outside the frame, and
+   * two put their own subject on the edge — `toast` at y=641 of 642 under what
+   * if, `EdgeMesh` at y=-30 under co-change.
+   *
+   * The vertical field is what clips, and it does not widen with the window:
+   * the distance below is floored at `pose.distance`, so a wide screen buys
+   * horizontal room only. The measurement holds at any width.
+   *
+   * The orbit stays, because moving through the graph is what the page is. It
+   * simply turns around what is being talked about. Off a lens it returns to
+   * the origin, so the hero is framed exactly as it was tuned.
+   */
+  const centre = useRef(new THREE.Vector3())
+  const lensCentre = useGraphStore((s) => (s.lens === "none" ? null : s.viewCentre))
 
   /**
    * The canvas owns only part of the page, so a narrow window turns it
@@ -108,12 +132,15 @@ function SlowDrift({ pose }: { pose: CameraPose }) {
     height.current += (pose.height - height.current) * k
 
     const r = radius.current
+    AIM.set(...(lensCentre ?? [0, 0, 0]))
+    centre.current.lerp(AIM, k)
+    const c = centre.current
     camera.position.set(
-      Math.sin(angle.current) * r,
-      height.current + Math.sin(angle.current * 0.6) * 8 * (r / HERO_CAMERA.distance),
-      Math.cos(angle.current) * r,
+      c.x + Math.sin(angle.current) * r,
+      c.y + height.current + Math.sin(angle.current * 0.6) * 8 * (r / HERO_CAMERA.distance),
+      c.z + Math.cos(angle.current) * r,
     )
-    camera.lookAt(0, 0, 0)
+    camera.lookAt(c)
     invalidate()
   })
 
