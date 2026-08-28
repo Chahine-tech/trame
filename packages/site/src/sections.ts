@@ -1,4 +1,5 @@
 import { useGraphStore } from "@trame/viewer/store/graph"
+import { coChangeSubjectOf } from "./subject"
 
 /**
  * One entry per beat of the page.
@@ -14,7 +15,7 @@ export interface Section {
    * Named rather than inferred from `enter`, because the eyebrow is drawn in
    * that lens' colour.
    */
-  lens: "impact" | "path" | "whatif" | "replay" | null
+  lens: "impact" | "path" | "whatif" | "cochange" | "replay" | null
   /** small label above the title */
   eyebrow: string
   title: string
@@ -67,6 +68,23 @@ export const SECTIONS: Section[] = [
     enter: (subject) => {
       store().select(subject)
       if (store().lens !== "whatif") store().toggleWhatIf()
+    },
+  },
+  {
+    id: "cochange",
+    lens: "cochange",
+    eyebrow: "co-change",
+    title: "The coupling no import declares.",
+    body: "Some files always change together and nothing in the code says so — a route and the form that edits it, two handlers that must stay in step. trame reads the commits, keeps the pairs no import already explains, and draws what your dependency graph structurally cannot see.",
+    distance: 50,
+    height: 7,
+    // its own subject: the file the rest of the page is about never travels
+    // with anything, so this beat reads the graph again for its own question
+    enter: () => {
+      const s = coChangeSubjectOf()
+      if (!s) return
+      store().select(s.id)
+      if (store().lens !== "cochange") store().toggleCoChange()
     },
   },
   {

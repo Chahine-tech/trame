@@ -266,6 +266,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathEdges.has(edge.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
+  const coChangeOn = useGraphStore((s) => s.coChangeOf !== null)
   const sourceRing = useGraphStore((s) => s.impactDepth.get(edge.source))
   const targetRing = useGraphStore((s) => s.impactDepth.get(edge.target))
 
@@ -282,6 +283,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       impacted: sourceRing !== undefined && targetRing !== undefined,
       // the outer end: an importer sits one ring further out than what it imports
       impactRing: Math.max(sourceRing ?? 0, targetRing ?? 0),
+      coChangeOn,
       violated: isViolated,
       hovered,
       lit: isLit,

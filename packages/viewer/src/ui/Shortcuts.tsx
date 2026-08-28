@@ -32,6 +32,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     rows: [
       { keys: ["I"], label: "Impact — what depends on the selection" },
       { keys: ["W"], label: "What if — what deleting it would break" },
+      { keys: ["C"], label: "Co-change — what the history moves with it, unimported" },
       { keys: ["shift", "click"], label: "Path — the chain between two nodes" },
       { keys: ["R"], label: "Replay — the architecture through git history" },
       { keys: ["esc"], label: "Drop the lens, keep the selection" },

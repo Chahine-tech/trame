@@ -7,13 +7,13 @@
  * cancelled each other in a chain of if/else, and the reader had no way to
  * know which question the colours were currently answering.
  */
-export type LensKind = "none" | "impact" | "path" | "whatif" | "diff" | "replay"
+export type LensKind = "none" | "impact" | "path" | "whatif" | "cochange" | "diff" | "replay"
 
 export interface LensInfo {
   /** short name shown in the top bar while the lens is on */
   label: string
   /** the palette token that carries this lens' meaning */
-  accent: "yellow" | "lav" | "peach" | "green"
+  accent: "yellow" | "lav" | "peach" | "green" | "teal"
   /** what the reader is looking at, in one line */
   hint: string
 }
@@ -34,6 +34,11 @@ export const LENSES: Record<Exclude<LensKind, "none">, LensInfo> = {
     accent: "peach",
     hint: "what deleting the selection would break",
   },
+  cochange: {
+    label: "co-change",
+    accent: "teal",
+    hint: "files the history moves with the selection that nothing imports",
+  },
   diff: {
     label: "diff",
     accent: "green",
@@ -50,6 +55,8 @@ export const LENSES: Record<Exclude<LensKind, "none">, LensInfo> = {
 export interface LensReadiness {
   selectedId: string | null
   hasTimeline: boolean
+  /** whether the graph was parsed inside a repository with history to read */
+  hasCoChange: boolean
 }
 
 /**
@@ -62,9 +69,12 @@ export interface LensReadiness {
  */
 export function blockedBecause(
   kind: Exclude<LensKind, "none" | "diff">,
-  { selectedId, hasTimeline }: LensReadiness,
+  { selectedId, hasTimeline, hasCoChange }: LensReadiness,
 ): string | null {
   if (kind === "replay") return hasTimeline ? null : "Run trame replay to generate one"
+  // two different absences, and a reader can act on each: one needs a click,
+  // the other needs the graph reparsed somewhere git can be read
+  if (kind === "cochange" && !hasCoChange) return "Reparse inside a git repository"
   if (selectedId) return null
   return kind === "path" ? "Select a file, then shift-click a second" : "Select a file first"
 }

@@ -4,6 +4,7 @@ import path from "node:path"
 import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
+import { coChangeFor } from "./cochange.js"
 import { evaluateRules } from "./rules.js"
 import { ConfigError, loadConfig } from "./config.js"
 import { findCycles, findOrphans } from "./analysis.js"
@@ -83,7 +84,9 @@ const DEFAULT_EXCLUDE = ["node_modules", "dist", ".test.", ".spec.", ".stories."
 
 const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture graph
 
-  trame --src ./src [--out ./trame.json]     parse and write the graph
+  trame --src ./src [--out ./trame.json]     parse and write the graph,
+                                               with what the history couples
+                                               and the imports do not
   trame check --src ./src                      evaluate rules, exit 1 on violations
   trame doctor --src ./src                     what to fix, worst first
   trame blame --src ./src [--since]            which commit introduced each problem
@@ -104,9 +107,9 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
     --data ./trame.json        (serve) graph file to serve
     --port 3000                  (serve) port
     --dist ./path                (serve) viewer build override
-    --since "6 months ago"       (replay) how far back to walk
+    --since "6 months ago"       how far back to read history (replay, co-change)
     --max-frames 40              (replay) frame budget — the stride follows from it
-    --repo .                     (replay) repository root
+    --repo .                     repository root (replay, co-change)
 
   Mermaid renders natively in GitHub issues, PRs and READMEs:
     trame --src ./src --format mermaid --out docs/architecture.mmd`
@@ -377,6 +380,10 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
     graph.violations = evaluateRules(graph, config)
     graph.rules = config.rules
   }
+  // what the history couples that the imports do not. One `git log` pass, and
+  // silent where there is no repository to read: a parse does not depend on it
+  const coupled = coChangeFor(graph, args.repo, srcRoot, args.since)
+  if (coupled.length > 0) graph.coChange = coupled
 
   const outPath = path.resolve(args.out)
   fs.writeFileSync(outPath, render(graph, args.format))

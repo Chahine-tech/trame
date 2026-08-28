@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 import { blockedBecause, LENSES } from "./lens"
 
 describe("whether a lens can answer", () => {
-  const nothing = { selectedId: null, hasTimeline: false }
-  const chosen = { selectedId: "a.ts", hasTimeline: false }
+  const nothing = { selectedId: null, hasTimeline: false, hasCoChange: true }
+  const chosen = { selectedId: "a.ts", hasTimeline: false, hasCoChange: true }
 
   it("asks for a file before answering a question about one", () => {
     expect(blockedBecause("impact", nothing)).toBeTruthy()
@@ -22,7 +22,7 @@ describe("whether a lens can answer", () => {
   it("asks for a replay to exist rather than for a selection", () => {
     // history is a property of the repository, not of what is on screen
     expect(blockedBecause("replay", chosen)).toBeTruthy()
-    expect(blockedBecause("replay", { selectedId: null, hasTimeline: true })).toBeNull()
+    expect(blockedBecause("replay", { selectedId: null, hasTimeline: true, hasCoChange: true })).toBeNull()
   })
 
   it("says what it is waiting for, never just that it is unavailable", () => {

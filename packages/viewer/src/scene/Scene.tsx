@@ -8,6 +8,7 @@ import { useGraphStore } from "../store/graph"
 import { isDarkGround, usePalette } from "../theme"
 import { Lighting } from "./Lighting"
 import { NodeMesh } from "./NodeMesh"
+import { CoChangeMesh } from "./CoChangeMesh"
 import { EdgeMesh } from "./EdgeMesh"
 import { Clusters } from "./Clusters"
 import { Districts } from "./Districts"
@@ -37,11 +38,12 @@ const AT = new THREE.Vector3()
 function NameDirector() {
   const positions = useGraphStore((s) => s.positions)
   const selectedId = useGraphStore((s) => s.selectedId)
+  const coChangeWith = useGraphStore((s) => s.coChangeWith)
   const lastView = useRef("")
 
   useFrame(({ camera, size }) => {
     const elements = labelElements()
-    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}`
+    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}|${coChangeWith.size}`
     if (view === lastView.current) return
     lastView.current = view
 
@@ -68,9 +70,23 @@ function NameDirector() {
         width,
         height,
         tier: 0,
-        // the file in hand always keeps its name; the rest are ranked by how
-        // near they are to the camera, so the front of the knot stays readable
-        rank: id === selectedId ? Number.MAX_SAFE_INTEGER : -AT.z,
+        /**
+         * The file in hand always keeps its name, and so does anything a lens
+         * is currently answering about.
+         *
+         * The co-change lens answers "what moves with this?", and the answer
+         * was five lines pointing at unlabelled dots: the partners competed for
+         * their names against the whole neighbourhood on camera depth alone,
+         * which is the right rule for context and the wrong one for the answer.
+         * The rest is still ranked by nearness, so the front of the knot stays
+         * readable.
+         */
+        rank:
+          id === selectedId
+            ? Number.MAX_SAFE_INTEGER
+            : coChangeWith.has(id)
+              ? Number.MAX_SAFE_INTEGER - 1
+              : -AT.z,
       })
     }
 
@@ -346,6 +362,7 @@ export function Scene() {
           {visible!.nodes.map((n) => (
             <NodeMesh key={n.id} node={n} />
           ))}
+          <CoChangeMesh />
         </>
       )}
 

@@ -11,6 +11,8 @@ export function useLensStatus(): string | null {
   const impactDepth = useGraphStore((s) => s.impactDepth)
   const pathNodes = useGraphStore((s) => s.pathNodes)
   const whatIf = useGraphStore((s) => s.whatIf)
+  const coChangeOf = useGraphStore((s) => s.coChangeOf)
+  const coChangeWith = useGraphStore((s) => s.coChangeWith)
   const timeline = useGraphStore((s) => s.timeline)
   const frameIndex = useGraphStore((s) => s.frameIndex)
   const data = useGraphStore((s) => s.data)
@@ -39,6 +41,16 @@ export function useLensStatus(): string | null {
       `${orphaned.length} file${orphaned.length === 1 ? "" : "s"} stranded`,
     ]
     return `what if · deleting ${whatIf.label} — ${parts.join(", ")}`
+  }
+
+  if (lens === "cochange" && coChangeOf) {
+    const n = coChangeWith.size
+    // the count and the strongest name: the claim is that these move together,
+    // so the bubble carries how often rather than how many hops
+    const [strongest] = [...coChangeWith].sort((a, b) => b[1] - a[1])
+    return `co-change · ${label(coChangeOf)} moves with ${n} file${n === 1 ? "" : "s"} nothing imports${
+      strongest ? ` — most often ${label(strongest[0])}` : ""
+    }`
   }
 
   if (lens === "replay" && timeline) {

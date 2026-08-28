@@ -7,6 +7,8 @@ vi.mock("../ui/toast", () => ({
   toastNeedsSelection: vi.fn(),
   toastNoPath: vi.fn(),
   toastDeselected: vi.fn(),
+  toastNoCoChange: vi.fn(),
+  toastNoCoChangeFor: vi.fn(),
   UNDO_MS: 5000,
 }))
 
@@ -632,5 +634,128 @@ describe("one gesture cannot both select and deselect", () => {
     useGraphStore.getState().select("ring/0.ts")
     useGraphStore.getState().clear()
     expect(useGraphStore.getState().selectedId).toBeNull()
+  })
+})
+
+/**
+ * The import graph draws what the code says; co-change draws what the history
+ * says. A pair only survives the parser when no import connects it, so the
+ * partners are almost never in the neighbourhood already.
+ */
+describe("the co-change lens", () => {
+  const withHistory = () => {
+    const g = ringWithLeaves()
+    g.coChange = [
+      { a: "ring/0.ts", b: "leaf/150.ts", together: 9, jaccard: 0.8 },
+      { a: "leaf/151.ts", b: "ring/0.ts", together: 6, jaccard: 0.5 },
+      { a: "ring/40.ts", b: "leaf/9.ts", together: 7, jaccard: 0.6 },
+    ]
+    return g
+  }
+
+  beforeEach(() => {
+    useGraphStore.setState({ timeline: null, present: null, lens: "none" })
+    useGraphStore.getState().load(withHistory())
+    useGraphStore.getState().setToastsMounted(true)
+  })
+
+  it("answers about the selection, from either side of the pair", () => {
+    // the parser writes each pair once, in whatever order sorted them
+    useGraphStore.getState().select("ring/0.ts")
+    useGraphStore.getState().toggleCoChange()
+    const s = useGraphStore.getState()
+    expect(s.lens).toBe("cochange")
+    expect(s.coChangeOf).toBe("ring/0.ts")
+    expect([...s.coChangeWith.keys()].sort()).toEqual(["leaf/150.ts", "leaf/151.ts"])
+    expect(s.coChangeWith.get("leaf/150.ts")).toBe(0.8)
+  })
+
+  it("widens the view to the partners, which is the whole point", () => {
+    /**
+     * A partner is by construction not reachable by imports, so it is not in
+     * the neighbourhood. Without widening, the lens would light nothing and
+     * read as broken.
+     */
+    useGraphStore.getState().select("ring/0.ts")
+    const near = useGraphStore.getState().nearby!
+    expect(near.has("leaf/150.ts")).toBe(false)
+
+    useGraphStore.getState().toggleCoChange()
+    const shown = useGraphStore.getState().nearby!
+    expect(shown.has("leaf/150.ts")).toBe(true)
+    expect(shown.has("leaf/151.ts")).toBe(true)
+    expect(shown.has("ring/0.ts")).toBe(true)
+  })
+
+  it("frames the answer, not the neighbourhood it was asked from", () => {
+    /**
+     * Excluding imported pairs does not make a partner distant in the graph: on
+     * dub's webhook route all five sat inside the 132-file neighbourhood, two
+     * hops away through a hub. Framing the union framed the neighbourhood, and
+     * two of the five answers were drawn outside the picture.
+     */
+    useGraphStore.getState().select("ring/0.ts")
+    useGraphStore.getState().toggleCoChange()
+    const s = useGraphStore.getState()
+
+    // the context is still drawn, so the answer keeps something to sit in
+    expect(s.nearby!.size).toBeGreaterThan(s.coChangeWith.size + 1)
+
+    // and the camera sits on the mean of the answer, not of everything drawn.
+    // Which of the two is wider depends on the graph: on dub the answer was
+    // tighter, here the partners hang off the far side of a 300-node ring
+    const answer = ["ring/0.ts", ...s.coChangeWith.keys()]
+    const mean = [0, 1, 2].map(
+      (axis) => answer.reduce((t, id) => t + s.positions.get(id)![axis]!, 0) / answer.length,
+    )
+    for (const axis of [0, 1, 2]) expect(s.viewCentre[axis]).toBeCloseTo(mean[axis]!, 6)
+    expect(s.focusTarget).toEqual(s.viewCentre)
+  })
+
+  it("puts every partner inside the frustum, not merely inside the extent", () => {
+    /**
+     * `extent` is a size and the rig parks at 1.35 times it, which through a
+     * 60° vertical field of view shows only 0.78 of it. Everywhere else
+     * `reachOf` clamps at 2.5 medians and the clamp binds, so `extent` sits
+     * well under the real reach. On six files it never binds: on dub's webhook
+     * route the radii were 38 128 128 162 192 220 and the two outermost were
+     * drawn off the top and bottom of the screen.
+     */
+    useGraphStore.getState().select("ring/0.ts")
+    useGraphStore.getState().toggleCoChange()
+    const s = useGraphStore.getState()
+    const at = s.viewCentre
+    const halfHeight = s.extent * 1.35 * Math.tan((30 * Math.PI) / 180)
+    for (const id of ["ring/0.ts", ...s.coChangeWith.keys()]) {
+      const p = s.positions.get(id)!
+      const r = Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2])
+      expect(r).toBeLessThan(halfHeight)
+    }
+  })
+
+  it("hands the view back when it closes, like every other lens", () => {
+    useGraphStore.getState().select("ring/0.ts")
+    const before = useGraphStore.getState().nearby
+    useGraphStore.getState().toggleCoChange()
+    useGraphStore.getState().toggleCoChange()
+    const s = useGraphStore.getState()
+    expect(s.lens).toBe("none")
+    expect(s.coChangeOf).toBeNull()
+    expect(s.nearby!.size).toBe(before!.size)
+  })
+
+  it("says nothing rather than opening empty when a file travels alone", () => {
+    useGraphStore.getState().select("ring/100.ts")
+    useGraphStore.getState().toggleCoChange()
+    expect(useGraphStore.getState().lens).toBe("none")
+  })
+
+  it("stays shut on a graph parsed outside a repository", () => {
+    const g = ringWithLeaves()
+    delete g.coChange
+    useGraphStore.getState().load(g)
+    useGraphStore.getState().select("ring/0.ts")
+    useGraphStore.getState().toggleCoChange()
+    expect(useGraphStore.getState().lens).toBe("none")
   })
 })

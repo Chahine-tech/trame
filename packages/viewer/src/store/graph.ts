@@ -73,8 +73,28 @@ function noLens() {
     whatIf: null,
     whatIfOrphaned: new Set<string>(),
     whatIfBroken: new Set<string>(),
+    coChangeOf: null,
+    coChangeWith: new Map<string, number>(),
   }
 }
+
+/**
+ * Turns a true bounding radius into the `extent` the rig expects.
+ *
+ * `extent` is a size and the rig parks at 1.35 times it, which with a 60°
+ * vertical field of view shows 1.35·tan(30°) = 0.78 of it. That is right
+ * everywhere else, because `reachOf` clamps at two and a half medians and on a
+ * hundred-file neighbourhood the clamp binds hard, leaving `extent` well under
+ * the real reach. On a handful of files it never binds: dub's webhook route and
+ * its five partners sit at radii 38, 128, 128, 162, 192, 220 around their
+ * centre, median 162 and 2.5 medians 404, so `extent` came back as the furthest
+ * 220 — and the camera at 297 showed 171, cropping the two outermost through
+ * the top and the bottom of the screen.
+ *
+ * 1/(1.35·tan 30°) = 1.28 puts the furthest exactly on the edge. The rest is
+ * margin, part of which the inspector's 150px offset takes back.
+ */
+const FRAME_WHOLE = 1.45
 
 /** E cycles through: everything, then each edge type, then everything */
 const EDGE_FILTER_CYCLE: (EdgeType | null)[] = [
@@ -179,6 +199,17 @@ interface GraphState {
   /** when the current impact query started, for the ring-by-ring reveal */
   impactStartedAt: number
   toggleImpact: () => void
+
+  /**
+   * "what moves with this that nothing connects it to?" (C), and how strongly.
+   *
+   * The partners are by construction not in the neighbourhood: the whole claim
+   * is that no import reaches them. So the lens has to widen the view to them,
+   * or it would draw an empty answer over the files that were already there.
+   */
+  coChangeOf: string | null
+  coChangeWith: Map<string, number>
+  toggleCoChange: () => void
 
   /** dependency path between two nodes (shift-click) */
   pathNodes: string[]
@@ -411,6 +442,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   impactOf: null,
   impactDepth: new Map(),
   impactStartedAt: 0,
+  coChangeOf: null,
+  coChangeWith: new Map(),
   /** the view a selection alone would show, for a lens closing behind itself */
   restoreView: () => {
     const { selectedId, skeletonSet, data, traffic, positions } = get()
@@ -457,6 +490,62 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       impactOf: selectedId,
       impactDepth: depth,
       impactStartedAt: performance.now(),
+    })
+  },
+
+  toggleCoChange: () => {
+    const { selectedId, coChangeOf, data, positions, skeletonSet, traffic, vantage } = get()
+    if (coChangeOf) {
+      set({ ...noLens(), ...get().restoreView() })
+      return
+    }
+    if (!data?.coChange?.length) {
+      toast((t) => t.toastNoCoChange())
+      return
+    }
+    if (!selectedId) {
+      toast((t) => t.toastNeedsSelection("Co-change"))
+      return
+    }
+    const partners = new Map<string, number>()
+    for (const c of data.coChange) {
+      if (c.a === selectedId) partners.set(c.b, c.jaccard)
+      else if (c.b === selectedId) partners.set(c.a, c.jaccard)
+    }
+    if (partners.size === 0) {
+      toast((t) => t.toastNoCoChangeFor(get().names.get(selectedId) ?? selectedId))
+      return
+    }
+    /**
+     * Draw the neighbourhood, frame the answer. They are not the same set.
+     *
+     * Excluding imported pairs does not make a partner distant in the graph: on
+     * dub's webhook route all five were already inside the 132-file
+     * neighbourhood, two hops away through some hub. So framing the union
+     * framed the neighbourhood, `reachOf` clamped the spread at 2.5 medians,
+     * and two of the five answers were drawn outside the picture — one of them
+     * leaving through the top of the screen.
+     *
+     * The neighbourhood is context and stays drawn. The camera belongs to the
+     * question, which is this file and what moves with it, the way the impact
+     * lens frames its propagation rather than where the propagation started.
+     */
+    const near =
+      skeletonSet && data ? fittingNeighbourhood(selectedId, data.edges, traffic, READABLE) : null
+    const answer = [selectedId, ...partners.keys()]
+    const shown = new Set([...(near ?? []), ...answer])
+    const { at, spread } = reachOf(answer, positions)
+    set({
+      ...noLens(),
+      ...viewOf(shown, data, positions),
+      // after the spread, which framed everything drawn
+      extent: spread * FRAME_WHOLE,
+      focusTarget: at,
+      viewCentre: at,
+      savedVantage: vantage,
+      lens: "cochange",
+      coChangeOf: selectedId,
+      coChangeWith: partners,
     })
   },
 

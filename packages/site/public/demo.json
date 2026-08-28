@@ -687,14 +687,14 @@
         "edgeType": "api-call",
         "targetType": "api"
       },
-      "message": "API endpoint called from multiple hooks \u2014 extract a shared hook"
+      "message": "API endpoint called from multiple hooks — extract a shared hook"
     },
     {
       "type": "unique-caller",
       "match": {
         "edgeType": "query-key"
       },
-      "message": "Query key used in multiple queries \u2014 consolidate"
+      "message": "Query key used in multiple queries — consolidate"
     },
     {
       "type": "no-direct-import",
@@ -707,6 +707,50 @@
     {
       "type": "no-cycles",
       "message": "Circular dependency"
+    }
+  ],
+  "coChange": [
+    {
+      "a": "scene/EdgeMesh.tsx",
+      "b": "scene/NodeMesh.tsx",
+      "together": 9,
+      "jaccard": 0.6
+    },
+    {
+      "a": "scene/NodeMesh.tsx",
+      "b": "ui/TopBar.tsx",
+      "together": 8,
+      "jaccard": 0.47058823529411764
+    },
+    {
+      "a": "types.ts",
+      "b": "ui/TopBar.tsx",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "App.tsx",
+      "b": "scene/EdgeMesh.tsx",
+      "together": 8,
+      "jaccard": 0.4444444444444444
+    },
+    {
+      "a": "scene/EdgeMesh.tsx",
+      "b": "ui/TopBar.tsx",
+      "together": 7,
+      "jaccard": 0.4375
+    },
+    {
+      "a": "main.tsx",
+      "b": "scene/EdgeMesh.tsx",
+      "together": 5,
+      "jaccard": 0.4166666666666667
+    },
+    {
+      "a": "App.tsx",
+      "b": "scene/NodeMesh.tsx",
+      "together": 8,
+      "jaccard": 0.4
     }
   ]
 }

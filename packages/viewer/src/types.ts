@@ -96,6 +96,8 @@ export interface GraphData {
   analysis?: Analysis
   /** rules shipped by the parser so "what if?" can re-evaluate them here */
   rules?: Rule[]
+  /** pairs the history couples that no import connects; absent outside a repo */
+  coChange?: CoChange[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -152,4 +154,20 @@ export interface Timeline {
     to: string
   }
   frames: ReplayFrame[]
+}
+
+/**
+ * Two files the history keeps changing together that no import connects.
+ *
+ * Mirrors the parser's declaration. The two files are not connected by an
+ * import in either direction — which the tool itself reports as a co-change
+ * pair, and it is right: they have to be edited together and nothing says so.
+ */
+export interface CoChange {
+  a: string
+  b: string
+  /** commits in the window that touched both */
+  together: number
+  /** together / (touched a or b), so a file that changes with everything scores low */
+  jaccard: number
 }

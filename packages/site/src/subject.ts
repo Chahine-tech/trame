@@ -55,3 +55,27 @@ export function farthestFrom(id: string): { id: string; label: string } | null {
   if (!pick || pick === id) return null
   return { id: pick, label: labels.get(pick) ?? pick }
 }
+
+/**
+ * Who the co-change beat is about, which is not who the rest is about.
+ *
+ * `subjectOf` aims at a neighbourhood that is a clear subset and a wide blast
+ * radius, and on trame's own graph that picks `ui/toast.ts`, a file the history
+ * never moves with anything: the beat would have opened on an empty answer.
+ * Co-change asks a different question, so it gets its own reading of the graph,
+ * still from the data and never from a filename.
+ */
+export function coChangeSubjectOf(): { id: string; label: string } | null {
+  const { data } = useGraphStore.getState()
+  const pairs = data?.coChange
+  if (!data || !pairs?.length) return null
+
+  const weight = new Map<string, number>()
+  for (const c of pairs) {
+    for (const id of [c.a, c.b]) weight.set(id, (weight.get(id) ?? 0) + c.jaccard)
+  }
+  let best: string | null = null
+  for (const [id, w] of weight) if (best === null || w > weight.get(best)!) best = id
+  const node = data.nodes.find((n) => n.id === best)
+  return node ? { id: node.id, label: node.label } : null
+}

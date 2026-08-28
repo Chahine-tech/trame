@@ -78,6 +78,8 @@ export interface GraphData {
   /** the rules that produced `violations`, shipped so the viewer can re-run
    *  them on a hypothetical graph ("what if I deleted this?") */
   rules?: Rule[]
+  /** pairs the history couples that no import connects; absent outside a repo */
+  coChange?: CoChange[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -128,4 +130,19 @@ export interface Analysis {
   orphans: string[]
   /** each entry is a dependency cycle (list of node ids) */
   cycles: string[][]
+}
+
+/**
+ * Two files the history keeps changing together that no import connects.
+ *
+ * `a` and `b` are node ids, so the viewer can draw the pair without knowing
+ * anything about the repository the graph was parsed out of.
+ */
+export interface CoChange {
+  a: string
+  b: string
+  /** commits in the window that touched both */
+  together: number
+  /** together / (touched a or b), so a file that changes with everything scores low */
+  jaccard: number
 }

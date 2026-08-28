@@ -48,6 +48,7 @@ Once you are there:
 | `shift-click` a second file | lights the dependency chain between the two. *Why does LoginPage depend on Chart?* |
 | `I` | everything that transitively depends on this file, fading with distance |
 | `W` | what deleting it would break, what it would strand, which cycles it would resolve — without touching disk |
+| `C` | the files your history keeps changing alongside this one that no import connects. *Nothing in the code says these belong together* |
 | `O` | opens the file at its line in VS Code, Cursor, Windsurf or Zed |
 | `⌘K` → *Copy link to this view* | puts the selection and the active question in the URL, so a colleague opens where you left off |
 
@@ -108,6 +109,24 @@ be one thing. The service layer and the OAuth routes, likewise. Louvain finds
 the groups from the imports alone; both groupings are then scored with Newman's
 modularity, so 0.685 against 0.427 says the folder tree explains this codebase
 about half as well as its own dependencies do.
+
+Ask what the imports cannot tell you:
+
+Every parse inside a git repository also reads the commits, and keeps the pairs
+of files that keep changing together while **no import connects them**. Those
+are the ones the dependency graph structurally cannot show — a route and the
+form that edits it, two handlers that have to stay in step, a type mirrored in
+another package.
+
+Press `C` on a file and they light up. On dub: 19 784 commits, of which 5 587
+touch two or more files in the graph, leaving 67 pairs across its 3 547 files.
+The strongest are `create-tag.ts` with `get-tags.ts`, the two Stripe webhook
+handlers that moved together 38 times, and the OAuth token pair.
+
+Coupling is scored by Jaccard, not by raw co-occurrence, so a file that changes
+with everything scores low rather than pairing with the whole repository, and
+commits touching more than twenty files are dropped: a sweep is not a claim that
+its files belong together. `--since` sets the window.
 
 Ask who introduced it:
 
@@ -309,7 +328,10 @@ trame replay --src ./src [--since --max-frames]  how the architecture grew, acro
 | drag node | reposition it (6px threshold — below that it's a click) |
 | `click` edge | show Bézier handles · drag to reshape · `double-click` reset |
 | `I` | impact of selection (transitive dependents) |
+| `W` | what if — what deleting the selection would break |
+| `C` | co-change — what the history moves with it, unimported |
 | `shift-click` | trace dependency path from selection |
+| `⌘Z` | take back a deselection — file, lens and vantage |
 | `O` | open selection in your editor |
 | `⌘K` / `/` | command palette (search nodes, commands) |
 | `⌘E` | export PNG |

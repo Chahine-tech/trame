@@ -37,6 +37,7 @@ export interface EdgeMood {
   impacted: boolean
   /** which ring of the propagation this edge carries, when it carries one */
   impactRing: number | undefined
+  coChangeOn: boolean
   violated: boolean
   hovered: boolean
   lit: boolean
@@ -111,6 +112,16 @@ export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
       ? { color: p.yellow, opacity: 0.75 - t * 0.35 }
       : { color: mix(mix(p.yellow, p.text, 0.3), p.subtext, t), opacity: 0.95 }
   }
+  /**
+   * Every import recedes while this lens is open, without exception.
+   *
+   * The other lenses split the edges into answer and context. This one cannot:
+   * a pair only reaches the graph if no import connects it, so no edge here is
+   * ever part of the answer. The answer is drawn by `CoChangeMesh`, in a
+   * straight teal line with no head, and the imports are the ground it needs to
+   * stand out from.
+   */
+  if (mood.coChangeOn) return background
   if (mood.violated) {
     const near = mood.selected || mood.lit
     return answer(p.red, near ? 0.95 : 0.55, near ? 0.95 : 0.7)
@@ -150,6 +161,9 @@ export interface NodeMood {
   impactOn: boolean
   /** hops from the change, or undefined when this node is not in the set */
   impactDepth: number | undefined
+  /** the selection or one of the files the history moves with it */
+  coChanged: boolean
+  coChangeOn: boolean
   violated: boolean
   lit: boolean
   hasActive: boolean
@@ -230,6 +244,9 @@ export function nodeInk(mood: NodeMood, p: Palette, dark: boolean): Surface {
     const t = Math.min(mood.impactDepth / 4, 1)
     return wave(dark, p, mood.impactDepth === 0 ? p.peach : p.yellow, t)
   }
+  // the file asked about and the files that move with it; everything else is
+  // the neighbourhood they sit in, which is context and not the answer
+  if (mood.coChangeOn) return mood.coChanged ? press(dark, p, p.teal, 0.7) : recede(dark, p, 1)
   if (mood.violated) {
     if (!dark) return press(dark, p, p.red, 0)
     return {

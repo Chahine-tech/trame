@@ -29,6 +29,7 @@ const ENTRIES: Entry[] = [
   { kind: "impact", by: "I" },
   { kind: "path", by: "⇧click" },
   { kind: "whatif", by: "W" },
+  { kind: "cochange", by: "C" },
   { kind: "replay", by: "R" },
 ]
 
@@ -38,6 +39,7 @@ export function LensBar() {
   const data = useGraphStore((s) => s.data)
   const selectedId = useGraphStore((s) => s.selectedId)
   const hasTimeline = useGraphStore((s) => s.timeline !== null)
+  const hasCoChange = useGraphStore((s) => (s.data?.coChange?.length ?? 0) > 0)
 
   if (!data) return null
 
@@ -45,6 +47,7 @@ export function LensBar() {
     const s = useGraphStore.getState()
     if (kind === "impact") s.toggleImpact()
     else if (kind === "whatif") s.toggleWhatIf()
+    else if (kind === "cochange") s.toggleCoChange()
     else if (kind === "replay") (s.lens === "replay" ? s.exitReplay : s.enterReplay)()
   }
 
@@ -53,7 +56,7 @@ export function LensBar() {
       {ENTRIES.map(({ kind, by }) => {
         const info = LENSES[kind]
         const on = lens === kind
-        const why = blockedBecause(kind, { selectedId, hasTimeline })
+        const why = blockedBecause(kind, { selectedId, hasTimeline, hasCoChange })
         const inert = kind === "path"
         return (
           <button

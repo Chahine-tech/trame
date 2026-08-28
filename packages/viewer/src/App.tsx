@@ -155,6 +155,8 @@ export function AppUI() {
         useGraphStore.getState().toggleImpact()
       } else if (e.key.toLowerCase() === "w") {
         useGraphStore.getState().toggleWhatIf()
+      } else if (e.key.toLowerCase() === "c") {
+        useGraphStore.getState().toggleCoChange()
       } else if (e.key.toLowerCase() === "r") {
         const s = useGraphStore.getState()
         if (s.lens === "replay") s.exitReplay()

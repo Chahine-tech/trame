@@ -110295,5 +110295,409 @@
         "app/app.dub.co/(dashboard)/[slug]/(ee)/program/campaigns/[campaignId]/campaign-events-modal.tsx"
       ]
     ]
-  }
+  },
+  "coChange": [
+    {
+      "a": "ui/analytics/device-section.tsx",
+      "b": "ui/analytics/referrers-utms.tsx",
+      "together": 5,
+      "jaccard": 1
+    },
+    {
+      "a": "ui/partners/overview/blocks/countries-block.tsx",
+      "b": "ui/partners/overview/blocks/links-block.tsx",
+      "together": 5,
+      "jaccard": 1
+    },
+    {
+      "a": "ui/partners/overview/blocks/countries-block.tsx",
+      "b": "ui/partners/overview/blocks/traffic-sources-block.tsx",
+      "together": 5,
+      "jaccard": 1
+    },
+    {
+      "a": "ui/partners/overview/blocks/links-block.tsx",
+      "b": "ui/partners/overview/blocks/traffic-sources-block.tsx",
+      "together": 5,
+      "jaccard": 1
+    },
+    {
+      "a": "lib/actions/partners/create-reward.ts",
+      "b": "lib/actions/partners/update-reward.ts",
+      "together": 8,
+      "jaccard": 0.8888888888888888
+    },
+    {
+      "a": "app/(ee)/api/partners/links/route.ts",
+      "b": "app/(ee)/api/partners/links/upsert/route.ts",
+      "together": 6,
+      "jaccard": 0.8571428571428571
+    },
+    {
+      "a": "app/(ee)/partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/analytics/page.tsx",
+      "b": "app/(ee)/partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/events/page.tsx",
+      "together": 5,
+      "jaccard": 0.8333333333333334
+    },
+    {
+      "a": "ui/analytics/device-section.tsx",
+      "b": "ui/analytics/location-section.tsx",
+      "together": 5,
+      "jaccard": 0.8333333333333334
+    },
+    {
+      "a": "ui/analytics/location-section.tsx",
+      "b": "ui/analytics/referrers-utms.tsx",
+      "together": 5,
+      "jaccard": 0.8333333333333334
+    },
+    {
+      "a": "app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+      "b": "app/(ee)/api/stripe/integration/webhook/invoice-paid.ts",
+      "together": 30,
+      "jaccard": 0.8108108108108109
+    },
+    {
+      "a": "app/(ee)/api/events/route.ts",
+      "b": "app/api/analytics/route.ts",
+      "together": 9,
+      "jaccard": 0.75
+    },
+    {
+      "a": "lib/actions/partners/program-resources/add-program-resource.ts",
+      "b": "lib/actions/partners/program-resources/update-program-resource.ts",
+      "together": 6,
+      "jaccard": 0.75
+    },
+    {
+      "a": "lib/integrations/common/ui/configure-webhook.tsx",
+      "b": "ui/webhooks/add-edit-webhook-form.tsx",
+      "together": 8,
+      "jaccard": 0.7272727272727273
+    },
+    {
+      "a": "lib/partnerstack/import-customers.ts",
+      "b": "lib/tolt/import-customers.ts",
+      "together": 8,
+      "jaccard": 0.7272727272727273
+    },
+    {
+      "a": "app/(ee)/api/cron/import/firstpromoter/route.ts",
+      "b": "lib/firstpromoter/api.ts",
+      "together": 5,
+      "jaccard": 0.7142857142857143
+    },
+    {
+      "a": "ui/partners/overview/blocks/countries-block.tsx",
+      "b": "ui/partners/overview/blocks/partners-block.tsx",
+      "together": 5,
+      "jaccard": 0.7142857142857143
+    },
+    {
+      "a": "ui/partners/overview/blocks/links-block.tsx",
+      "b": "ui/partners/overview/blocks/partners-block.tsx",
+      "together": 5,
+      "jaccard": 0.7142857142857143
+    },
+    {
+      "a": "ui/partners/overview/blocks/partners-block.tsx",
+      "b": "ui/partners/overview/blocks/traffic-sources-block.tsx",
+      "together": 5,
+      "jaccard": 0.7142857142857143
+    },
+    {
+      "a": "app/(ee)/api/partner-profile/programs/[programId]/analytics/route.ts",
+      "b": "app/(ee)/api/partner-profile/programs/[programId]/events/route.ts",
+      "together": 19,
+      "jaccard": 0.6785714285714286
+    },
+    {
+      "a": "app/(ee)/api/partners/[partnerId]/comments/route.ts",
+      "b": "lib/actions/partners/create-partner-comment.ts",
+      "together": 6,
+      "jaccard": 0.6666666666666666
+    },
+    {
+      "a": "app/(ee)/api/cron/messages/notify-partner/route.ts",
+      "b": "app/(ee)/api/cron/messages/notify-program/route.ts",
+      "together": 11,
+      "jaccard": 0.6470588235294118
+    },
+    {
+      "a": "lib/actions/partners/ban-partner.ts",
+      "b": "lib/actions/partners/bulk-ban-partners.ts",
+      "together": 20,
+      "jaccard": 0.6451612903225806
+    },
+    {
+      "a": "lib/actions/partners/approve-bounty-submission.ts",
+      "b": "lib/actions/partners/reject-bounty-submission.ts",
+      "together": 7,
+      "jaccard": 0.6363636363636364
+    },
+    {
+      "a": "app/(ee)/api/campaigns/[campaignId]/events/route.ts",
+      "b": "app/(ee)/api/campaigns/[campaignId]/summary/route.ts",
+      "together": 5,
+      "jaccard": 0.625
+    },
+    {
+      "a": "app/(ee)/api/cron/groups/create-default-links/route.ts",
+      "b": "app/(ee)/api/cron/groups/update-default-links/route.ts",
+      "together": 5,
+      "jaccard": 0.625
+    },
+    {
+      "a": "app/(ee)/api/partners/[partnerId]/comments/route.ts",
+      "b": "lib/actions/partners/delete-partner-comment.ts",
+      "together": 5,
+      "jaccard": 0.625
+    },
+    {
+      "a": "app/(ee)/api/track/click/route.ts",
+      "b": "app/(ee)/api/track/visit/route.ts",
+      "together": 5,
+      "jaccard": 0.625
+    },
+    {
+      "a": "app/(ee)/api/network/programs/count/route.ts",
+      "b": "app/(ee)/api/network/programs/route.ts",
+      "together": 14,
+      "jaccard": 0.6086956521739131
+    },
+    {
+      "a": "app/(ee)/api/partner-profile/invites/route.ts",
+      "b": "app/(ee)/api/partner-profile/users/route.ts",
+      "together": 12,
+      "jaccard": 0.6
+    },
+    {
+      "a": "lib/api/commissions/get-commissions-count.ts",
+      "b": "lib/api/commissions/get-commissions.ts",
+      "together": 12,
+      "jaccard": 0.6
+    },
+    {
+      "a": "lib/integrations/hubspot/track-lead.ts",
+      "b": "lib/integrations/hubspot/track-sale.ts",
+      "together": 10,
+      "jaccard": 0.5882352941176471
+    },
+    {
+      "a": "app/api/webhooks/[webhookId]/route.ts",
+      "b": "lib/integrations/common/ui/configure-webhook.tsx",
+      "together": 7,
+      "jaccard": 0.5833333333333334
+    },
+    {
+      "a": "lib/partners/create-stablecoin-payout.ts",
+      "b": "lib/partners/create-stripe-transfer.ts",
+      "together": 9,
+      "jaccard": 0.5625
+    },
+    {
+      "a": "app/(ee)/admin.dub.co/(dashboard)/revenue/page.tsx",
+      "b": "app/(ee)/api/admin/revenue/route.ts",
+      "together": 5,
+      "jaccard": 0.5555555555555556
+    },
+    {
+      "a": "lib/actions/partners/create-partner-comment.ts",
+      "b": "lib/actions/partners/delete-partner-comment.ts",
+      "together": 5,
+      "jaccard": 0.5555555555555556
+    },
+    {
+      "a": "lib/actions/partners/create-reward.ts",
+      "b": "lib/actions/partners/delete-reward.ts",
+      "together": 5,
+      "jaccard": 0.5555555555555556
+    },
+    {
+      "a": "lib/webhook/get-webhooks.ts",
+      "b": "lib/zod/schemas/webhooks.ts",
+      "together": 5,
+      "jaccard": 0.5555555555555556
+    },
+    {
+      "a": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/[bountyId]/bounty-info.tsx",
+      "b": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/bounty-card.tsx",
+      "together": 11,
+      "jaccard": 0.55
+    },
+    {
+      "a": "app/(ee)/api/track/open/route.ts",
+      "b": "app/(ee)/api/track/visit/route.ts",
+      "together": 6,
+      "jaccard": 0.5454545454545454
+    },
+    {
+      "a": "app/api/webhooks/[webhookId]/route.ts",
+      "b": "ui/webhooks/add-edit-webhook-form.tsx",
+      "together": 7,
+      "jaccard": 0.5384615384615384
+    },
+    {
+      "a": "app/(ee)/api/stripe/integration/webhook/invoice-paid.ts",
+      "b": "lib/integrations/shopify/create-sale.ts",
+      "together": 17,
+      "jaccard": 0.53125
+    },
+    {
+      "a": "lib/api/conversions/track-lead.ts",
+      "b": "lib/api/conversions/track-sale.ts",
+      "together": 24,
+      "jaccard": 0.5106382978723404
+    },
+    {
+      "a": "app/(ee)/api/partner-profile/programs/[programId]/analytics/export/route.ts",
+      "b": "app/(ee)/api/partner-profile/programs/[programId]/events/export/route.ts",
+      "together": 9,
+      "jaccard": 0.5
+    },
+    {
+      "a": "app/(ee)/api/messages/route.ts",
+      "b": "app/(ee)/api/partner-profile/messages/route.ts",
+      "together": 7,
+      "jaccard": 0.5
+    },
+    {
+      "a": "app/(ee)/api/track/click/route.ts",
+      "b": "app/(ee)/api/track/open/route.ts",
+      "together": 6,
+      "jaccard": 0.5
+    },
+    {
+      "a": "lib/firstpromoter/import-customers.ts",
+      "b": "lib/tolt/import-customers.ts",
+      "together": 6,
+      "jaccard": 0.5
+    },
+    {
+      "a": "app/api/webhooks/[webhookId]/route.ts",
+      "b": "lib/webhook/get-webhooks.ts",
+      "together": 5,
+      "jaccard": 0.5
+    },
+    {
+      "a": "lib/actions/partners/delete-program-invite.ts",
+      "b": "lib/api/partners/bulk-delete-partners.ts",
+      "together": 5,
+      "jaccard": 0.5
+    },
+    {
+      "a": "lib/actions/partners/delete-reward.ts",
+      "b": "lib/actions/partners/update-reward.ts",
+      "together": 5,
+      "jaccard": 0.5
+    },
+    {
+      "a": "ui/analytics/device-section.tsx",
+      "b": "ui/analytics/top-links.tsx",
+      "together": 5,
+      "jaccard": 0.5
+    },
+    {
+      "a": "ui/analytics/referrers-utms.tsx",
+      "b": "ui/analytics/top-links.tsx",
+      "together": 5,
+      "jaccard": 0.5
+    },
+    {
+      "a": "app/(ee)/api/stripe/integration/webhook/checkout-session-completed.ts",
+      "b": "lib/integrations/shopify/create-sale.ts",
+      "together": 17,
+      "jaccard": 0.4857142857142857
+    },
+    {
+      "a": "lib/actions/partners/bulk-reject-partner-applications.ts",
+      "b": "lib/actions/partners/reject-partner-application.ts",
+      "together": 8,
+      "jaccard": 0.47058823529411764
+    },
+    {
+      "a": "app/(ee)/api/bounties/[bountyId]/route.ts",
+      "b": "app/(ee)/api/bounties/route.ts",
+      "together": 23,
+      "jaccard": 0.46938775510204084
+    },
+    {
+      "a": "app/(ee)/api/commissions/count/route.ts",
+      "b": "app/(ee)/api/commissions/route.ts",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "app/(ee)/api/cron/export/events/partner/route.ts",
+      "b": "app/(ee)/api/partner-profile/programs/[programId]/events/export/route.ts",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "app/(ee)/api/groups/[groupIdOrSlug]/default-links/route.ts",
+      "b": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/groups/[groupSlug]/links/add-edit-group-default-link-sheet.tsx",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "app/api/webhooks/[webhookId]/route.ts",
+      "b": "ui/webhooks/webhook-trigger-selector.tsx",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "lib/firstpromoter/import-customers.ts",
+      "b": "lib/partnerstack/import-customers.ts",
+      "together": 6,
+      "jaccard": 0.46153846153846156
+    },
+    {
+      "a": "app/api/webhooks/[webhookId]/route.ts",
+      "b": "lib/webhook/create-webhook.ts",
+      "together": 5,
+      "jaccard": 0.45454545454545453
+    },
+    {
+      "a": "ui/analytics/location-section.tsx",
+      "b": "ui/analytics/top-links.tsx",
+      "together": 5,
+      "jaccard": 0.45454545454545453
+    },
+    {
+      "a": "app/(ee)/api/network/partners/count/route.ts",
+      "b": "app/(ee)/api/network/partners/route.ts",
+      "together": 14,
+      "jaccard": 0.45161290322580644
+    },
+    {
+      "a": "lib/api/links/bulk-delete-links.ts",
+      "b": "lib/api/links/delete-link.ts",
+      "together": 8,
+      "jaccard": 0.42105263157894735
+    },
+    {
+      "a": "lib/analytics/get-analytics.ts",
+      "b": "lib/analytics/get-events.ts",
+      "together": 13,
+      "jaccard": 0.41935483870967744
+    },
+    {
+      "a": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/groups/[groupSlug]/settings/group-move-rules.tsx",
+      "b": "lib/api/groups/find-groups-with-matching-rules.ts",
+      "together": 5,
+      "jaccard": 0.4166666666666667
+    },
+    {
+      "a": "lib/actions/check-account-exists.ts",
+      "b": "lib/auth/options.ts",
+      "together": 7,
+      "jaccard": 0.4117647058823529
+    },
+    {
+      "a": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/applications/page-client.tsx",
+      "b": "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/applications/rejected/page-client.tsx",
+      "together": 11,
+      "jaccard": 0.4074074074074074
+    }
+  ]
 }

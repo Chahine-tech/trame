@@ -174,3 +174,25 @@ export function toastDeselected(label: string, file: string, undo: () => void): 
     action: { label: "Undo", onClick: undo, successLabel: "Back" },
   })
 }
+
+/** The graph was parsed where no history could be read, so the lens has nothing. */
+export function toastNoCoChange(): void {
+  const p = getPalette()
+  gooeyToast.info("No co-change in this graph", {
+    ...tinted(p.teal),
+    id: "no-cochange",
+    description: "Reparse inside a git repository to read its history.",
+    duration: 4000,
+  })
+}
+
+/** The lens works, this file simply never travels with anything. */
+export function toastNoCoChangeFor(label: string): void {
+  const p = getPalette()
+  gooeyToast(`${label} moves alone`, {
+    ...tinted(p.teal),
+    id: "no-cochange-for",
+    description: "No other file changes with it often enough to count.",
+    duration: 3000,
+  })
+}

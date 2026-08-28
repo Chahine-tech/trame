@@ -7,6 +7,7 @@ import { HERO_CAMERA, REFERENCE_ASPECT, type CameraPose } from "./camera"
 import { Lighting } from "@trame/viewer/scene/Lighting"
 import { NodeMesh } from "@trame/viewer/scene/NodeMesh"
 import { EdgeMesh } from "@trame/viewer/scene/EdgeMesh"
+import { CoChangeMesh } from "@trame/viewer/scene/CoChangeMesh"
 
 /** The viewer's own meshes, without its chrome. */
 export function GraphScene({ pose }: { pose: CameraPose }) {
@@ -32,6 +33,7 @@ export function GraphScene({ pose }: { pose: CameraPose }) {
       {data.nodes.map((n) => (
         <NodeMesh key={n.id} node={n} />
       ))}
+      <CoChangeMesh />
 
       <OrbitControls
         makeDefault

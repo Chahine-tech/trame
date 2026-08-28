@@ -60,6 +60,7 @@ const RESTING: EdgeMood = {
   impactOn: false,
   impacted: false,
   impactRing: undefined,
+  coChangeOn: false,
   violated: false,
   hovered: false,
   lit: false,
@@ -148,6 +149,8 @@ const RESTING_NODE: NodeMood = {
   onPath: false,
   impactOn: false,
   impactDepth: undefined,
+  coChanged: false,
+  coChangeOn: false,
   violated: false,
   lit: false,
   hasActive: false,
@@ -278,5 +281,40 @@ describe("the wave is drawn where the reader is looking", () => {
     const far = edgeInk(mood({ impactOn: true, impacted: true, impactRing: 4 }), MOCHA, true)
     expect(near.opacity).toBeGreaterThan(far.opacity)
     expect(contrast(far, MOCHA.base)).toBeGreaterThan(3)
+  })
+})
+
+/**
+ * `lens.ts` states the contract in its first paragraph: only one lens can be
+ * active, because each repaints every node and edge to answer *its* question.
+ * This one shipped without repainting anything, so its answer was two thin
+ * lines laid over a neighbourhood drawn at full strength.
+ */
+describe("the co-change lens repaints, like the others", () => {
+  it("sends every import to the background, because none of them is the answer", () => {
+    /**
+     * The other lenses split the edges into answer and context. This one has no
+     * answering edge at all: a pair only reaches the graph when no import
+     * connects it. The answer is drawn by `CoChangeMesh`; the imports are the
+     * ground it stands out from.
+     */
+    const lit = edgeInk(mood({ lit: true, hasActive: true }), LATTE, false)
+    const under = edgeInk(mood({ lit: true, hasActive: true, coChangeOn: true }), LATTE, false)
+    expect(contrast(under, LATTE.base)).toBeLessThan(contrast(lit, LATTE.base))
+  })
+
+  it("presses the file and its partners forward, and everything else back", () => {
+    const answer = nodeInk(node({ coChangeOn: true, coChanged: true }), LATTE, false)
+    const context = nodeInk(node({ coChangeOn: true, coChanged: false }), LATTE, false)
+    expect(contrast({ ...answer, opacity: answer.opacity }, LATTE.base)).toBeGreaterThan(
+      contrast({ ...context, opacity: context.opacity }, LATTE.base),
+    )
+  })
+
+  it("still reads on the dark ground, where dimming is loss of light", () => {
+    const answer = nodeInk(node({ coChangeOn: true, coChanged: true }), MOCHA, true)
+    const context = nodeInk(node({ coChangeOn: true, coChanged: false }), MOCHA, true)
+    expect(answer.opacity).toBeGreaterThan(context.opacity)
+    expect(contrast({ ...answer, opacity: answer.opacity }, MOCHA.base)).toBeGreaterThan(3)
   })
 })

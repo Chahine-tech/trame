@@ -121,6 +121,11 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const isOrphan = useGraphStore((s) => s.orphans.has(node.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
   const impactDepth = useGraphStore((s) => s.impactDepth.get(node.id))
+  const coChangeOn = useGraphStore((s) => s.coChangeOf !== null)
+  // the file asked about, or one the history moves with it
+  const coChanged = useGraphStore(
+    (s) => s.coChangeOf === node.id || s.coChangeWith.has(node.id),
+  )
   const impactStartedAt = useGraphStore((s) => s.impactStartedAt)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
@@ -157,6 +162,8 @@ export function NodeMesh({ node }: { node: GraphNode }) {
           onPath,
           impactOn,
           impactDepth,
+        coChangeOn,
+        coChanged,
           violated: isViolated,
           lit: isLit,
           hasActive,
@@ -167,7 +174,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         palette,
         dark,
       ),
-    [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark],
+    [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, coChangeOn, coChanged, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark],
   )
 
   // Hover growth eased per-frame (interruptible), never snapped
@@ -233,8 +240,17 @@ export function NodeMesh({ node }: { node: GraphNode }) {
 
   if (!position) return null
 
+  /**
+   * A lens names what it is answering about, whether or not it is a neighbour.
+   *
+   * The rule was "lit, or on the traced path", and lit means adjacent to the
+   * selection. A co-change partner is by definition not adjacent, so no label
+   * element was ever created for one, and the lens drew five lines to five
+   * unlabelled dots. Ranking them in `NameDirector` could not help: it arbitrates
+   * between labels that exist.
+   */
   const showLabel =
-    showLabels && (onPath || (isLit && (isHovered || isSelected || hasActive)))
+    showLabels && (onPath || coChanged || (isLit && (isHovered || isSelected || hasActive)))
 
   return (
     <mesh
