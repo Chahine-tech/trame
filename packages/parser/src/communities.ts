@@ -241,7 +241,9 @@ export function disagreements(graph: GraphData, found: Communities): Disagreemen
     const parts = [...groups.values()].filter(
       (g) => g.length >= 3 && g.length >= files.length * 0.15,
     )
-    if (parts.length > 1) split.push({ folder, parts: parts.map((p) => p.sort()) })
+    // sorted through a copy: these arrays are the map's own values, and sorting
+    // them in place reorders what `groups` holds for a caller that never asked
+    if (parts.length > 1) split.push({ folder, parts: parts.map((p) => [...p].sort()) })
   }
 
   const merged: Disagreement["merged"] = []
@@ -253,7 +255,10 @@ export function disagreements(graph: GraphData, found: Communities): Disagreemen
     }
     // only when each folder contributes real substance, not one stray import
     const substantial = [...folders].filter(([, n]) => n > 1).map(([f]) => f)
-    if (substantial.length > 1) merged.push({ folders: substantial.sort(), files: files.sort() })
+    // `substantial` was built here and is ours to sort; `files` belongs to
+    // `byCommunity` and is only borrowed
+    if (substantial.length > 1)
+      merged.push({ folders: substantial.sort(), files: [...files].sort() })
   }
 
   /**

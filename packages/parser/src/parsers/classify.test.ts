@@ -4,8 +4,7 @@ import { labelFor } from "./classify.js"
 
 const project = new Project({ useInMemoryFileSystem: true })
 // overwrite, because a couple of assertions ask about the same path twice
-const label = (path: string) =>
-  labelFor(project.createSourceFile(path, "", { overwrite: true }))
+const label = (path: string) => labelFor(project.createSourceFile(path, "", { overwrite: true }))
 
 describe("labelFor", () => {
   it("uses the file's own name", () => {

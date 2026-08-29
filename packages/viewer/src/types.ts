@@ -51,6 +51,15 @@ export interface GraphCluster {
 export interface Violation {
   rule: "unique-caller" | "no-direct-import" | "no-cycles"
   message: string
+  /**
+   * The file it is *about*, absent where no single file is.
+   *
+   * Mirrors the parser's declaration. `nodeIds` is everyone implicated, which
+   * is a wider set: an endpoint with too many callers implicates the callers
+   * too, and none of them is at fault. Absent on a cycle, where every member
+   * holds the loop together, and on graphs parsed before this existed.
+   */
+  subject?: string
   nodeIds: string[]
   edgeIds: string[]
 }
@@ -98,6 +107,8 @@ export interface GraphData {
   rules?: Rule[]
   /** pairs the history couples that no import connects; absent outside a repo */
   coChange?: CoChange[]
+  /** files that change often and carry weight; absent outside a repo */
+  hotspots?: Hotspot[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -170,4 +181,19 @@ export interface CoChange {
   together: number
   /** together / (touched a or b), so a file that changes with everything scores low */
   jaccard: number
+}
+
+/**
+ * A file where change and consequence meet.
+ *
+ * Mirrors the parser's declaration. Ordered heaviest first by the parser, which
+ * is what the lens turns into heat: the ranking is the finding, and recomputing
+ * it here would be a second opinion nobody asked for.
+ */
+export interface Hotspot {
+  id: string
+  /** commits in the window that touched it */
+  churn: number
+  /** imports in and out: how much rests on it */
+  degree: number
 }

@@ -78,7 +78,6 @@ function getHaloTexture(): THREE.CanvasTexture {
   return haloTexture
 }
 
-
 const geometryCache = new Map<GraphNode["type"], THREE.BufferGeometry>()
 function geometryFor(type: GraphNode["type"]): THREE.BufferGeometry {
   let g = geometryCache.get(type)
@@ -117,15 +116,17 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     hit: THREE.Vector3
   } | null>(null)
 
-  const isViolated = useGraphStore((s) => s.violatedNodes.has(node.id))
+  // red is an accusation, so it goes on the file the rule is about. Being one
+  // of an endpoint's callers is not a fault, and painting it red said it was
+  const isViolated = useGraphStore((s) => (s.violatedNodes.get(node.id) ?? []).some((v) => v.about))
   const isOrphan = useGraphStore((s) => s.orphans.has(node.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
   const impactDepth = useGraphStore((s) => s.impactDepth.get(node.id))
   const coChangeOn = useGraphStore((s) => s.coChangeOf !== null)
   // the file asked about, or one the history moves with it
-  const coChanged = useGraphStore(
-    (s) => s.coChangeOf === node.id || s.coChangeWith.has(node.id),
-  )
+  const coChanged = useGraphStore((s) => s.coChangeOf === node.id || s.coChangeWith.has(node.id))
+  const hotspotsOn = useGraphStore((s) => s.hotspotHeat.size > 0)
+  const heat = useGraphStore((s) => s.hotspotHeat.get(node.id))
   const impactStartedAt = useGraphStore((s) => s.impactStartedAt)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
@@ -141,9 +142,24 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const typeColor = palette[NODE_COLOR[node.type]]
   const dark = isDarkGround()
 
-  // Size = importance: hubs read bigger at a glance
-  const baseScale = Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7)
-
+  /**
+   * Size = importance: hubs read bigger at a glance. Under the hotspot lens,
+   * size = rank instead.
+   *
+   * The resting scale saturates at 1.7, which it reaches at degree 23 — and
+   * every hotspot is past that, so the whole ranking came out one size. Worse,
+   * the lens stands the camera off the entire repository: measured on dub it
+   * parks at 824 units, where one unit of scale is 1.05 px, so `lib/types.ts`
+   * and its 776 dependants were a 1.8 px dot next to a 1.5 px dot. Colour has
+   * no surface to live on at that size, and no camera distance fixes it — the
+   * hotspots span the graph, and framing only the top ten still gives 3.7 px.
+   *
+   * So the rank drives the radius, chosen against that measurement to land the
+   * list between roughly 2.5 and 6 px. Nothing else on screen competes: every
+   * file outside the ranking is receded.
+   */
+  const baseScale =
+    heat === undefined ? Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7) : 2.4 + heat * 3.4
 
   // Colour = information: grey at rest, type colour only when attention lands.
   // Analysis overlays (path, impact, violations) take precedence, since they are
@@ -162,8 +178,10 @@ export function NodeMesh({ node }: { node: GraphNode }) {
           onPath,
           impactOn,
           impactDepth,
-        coChangeOn,
-        coChanged,
+          coChangeOn,
+          coChanged,
+          hotspotsOn,
+          heat,
           violated: isViolated,
           lit: isLit,
           hasActive,
@@ -174,7 +192,30 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         palette,
         dark,
       ),
-    [node.diff, justAdded, whatIfOn, isDoomed, isStranded, isBroken, pathOn, onPath, impactOn, impactDepth, coChangeOn, coChanged, isViolated, isLit, hasActive, isHovered, isSelected, typeColor, palette, dark],
+    [
+      node.diff,
+      justAdded,
+      whatIfOn,
+      isDoomed,
+      isStranded,
+      isBroken,
+      pathOn,
+      onPath,
+      impactOn,
+      impactDepth,
+      coChangeOn,
+      coChanged,
+      hotspotsOn,
+      heat,
+      isViolated,
+      isLit,
+      hasActive,
+      isHovered,
+      isSelected,
+      typeColor,
+      palette,
+      dark,
+    ],
   )
 
   // Hover growth eased per-frame (interruptible), never snapped
@@ -250,7 +291,13 @@ export function NodeMesh({ node }: { node: GraphNode }) {
    * between labels that exist.
    */
   const showLabel =
-    showLabels && (onPath || coChanged || (isLit && (isHovered || isSelected || hasActive)))
+    showLabels &&
+    (onPath ||
+      coChanged ||
+      // a ranked file with no name is a dot with a temperature. The director
+      // thins them where they collide, hottest first
+      heat !== undefined ||
+      (isLit && (isHovered || isSelected || hasActive)))
 
   return (
     <mesh
@@ -373,12 +420,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
       {impactOn && impactDepth !== undefined && (
         <mesh ref={waveRef} raycast={() => null}>
           <sphereGeometry args={[1.6, 16, 12]} />
-          <meshBasicMaterial
-            color={palette.yellow}
-            transparent
-            opacity={0}
-            depthWrite={false}
-          />
+          <meshBasicMaterial color={palette.yellow} transparent opacity={0} depthWrite={false} />
         </mesh>
       )}
 

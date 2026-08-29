@@ -13,6 +13,7 @@ export function useLensStatus(): string | null {
   const whatIf = useGraphStore((s) => s.whatIf)
   const coChangeOf = useGraphStore((s) => s.coChangeOf)
   const coChangeWith = useGraphStore((s) => s.coChangeWith)
+  const hotspotHeat = useGraphStore((s) => s.hotspotHeat)
   const timeline = useGraphStore((s) => s.timeline)
   const frameIndex = useGraphStore((s) => s.frameIndex)
   const data = useGraphStore((s) => s.data)
@@ -50,6 +51,16 @@ export function useLensStatus(): string | null {
     const [strongest] = [...coChangeWith].sort((a, b) => b[1] - a[1])
     return `co-change · ${label(coChangeOf)} moves with ${n} file${n === 1 ? "" : "s"} nothing imports${
       strongest ? ` — most often ${label(strongest[0])}` : ""
+    }`
+  }
+
+  if (lens === "hotspots" && hotspotHeat.size > 0) {
+    const n = hotspotHeat.size
+    // the top of the ranking by name, with both counts: the claim is that the
+    // two together are the finding, so the bubble has to carry both
+    const [first] = data.hotspots ?? []
+    return `hotspots · ${n} of ${total} files, hottest ${
+      first ? `${label(first.id)} — ${first.churn} changes, ${first.degree} dependants` : ""
     }`
   }
 

@@ -6,7 +6,11 @@ function node(id: string, type: NodeType = "module"): GraphNode {
   return { id, label: id.split("/").pop() ?? id, type, file: id, line: 1, cluster: "src" }
 }
 
-function graph(ids: string[], links: [string, string][], types: Record<string, NodeType> = {}): GraphData {
+function graph(
+  ids: string[],
+  links: [string, string][],
+  types: Record<string, NodeType> = {},
+): GraphData {
   return {
     meta: { project: "t", generated: "", nodeCount: ids.length, edgeCount: links.length },
     nodes: ids.map((id) => node(id, types[id] ?? "module")),
@@ -22,18 +26,44 @@ function graph(ids: string[], links: [string, string][], types: Record<string, N
 
 describe("findCycles", () => {
   it("reports nothing on an acyclic graph", () => {
-    expect(findCycles(graph(["a", "b", "c"], [["a", "b"], ["b", "c"]]))).toEqual([])
+    expect(
+      findCycles(
+        graph(
+          ["a", "b", "c"],
+          [
+            ["a", "b"],
+            ["b", "c"],
+          ],
+        ),
+      ),
+    ).toEqual([])
   })
 
   it("finds a two-node cycle", () => {
-    const cycles = findCycles(graph(["a", "b"], [["a", "b"], ["b", "a"]]))
+    const cycles = findCycles(
+      graph(
+        ["a", "b"],
+        [
+          ["a", "b"],
+          ["b", "a"],
+        ],
+      ),
+    )
     expect(cycles).toHaveLength(1)
     expect([...cycles[0]!].sort()).toEqual(["a", "b"])
   })
 
   it("finds a longer cycle without dragging in the nodes that merely reach it", () => {
     const cycles = findCycles(
-      graph(["entry", "a", "b", "c"], [["entry", "a"], ["a", "b"], ["b", "c"], ["c", "a"]]),
+      graph(
+        ["entry", "a", "b", "c"],
+        [
+          ["entry", "a"],
+          ["a", "b"],
+          ["b", "c"],
+          ["c", "a"],
+        ],
+      ),
     )
     expect(cycles).toHaveLength(1)
     expect([...cycles[0]!].sort()).toEqual(["a", "b", "c"])
@@ -41,10 +71,21 @@ describe("findCycles", () => {
 
   it("separates two independent cycles", () => {
     const cycles = findCycles(
-      graph(["a", "b", "x", "y"], [["a", "b"], ["b", "a"], ["x", "y"], ["y", "x"]]),
+      graph(
+        ["a", "b", "x", "y"],
+        [
+          ["a", "b"],
+          ["b", "a"],
+          ["x", "y"],
+          ["y", "x"],
+        ],
+      ),
     )
     expect(cycles).toHaveLength(2)
-    expect(cycles.map((c) => [...c].sort()).sort()).toEqual([["a", "b"], ["x", "y"]])
+    expect(cycles.map((c) => [...c].sort()).sort()).toEqual([
+      ["a", "b"],
+      ["x", "y"],
+    ])
   })
 
   it("does not report a file that imports itself", () => {
@@ -96,7 +137,13 @@ describe("findOrphans", () => {
 
   it("never reports a file named for the tool that runs it", () => {
     const g = graph(
-      ["vitest.config.ts", "playwright/auth.setup.ts", "env.d.ts", "middleware.ts", "lib/lonely.ts"],
+      [
+        "vitest.config.ts",
+        "playwright/auth.setup.ts",
+        "env.d.ts",
+        "middleware.ts",
+        "lib/lonely.ts",
+      ],
       [],
     )
     expect(findOrphans(g)).toEqual(["lib/lonely.ts"])

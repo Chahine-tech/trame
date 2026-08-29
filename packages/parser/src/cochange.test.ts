@@ -27,10 +27,15 @@ describe("co-change", () => {
 
   it("ignores a sweep, which claims nothing about what belongs together", () => {
     const sweep = [["a.ts", "b.ts", "c.ts", "sweep.ts"]]
-    const found = coChanges(Array.from({ length: 6 }, () => sweep[0]!), known, nothingLinked, {
-      ...DEFAULTS,
-      maxFilesPerCommit: 3,
-    })
+    const found = coChanges(
+      Array.from({ length: 6 }, () => sweep[0]!),
+      known,
+      nothingLinked,
+      {
+        ...DEFAULTS,
+        maxFilesPerCommit: 3,
+      },
+    )
     expect(found).toHaveLength(0)
   })
 

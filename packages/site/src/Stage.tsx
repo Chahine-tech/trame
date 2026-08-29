@@ -28,8 +28,13 @@ export function Stage({
 
   useEffect(() => {
     // positions are baked into the file, so load() seeds from them instead of
-    // solving, and the flat preview matches the scene exactly
+    // solving, and the flat preview matches the scene exactly.
+    //
+    // The store is an external system and this is the effect synchronising it,
+    // which is the case the rule's own advice carves out: `ready` cannot be
+    // derived during render, because what it reports is that `load` has run.
     load(data)
+    // oxlint-disable-next-line react/set-state-in-effect
     setReady(true)
   }, [data, load])
 

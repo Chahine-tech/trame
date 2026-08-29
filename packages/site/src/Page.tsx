@@ -47,7 +47,10 @@ export function Page() {
     SECTIONS[active]?.enter(subject.id, farthestFrom(subject.id)?.id ?? null)
   }, [active, data])
 
-  const pose = active < 0 ? HERO_POSE : (SECTIONS[active] ?? { distance: HERO_POSE.distance, height: HERO_POSE.height })
+  const pose =
+    active < 0
+      ? HERO_POSE
+      : (SECTIONS[active] ?? { distance: HERO_POSE.distance, height: HERO_POSE.height })
 
   return (
     <main className="page">

@@ -37,10 +37,7 @@ function toast(show: (m: typeof import("../ui/toast")) => void): void {
  * `neighbours` is a direction, not a fixed map: pass `importers` for "what
  * depends on this", `adjacency` for "what is near this".
  */
-export function reachable(
-  neighbours: Map<string, Set<string>>,
-  from: string,
-): Map<string, number> {
+export function reachable(neighbours: Map<string, Set<string>>, from: string): Map<string, number> {
   const depth = new Map<string, number>([[from, 0]])
   let frontier = [from]
   let d = 0
@@ -75,6 +72,7 @@ function noLens() {
     whatIfBroken: new Set<string>(),
     coChangeOf: null,
     coChangeWith: new Map<string, number>(),
+    hotspotHeat: new Map<string, number>(),
   }
 }
 
@@ -182,8 +180,17 @@ interface GraphState {
   /** user-edited Bézier control points, by edge id */
   ctrl: Map<string, { c1: Vec3; c2: Vec3 }>
 
-  /** rule violations, drawn red */
-  violatedNodes: Map<string, string[]>
+  /**
+   * Rule violations by node, split into what each one is saying.
+   *
+   * `about` is the difference between "this file has twenty-one callers" and
+   * "this file is one of them". Both used to arrive as the same red sentence,
+   * so a file whose only involvement was calling something read as the
+   * offender — and on dub that is twenty-one files wrongly accused per
+   * endpoint. A cycle sets it on every member, which is the truth there: the
+   * loop is not one file's doing.
+   */
+  violatedNodes: Map<string, { message: string; about: boolean }[]>
   violatedEdges: Map<string, string[]>
 
   /** nodes nothing imports: likely dead code */
@@ -209,7 +216,16 @@ interface GraphState {
    */
   coChangeOf: string | null
   coChangeWith: Map<string, number>
+  /**
+   * How high each hotspot stands in the ranking, 1 for the first and 0 for the
+   * last, empty when the lens is off. See `toggleHotspots` for why it is drawn
+   * on the log of the rank rather than on the counts themselves.
+   */
+  hotspotHeat: Map<string, number>
   toggleCoChange: () => void
+  toggleHotspots: () => void
+  /** follow a row of the ranking: aim the camera at it, keep the lens */
+  pickHotspot: (id: string) => void
 
   /** dependency path between two nodes (shift-click) */
   pathNodes: string[]
@@ -335,10 +351,7 @@ interface GraphState {
  * a knot off to one side, so its distance from the origin says how far away it
  * is, not how big it is, and using that framed a thumbnail in an empty screen.
  */
-function reachOf(
-  ids: string[],
-  positions: Map<string, Vec3>,
-): { at: Vec3; spread: number } {
+function reachOf(ids: string[], positions: Map<string, Vec3>): { at: Vec3; spread: number } {
   const points = ids.map((id) => positions.get(id)).filter((p): p is Vec3 => Boolean(p))
   if (points.length === 0) return { at: [0, 0, 0], spread: 60 }
 
@@ -382,13 +395,12 @@ function computeLit(state: Pick<GraphState, "adjacency">, id: string | null): Se
  * Shared by the selection and by the lenses that widen past it, so a lens can
  * change what is on screen and hand it back untouched when it closes.
  */
-function viewOf(
-  ids: Set<string> | null,
-  data: GraphData | null,
-  positions: Map<string, Vec3>,
-) {
+function viewOf(ids: Set<string> | null, data: GraphData | null, positions: Map<string, Vec3>) {
   const nodes = ids && data ? data.nodes.filter((n) => ids.has(n.id)) : (data?.nodes ?? [])
-  const { at, spread } = reachOf(nodes.map((n) => n.id), positions)
+  const { at, spread } = reachOf(
+    nodes.map((n) => n.id),
+    positions,
+  )
   return {
     nearby: ids,
     names: disambiguate(nodes),
@@ -444,6 +456,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   impactStartedAt: 0,
   coChangeOf: null,
   coChangeWith: new Map(),
+  hotspotHeat: new Map(),
   /** the view a selection alone would show, for a lens closing behind itself */
   restoreView: () => {
     const { selectedId, skeletonSet, data, traffic, positions } = get()
@@ -549,6 +562,102 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     })
   },
 
+  toggleHotspots: () => {
+    const { data, lens } = get()
+    if (lens === "hotspots") {
+      // it took nothing, so it gives nothing back beyond the files it added
+      set({ ...noLens(), ...get().restoreView() })
+      return
+    }
+    if (!data?.hotspots?.length) {
+      toast((t) => t.toastNoHotspots())
+      return
+    }
+    /**
+     * The one lens that asks nothing of the reader.
+     *
+     * Every other lens answers about a file: impact from the selection, what if
+     * about the selection, co-change with the selection. This one answers about
+     * the codebase, so requiring a click first would be asking the reader to
+     * point at something before being told where to look.
+     */
+    /**
+     * How high a file stands, on a log of its rank.
+     *
+     * Three scales were measured on dub's 151. The raw product is unusable:
+     * `lib/types.ts` scores 132x776 and the last file 11x12, four hundred times
+     * less, so a linear scale paints one file and a flat floor. Rank spread
+     * linearly is the opposite mistake — the first and the twentieth come out
+     * 7% apart, which is invisible, and the whole range is spent on a tail
+     * nobody reads. The log of the product only looks like the middle path: the
+     * top file is a 38x outlier over the fifth, so it takes half the range on
+     * its own and everything from the fifth down squeezes into 0.45.
+     *
+     * A log of the rank puts the range where the reader looks — first against
+     * twentieth becomes 36% — and, like plain rank, cares only about the order,
+     * so no outlier can distort it.
+     */
+    const heat = new Map<string, number>()
+    const span = Math.log(Math.max(data.hotspots.length, 2))
+    data.hotspots.forEach((h, i) => heat.set(h.id, 1 - Math.log(i + 1) / span))
+
+    /**
+     * An annotation, not a reframing. The camera is not touched.
+     *
+     * Every other lens frames its answer because every other answer has a
+     * place: a neighbourhood, a chain, a pair. This one ranks the repository,
+     * and a ranking has no place — its files are wherever they happen to be.
+     * Framing them all is what the camera did for a day, and it meant standing
+     * 824 units off the whole of dub, where the first file and the twentieth
+     * are dots four pixels apart and the reader has lost wherever they were.
+     * The list carries the order; the map is asked only to say *where*, which
+     * it can only do if it is still the map the reader had.
+     *
+     * The ranking joins what is already drawn rather than replacing it, so a
+     * file the lens names is never a file the lens hid. Clicking a row is how
+     * you travel — `pickHotspot` aims the camera the reader kept.
+     */
+    const nearby = get().nearby
+    const shown = nearby ? new Set([...nearby, ...heat.keys()]) : null
+    set({
+      ...noLens(),
+      names: disambiguate(shown ? data.nodes.filter((n) => shown.has(n.id)) : data.nodes),
+      nearby: shown,
+      lens: "hotspots",
+      hotspotHeat: heat,
+    })
+  },
+
+  pickHotspot: (id) => {
+    const { positions, adjacency, hotspotHeat } = get()
+    const at = positions.get(id)
+    if (!at || !hotspotHeat.has(id)) return
+    /**
+     * Reading a row is not choosing a new subject, which is why this is not
+     * `select`.
+     *
+     * `select` spreads `noLens()` — a new selection invalidates the lens that
+     * was answering about the old one, which is right for every lens that
+     * answers *about a file*. This one answers about the codebase, so the
+     * ranking is still the answer after a click; and `select` would also
+     * recompute `nearby` from the file's neighbourhood, which would take the
+     * other hundred and fifty answers off the screen.
+     *
+     * `extent` is left alone on purpose: the camera re-aims without coming
+     * closer, so following the list pans across the ranking rather than diving
+     * in and out of it. `esc` drops the lens and hands the file to the
+     * inspector, which is where the details live.
+     */
+    set({
+      selectedId: id,
+      selectedEdgeId: null,
+      litSet: computeLit({ adjacency }, id),
+      selectedAt: performance.now(),
+      focusTarget: at,
+      cleared: null,
+    })
+  },
+
   pathNodes: [],
   pathEdges: new Set(),
   tracePathTo: (targetId) => {
@@ -612,7 +721,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   edgeFilter: null,
   cycleEdgeFilter: () => {
     const next =
-      EDGE_FILTER_CYCLE[(EDGE_FILTER_CYCLE.indexOf(get().edgeFilter) + 1) % EDGE_FILTER_CYCLE.length]!
+      EDGE_FILTER_CYCLE[
+        (EDGE_FILTER_CYCLE.indexOf(get().edgeFilter) + 1) % EDGE_FILTER_CYCLE.length
+      ]!
     // an edge selected under the old filter may no longer be visible
     set({ edgeFilter: next, selectedEdgeId: null })
   },
@@ -778,11 +889,18 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       const live = prev.ctrl.get(e.id)
       if (live) ctrl.set(e.id, live)
     }
-    const violatedNodes = new Map<string, string[]>()
+    const violatedNodes = new Map<string, { message: string; about: boolean }[]>()
     const violatedEdges = new Map<string, string[]>()
     for (const v of data.violations ?? []) {
-      for (const id of v.nodeIds) violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), v.message])
-      for (const id of v.edgeIds) violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
+      for (const id of v.nodeIds) {
+        // no subject means no single file is answerable, so every member is:
+        // that is a cycle, and it is also what graphs parsed before this
+        // distinction existed look like
+        const about = v.subject === undefined || v.subject === id
+        violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), { message: v.message, about }])
+      }
+      for (const id of v.edgeIds)
+        violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
     }
     // a node that disappeared from the codebase shouldn't stay pinned forever
     const alive = new Set(data.nodes.map((n) => n.id))
@@ -845,7 +963,6 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      * everything at once and has nothing to lead with.
      */
     if (bones) get().openOnFinding()
-
   },
 
   openOnFinding: () => {
@@ -871,7 +988,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const focus = worth.nodeIds
       .filter((id) => skeletonSet.has(id))
       .sort(
-        (a, b) => (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
+        (a, b) =>
+          (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
       )[0]
     if (!focus) return
     get().select(focus)

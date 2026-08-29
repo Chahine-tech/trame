@@ -58,6 +58,15 @@ export function Clusters() {
   const positions = useGraphStore((s) => s.positions)
   const nearby = useGraphStore((s) => s.nearby)
   const show = useGraphStore((s) => s.showClusters)
+  /**
+   * A lens repaints everything, and that has to include the folders.
+   *
+   * These were the only saturated marks left on screen under the hotspot lens —
+   * a green pip and a blue one among a hundred and fifty red squares — and a
+   * saturated mark inside a lens reads as part of its answer. The name is still
+   * worth having, so the label stays and only its colour stands down.
+   */
+  const lensOn = useGraphStore((s) => s.lens !== "none")
 
   /**
    * A folder is named from the files actually on screen, and stays silent when
@@ -80,7 +89,7 @@ export function Clusters() {
             <FolderLabel
               centroid={centroid}
               lift={anchor.lift}
-              color={anchor.color}
+              color={lensOn ? "var(--overlay)" : anchor.color}
               label={anchor.label}
             />
           </group>

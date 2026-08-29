@@ -120,7 +120,8 @@ function packComponents(
         })
         .sort((a, b) => a - b)
       // too few to have a meaningful tail: take the whole thing
-      const radius = spread[spread.length <= 12 ? spread.length - 1 : Math.floor(spread.length * 0.9)]!
+      const radius =
+        spread[spread.length <= 12 ? spread.length - 1 : Math.floor(spread.length * 0.9)]!
       // a component holding a node the reader dragged has already been placed,
       // by them; it keeps its ground and the others are arranged around it
       const anchored = pinned !== undefined && ids.some((id) => pinned.has(id))
@@ -130,9 +131,7 @@ function packComponents(
     // index so two runs agree
     .sort(
       (a, b) =>
-        Number(b.anchored) - Number(a.anchored) ||
-        b.ids.length - a.ids.length ||
-        a.index - b.index,
+        Number(b.anchored) - Number(a.anchored) || b.ids.length - a.ids.length || a.index - b.index,
     )
 
   const placed: { at: Vec3; radius: number }[] = []
@@ -455,7 +454,8 @@ export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<str
   const nodes: SimNode[] = data.nodes.map((n) => {
     const node: SimNode = { id: n.id, cluster: n.cluster }
     // positions persisted in the file win, then the live previous layout
-    const seed = previous?.get(n.id) ?? (n.x !== undefined ? ([n.x, n.y!, n.z!] as Vec3) : undefined)
+    const seed =
+      previous?.get(n.id) ?? (n.x !== undefined ? ([n.x, n.y!, n.z!] as Vec3) : undefined)
     if (!seed) unseeded++
     if (seed) {
       hadPrevious = true
@@ -484,7 +484,6 @@ export function runLayout(data: GraphData, options: LayoutOptions = {}): Map<str
     .force("charge", forceManyBody().strength(-60))
     .force("center", forceCenter(0, 0, 0))
     .force("cluster", forceCluster())
-
 
   /**
    * A file where every node already carries a position is the layout.

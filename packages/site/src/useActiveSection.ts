@@ -44,6 +44,8 @@ export function useActiveSection(count: number): {
 
     for (const el of elements.current) if (el) observer.observe(el)
     return () => observer.disconnect()
+    // `count` is the trigger, not a value read here: the body observes whatever
+    // `elements.current` holds, and that array is only as long as `count` says
   }, [count])
 
   const register = (index: number) => (el: HTMLElement | null) => {

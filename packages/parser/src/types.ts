@@ -80,6 +80,8 @@ export interface GraphData {
   rules?: Rule[]
   /** pairs the history couples that no import connects; absent outside a repo */
   coChange?: CoChange[]
+  /** files that change often and carry weight; absent outside a repo */
+  hotspots?: Hotspot[]
   diff?: {
     addedNodes: number
     removedNodes: number
@@ -87,7 +89,6 @@ export interface GraphData {
     removedEdges: number
   }
 }
-
 
 export interface RuleMatch {
   edgeType?: EdgeType
@@ -121,6 +122,20 @@ export interface TrameConfig {
 export interface Violation {
   rule: Rule["type"]
   message: string
+  /**
+   * The file the violation is *about*, when one file is.
+   *
+   * `nodeIds` is everything implicated, which is not the same thing: a
+   * unique-caller violation lists the endpoint and its twenty-one callers, and
+   * only the endpoint has too many callers. Without this the viewer could not
+   * tell the two apart and printed the sentence in full on all twenty-two, so
+   * a file whose only involvement was calling something read as the offender.
+   *
+   * Absent where no single file is the subject. A cycle is the honest case:
+   * every file in it holds the loop together, and picking one to blame would be
+   * inventing a culprit.
+   */
+  subject?: string
   nodeIds: string[]
   edgeIds: string[]
 }
@@ -145,4 +160,16 @@ export interface CoChange {
   together: number
   /** together / (touched a or b), so a file that changes with everything scores low */
   jaccard: number
+}
+
+/**
+ * A file where change and consequence meet: often rewritten, and much rests on
+ * it. Neither count is a finding alone, which is why both travel together.
+ */
+export interface Hotspot {
+  id: string
+  /** commits in the window that touched it */
+  churn: number
+  /** imports in and out: how much rests on it */
+  degree: number
 }

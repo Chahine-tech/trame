@@ -20,6 +20,7 @@ export function TopBar({
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
   const whatIf = useGraphStore((s) => s.whatIf)
+  const hotspots = useGraphStore((s) => s.hotspotHeat.size)
 
   const healthy =
     (data?.violations?.length ?? 0) === 0 &&
@@ -66,8 +67,8 @@ export function TopBar({
             /* the detail view draws a neighbourhood, not the repository. Saying
                "2238 files" over 59 dots left people hunting for the rest. */
             <>
-              <b>{shown.files}</b> of <b>{data.meta.nodeCount}</b> files in{" "}
-              <b>{shown.folders}</b> folders
+              <b>{shown.files}</b> of <b>{data.meta.nodeCount}</b> files in <b>{shown.folders}</b>{" "}
+              folders
             </>
           ) : (
             <>
@@ -118,6 +119,18 @@ export function TopBar({
           {whatIf.broken.length === 0 &&
             whatIf.orphaned.length === 0 &&
             whatIf.cyclesResolved === 0 && <span className="good">nothing breaks</span>}
+        </span>
+      )}
+      {hotspots > 0 && (
+        /* the file count beside it says "433 of 3563 files in 4 folders",
+           which is true of what is drawn and says nothing about what is being
+           answered. Every other lens states its own finding here; this one
+           states the size of the ranking and what tops it. */
+        <span className="mode hotspots">
+          hotspots · {hotspots} files ·{" "}
+          {data?.hotspots?.[0]
+            ? `${data.hotspots[0].churn} changes, ${data.hotspots[0].degree} dependants at the top`
+            : ""}
         </span>
       )}
       {impactLabel && (

@@ -26,7 +26,9 @@ export interface ServeOptions {
  */
 export function serve({ dataFile, distDir, port }: ServeOptions): void {
   if (!fs.existsSync(path.join(distDir, "index.html"))) {
-    console.error(`error: viewer build not found at ${distDir}\n       run: pnpm --filter @trame/viewer build`)
+    console.error(
+      `error: viewer build not found at ${distDir}\n       run: pnpm --filter @trame/viewer build`,
+    )
     process.exit(1)
   }
 

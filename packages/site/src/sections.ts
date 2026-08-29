@@ -15,7 +15,7 @@ export interface Section {
    * Named rather than inferred from `enter`, because the eyebrow is drawn in
    * that lens' colour.
    */
-  lens: "impact" | "path" | "whatif" | "cochange" | "replay" | null
+  lens: "impact" | "path" | "whatif" | "cochange" | "hotspots" | "replay" | null
   /** small label above the title */
   eyebrow: string
   title: string
@@ -85,6 +85,30 @@ export const SECTIONS: Section[] = [
       if (!s) return
       store().select(s.id)
       if (store().lens !== "cochange") store().toggleCoChange()
+    },
+  },
+  {
+    id: "hotspots",
+    lens: "hotspots",
+    eyebrow: "hotspots",
+    title: "Where the codebase is under pressure.",
+    body: "A file rewritten every week is where mistakes are made. A file everything imports is where a mistake travels furthest. Neither is a finding alone — the pillar nothing has touched all year is a structure doing its job. trame lights the files that are both.",
+    // the only beat about the whole map rather than about one file, so the
+    // camera stands back far enough to see the ranking spread across it
+    distance: 60,
+    height: 11,
+    enter: () => {
+      /**
+       * Let go first, then light them.
+       *
+       * No subject: this lens asks nothing of the reader, and passing one would
+       * quietly teach the visitor that it needs a selection. And since the lens
+       * takes no camera of its own — it annotates whatever is drawn rather than
+       * reframing — this beat would otherwise inherit the co-change beat's
+       * vantage and light the map from where the *previous* question left it.
+       */
+      store().clear()
+      if (store().lens !== "hotspots") store().toggleHotspots()
     },
   },
   {

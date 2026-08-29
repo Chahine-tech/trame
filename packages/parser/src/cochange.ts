@@ -123,7 +123,8 @@ const SEP = String.fromCharCode(31)
  * Every commit in the window as its list of changed files.
  *
  * One `git log` pass, where `replay.ts` needs a worktree per frame: the names
- * are in the log itself, so nothing is checked out.
+ * are in the log itself, so nothing is checked out. `hotspots.ts` reads the
+ * same log for its own counts.
  *
  * Deliberately no `-M`. Rename detection compares contents, so it needs the
  * blobs, and it fails outright on the partial clones CI tends to hand you: on a
@@ -132,7 +133,7 @@ const SEP = String.fromCharCode(31)
  * delete and an add, and the old path is dropped anyway for not being in the
  * graph, so the cost is a few commits of history for the file's new name.
  */
-function readCommitFiles(repo: string, since: string): string[][] {
+export function readCommitFiles(repo: string, since: string): string[][] {
   const raw = execFileSync(
     "git",
     ["-C", repo, "log", "--name-only", `--since=${since}`, "--pretty=format:%x1f"],

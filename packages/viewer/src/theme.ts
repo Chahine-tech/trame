@@ -11,8 +11,23 @@ import type { EdgeType, NodeType } from "./types"
  * list means the two cannot drift.
  */
 const VARS = [
-  "crust", "mantle", "base", "surface0", "surface1", "overlay", "subtext", "text",
-  "blue", "green", "mauve", "peach", "pink", "yellow", "teal", "lav", "red",
+  "crust",
+  "mantle",
+  "base",
+  "surface0",
+  "surface1",
+  "overlay",
+  "subtext",
+  "text",
+  "blue",
+  "green",
+  "mauve",
+  "peach",
+  "pink",
+  "yellow",
+  "teal",
+  "lav",
+  "red",
 ] as const
 
 export type Palette = Record<(typeof VARS)[number], string>
@@ -120,7 +135,6 @@ export function usePalette(): Palette {
     () => current,
   )
 }
-
 
 export type ThemePref = "auto" | "dark" | "light"
 const THEME_KEY = "trame-theme"

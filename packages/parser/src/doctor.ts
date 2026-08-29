@@ -31,9 +31,7 @@ function subgraph(graph: GraphData, ids: Set<string>, without?: GraphEdge): Grap
   return {
     ...graph,
     nodes: graph.nodes.filter((n) => ids.has(n.id)),
-    edges: graph.edges.filter(
-      (e) => e !== without && ids.has(e.source) && ids.has(e.target),
-    ),
+    edges: graph.edges.filter((e) => e !== without && ids.has(e.source) && ids.has(e.target)),
   }
 }
 
@@ -51,10 +49,7 @@ function tangled(graph: GraphData, ids: Set<string>, without?: GraphEdge): numbe
  * Recomputing after each candidate is the only way the advice can be stated as
  * a fact rather than a guess.
  */
-function bestCut(
-  graph: GraphData,
-  cycle: string[],
-): { edge: GraphEdge; frees: number } | null {
+function bestCut(graph: GraphData, cycle: string[]): { edge: GraphEdge; frees: number } | null {
   const ids = new Set(cycle)
   const inside = graph.edges.filter((e) => ids.has(e.source) && ids.has(e.target))
   if (inside.length === 0 || inside.length > CUT_SEARCH_LIMIT) return null
@@ -85,8 +80,11 @@ function deadWeight(graph: GraphData, orphan: string): string[] {
 
   const doomed = new Set([orphan])
   // grow the set while anything newly reachable has no surviving importer
-  for (let changed = true; changed; ) {
+  for (let changed = true; changed;) {
     changed = false
+    // the spread is the point: `doomed` grows inside this loop, and iterating
+    // the live Set would visit entries added during the walk
+    // oxlint-disable-next-line unicorn/no-useless-spread
     for (const id of [...doomed]) {
       for (const next of imports.get(id) ?? []) {
         if (doomed.has(next)) continue

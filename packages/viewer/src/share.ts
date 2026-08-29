@@ -22,6 +22,7 @@ export interface SharedView {
   lens?: LensKind
 }
 
+// three of them: a Set here would be slower to build than the scan it saves
 const SHAREABLE: LensKind[] = ["impact", "path", "whatif"]
 
 export function encodeView(view: SharedView): string {
@@ -97,6 +98,26 @@ export function useShareLink(): void {
     const view = decodeView(location.hash)
     if (view.node) applyView(view)
   }, [data])
+
+  /**
+   * A link pasted into the address bar of an open page is a gesture, and it
+   * used to do nothing at all: the guard above fires once per load, so the
+   * second link only rewrote the hash while the view stayed put. It reads as
+   * the tool ignoring you, and it is how a lens that worked looked broken.
+   *
+   * Distinct from the guard, which exists for a reload of the *data*. This is
+   * the reader asking. `replaceState` below does not raise `hashchange`, so
+   * writing the URL back cannot loop through here.
+   */
+  useEffect(() => {
+    const onHash = () => {
+      if (!useGraphStore.getState().data) return
+      const view = decodeView(location.hash)
+      if (view.node) applyView(view)
+    }
+    window.addEventListener("hashchange", onHash)
+    return () => window.removeEventListener("hashchange", onHash)
+  }, [])
 
   useEffect(() => {
     if (!applied.current) return

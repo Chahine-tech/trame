@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest"
 import { disagreements, findCommunities } from "./communities.js"
 import type { GraphData } from "./types.js"
 
-function graph(links: [string, string][], folderOf: (id: string) => string = () => "src"): GraphData {
+function graph(
+  links: [string, string][],
+  folderOf: (id: string) => string = () => "src",
+): GraphData {
   const ids = [...new Set(links.flat())].sort()
   return {
     meta: { project: "t", generated: "", nodeCount: ids.length, edgeCount: links.length },
@@ -31,7 +34,11 @@ const clique = (names: string[]): [string, string][] =>
 describe("findCommunities", () => {
   it("separates two clusters joined by a single import", () => {
     // the textbook case: two tight groups, one thread between them
-    const g = graph([...clique(["a1", "a2", "a3", "a4"]), ...clique(["b1", "b2", "b3", "b4"]), ["a1", "b1"]])
+    const g = graph([
+      ...clique(["a1", "a2", "a3", "a4"]),
+      ...clique(["b1", "b2", "b3", "b4"]),
+      ["a1", "b1"],
+    ])
     const { of, quality } = findCommunities(g)
     expect(of.get("a1")).toBe(of.get("a4"))
     expect(of.get("b1")).toBe(of.get("b4"))
@@ -58,7 +65,9 @@ describe("findCommunities", () => {
   it("survives a graph with no edges at all", () => {
     const g: GraphData = {
       meta: { project: "t", generated: "", nodeCount: 1, edgeCount: 0 },
-      nodes: [{ id: "lonely", label: "lonely", type: "module", file: "lonely", line: 1, cluster: "src" }],
+      nodes: [
+        { id: "lonely", label: "lonely", type: "module", file: "lonely", line: 1, cluster: "src" },
+      ],
       edges: [],
       clusters: [],
     }
@@ -72,7 +81,10 @@ describe("disagreements", () => {
     // one folder, two groups that never touch: the directory is a filing
     // decision, not an architectural one
     const g = graph(
-      [...clique(["utils/a1", "utils/a2", "utils/a3"]), ...clique(["utils/b1", "utils/b2", "utils/b3"])],
+      [
+        ...clique(["utils/a1", "utils/a2", "utils/a3"]),
+        ...clique(["utils/b1", "utils/b2", "utils/b3"]),
+      ],
       () => "utils",
     )
     const { split } = disagreements(g, findCommunities(g))
@@ -105,7 +117,11 @@ describe("disagreements", () => {
   it("ignores a single stray file rather than calling it a module", () => {
     // one file drifting into another community is noise, not a boundary
     const g = graph(
-      [...clique(["ui/a", "ui/b", "ui/c"]), ["ui/stray", "db/a"], ...clique(["db/a", "db/b", "db/c"])],
+      [
+        ...clique(["ui/a", "ui/b", "ui/c"]),
+        ["ui/stray", "db/a"],
+        ...clique(["db/a", "db/b", "db/c"]),
+      ],
       (id) => id.split("/")[0]!,
     )
     const { split } = disagreements(g, findCommunities(g))

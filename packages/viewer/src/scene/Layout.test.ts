@@ -98,9 +98,7 @@ describe("disconnected components", () => {
     // than be pushed aside by whichever one was parsed first
     const small = chain("small", 4)
     const big = chain("big", 20)
-    const positions = runLayout(
-      graph([...small.ids, ...big.ids], [...small.links, ...big.links]),
-    )
+    const positions = runLayout(graph([...small.ids, ...big.ids], [...small.links, ...big.links]))
     const centre = spread(positions, big.ids).centre
     expect(Math.hypot(centre[0], centre[1], centre[2])).toBeLessThan(1)
   })

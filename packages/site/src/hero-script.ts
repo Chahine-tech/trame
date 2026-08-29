@@ -18,17 +18,16 @@ const MIN_DEGREE = 3
 function wanderOrder(): string[] {
   const { data, adjacency } = useGraphStore.getState()
   if (!data) return []
-  return data.nodes
-    .filter((n) => (adjacency.get(n.id)?.size ?? 0) >= MIN_DEGREE)
-    .map((n) => n.id)
-    // sorted, so the tour is the same on every visit
-    .sort()
+  return (
+    data.nodes
+      .filter((n) => (adjacency.get(n.id)?.size ?? 0) >= MIN_DEGREE)
+      .map((n) => n.id)
+      // sorted, so the tour is the same on every visit
+      .sort()
+  )
 }
 
-export function useHeroScript(
-  enabled: boolean,
-  onCaption: (text: string | null) => void,
-): void {
+export function useHeroScript(enabled: boolean, onCaption: (text: string | null) => void): void {
   // separate refs: a timeout handle and an interval handle. Sharing one ref
   // only worked because browsers happen to share an id space between them.
   const delay = useRef<ReturnType<typeof setTimeout> | null>(null)

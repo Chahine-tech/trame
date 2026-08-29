@@ -1,5 +1,13 @@
 import { findCycles } from "./analysis.js"
-import type { TrameConfig, GraphData, GraphEdge, GraphNode, Rule, RuleMatch, Violation } from "./types.js"
+import type {
+  TrameConfig,
+  GraphData,
+  GraphEdge,
+  GraphNode,
+  Rule,
+  RuleMatch,
+  Violation,
+} from "./types.js"
 
 /**
  * Indexes built once per evaluation, instead of a linear scan per lookup.
@@ -49,6 +57,8 @@ function checkUniqueCaller(rule: Rule, graph: GraphData, index: Index): Violatio
     violations.push({
       rule: rule.type,
       message: `${rule.message} (${label}: ${edges.length} callers)`,
+      // the target has too many callers; the callers are only involved
+      subject: target,
       nodeIds: [target, ...edges.map((e) => e.source)],
       edgeIds: edges.map((e) => e.id),
     })
@@ -65,6 +75,8 @@ function checkNoDirectImport(rule: Rule, graph: GraphData, index: Index): Violat
     violations.push({
       rule: rule.type,
       message: `${rule.message} (${source?.label} → ${target?.label})`,
+      // the import is written in the source, so that is where the fix is
+      subject: edge.source,
       nodeIds: [edge.source, edge.target],
       edgeIds: [edge.id],
     })
@@ -86,6 +98,7 @@ function checkNoCycles(rule: Rule, graph: GraphData, index: Index): Violation[] 
     return {
       rule: rule.type,
       message: `${rule.message} (${labels.join(" → ")} → ${labels[0]})`,
+      // deliberately no subject: every file in a loop holds it together
       nodeIds: cycle,
       edgeIds,
     }
@@ -98,7 +111,8 @@ export function evaluateRules(graph: GraphData, config: TrameConfig): Violation[
   const index = indexOf(graph)
   for (const rule of config.rules ?? []) {
     if (rule.type === "unique-caller") violations.push(...checkUniqueCaller(rule, graph, index))
-    else if (rule.type === "no-direct-import") violations.push(...checkNoDirectImport(rule, graph, index))
+    else if (rule.type === "no-direct-import")
+      violations.push(...checkNoDirectImport(rule, graph, index))
     else if (rule.type === "no-cycles") violations.push(...checkNoCycles(rule, graph, index))
   }
   return violations

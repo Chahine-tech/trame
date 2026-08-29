@@ -35,15 +35,19 @@ const AT = new THREE.Vector3()
  * Written straight to the DOM, only when the view has moved. Re-rendering forty
  * meshes several times a second costs more than the arithmetic deciding them.
  */
+/** Above every depth rank, so what a lens is answering about keeps its name. */
+const ANSWER = 1e9
+
 function NameDirector() {
   const positions = useGraphStore((s) => s.positions)
   const selectedId = useGraphStore((s) => s.selectedId)
   const coChangeWith = useGraphStore((s) => s.coChangeWith)
+  const hotspotHeat = useGraphStore((s) => s.hotspotHeat)
   const lastView = useRef("")
 
   useFrame(({ camera, size }) => {
     const elements = labelElements()
-    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}|${coChangeWith.size}`
+    const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}|${coChangeWith.size}|${hotspotHeat.size}`
     if (view === lastView.current) return
     lastView.current = view
 
@@ -85,8 +89,12 @@ function NameDirector() {
           id === selectedId
             ? Number.MAX_SAFE_INTEGER
             : coChangeWith.has(id)
-              ? Number.MAX_SAFE_INTEGER - 1
-              : -AT.z,
+              ? ANSWER
+              : // and the hotspots, hottest first: where they crowd, the names
+                // that survive are the ones at the top of the ranking
+                hotspotHeat.has(id)
+                ? ANSWER + (hotspotHeat.get(id) ?? 0)
+                : -AT.z,
       })
     }
 
@@ -304,9 +312,7 @@ export function Scene() {
   const palette = usePalette()
   const data = useGraphStore((s) => s.data)
   const controlsEnabled = useGraphStore((s) => s.controlsEnabled)
-  const idle = useGraphStore(
-    (s) => s.litSet.size === 0 && !s.selectedEdgeId && !s.focusTarget,
-  )
+  const idle = useGraphStore((s) => s.litSet.size === 0 && !s.selectedEdgeId && !s.focusTarget)
   const introSpin = useIntroSpin()
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
@@ -330,6 +336,11 @@ export function Scene() {
 
   // the spin pauses while a node is lit and resumes after; in demand mode the
   // loop has already stopped by then, so it needs an explicit restart
+  /**
+   * The extra dependencies *are* the effect: under `frameloop="demand"` nothing
+   * redraws unless something asks, and what this asks for is a frame whenever
+   * either of those changes. There is nothing to read in the body.
+   */
   useEffect(() => {
     invalidate()
   }, [introSpin, idle, invalidate])

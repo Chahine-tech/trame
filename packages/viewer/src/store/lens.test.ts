@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest"
 import { blockedBecause, LENSES } from "./lens"
 
 describe("whether a lens can answer", () => {
-  const nothing = { selectedId: null, hasTimeline: false, hasCoChange: true }
-  const chosen = { selectedId: "a.ts", hasTimeline: false, hasCoChange: true }
+  const nothing = { selectedId: null, hasTimeline: false, hasCoChange: true, hasHotspots: true }
+  const chosen = { selectedId: "a.ts", hasTimeline: false, hasCoChange: true, hasHotspots: true }
 
   it("asks for a file before answering a question about one", () => {
     expect(blockedBecause("impact", nothing)).toBeTruthy()
@@ -22,7 +22,14 @@ describe("whether a lens can answer", () => {
   it("asks for a replay to exist rather than for a selection", () => {
     // history is a property of the repository, not of what is on screen
     expect(blockedBecause("replay", chosen)).toBeTruthy()
-    expect(blockedBecause("replay", { selectedId: null, hasTimeline: true, hasCoChange: true })).toBeNull()
+    expect(blockedBecause("replay", { ...nothing, hasTimeline: true })).toBeNull()
+  })
+
+  it("asks nothing of the reader for the one lens that is about the codebase", () => {
+    // hotspots ranks every file against every other, so there is nothing to
+    // point at first: it answers as soon as there is history behind the graph
+    expect(blockedBecause("hotspots", nothing)).toBeNull()
+    expect(blockedBecause("hotspots", { ...nothing, hasHotspots: false })).toContain("git")
   })
 
   it("says what it is waiting for, never just that it is unavailable", () => {

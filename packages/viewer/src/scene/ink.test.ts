@@ -61,6 +61,7 @@ const RESTING: EdgeMood = {
   impacted: false,
   impactRing: undefined,
   coChangeOn: false,
+  hotspotsOn: false,
   violated: false,
   hovered: false,
   lit: false,
@@ -111,7 +112,14 @@ describe("an answer stands clear of the map it is drawn over", () => {
         [MOCHA, true],
       ] as const) {
         const answer = contrast(edgeInk(mood(over), palette, dark), palette.base)
-        const ground = contrast(edgeInk(mood({ ...over, onPath: false, impacted: false, violated: false, lit: false }), palette, dark), palette.base)
+        const ground = contrast(
+          edgeInk(
+            mood({ ...over, onPath: false, impacted: false, violated: false, lit: false }),
+            palette,
+            dark,
+          ),
+          palette.base,
+        )
         expect(answer / ground).toBeGreaterThan(3)
       }
     })
@@ -151,6 +159,8 @@ const RESTING_NODE: NodeMood = {
   impactDepth: undefined,
   coChanged: false,
   coChangeOn: false,
+  hotspotsOn: false,
+  heat: undefined,
   violated: false,
   lit: false,
   hasActive: false,
@@ -316,5 +326,55 @@ describe("the co-change lens repaints, like the others", () => {
     const context = nodeInk(node({ coChangeOn: true, coChanged: false }), MOCHA, true)
     expect(answer.opacity).toBeGreaterThan(context.opacity)
     expect(contrast({ ...answer, opacity: answer.opacity }, MOCHA.base)).toBeGreaterThan(3)
+  })
+})
+
+describe("the hotspot lens draws a ranking, not a set", () => {
+  const hot = (heat: number, p = LATTE, dark = false) =>
+    nodeInk(node({ hotspotsOn: true, heat }), p, dark)
+
+  it("separates the top of the list from the bottom of it", () => {
+    // the point of a heat map is that two files in it do not look the same:
+    // 150 files painted one colour is a list, and a list is not a picture
+    expect(contrast(hot(1), LATTE.base)).toBeGreaterThan(contrast(hot(0), LATTE.base))
+  })
+
+  it("keeps the last file in the ranking visible, unlike a fourth impact ring", () => {
+    /**
+     * `wave` lands its far end on the resting grey, which is right for a
+     * dependent four hops out and wrong here: the coolest hotspot is still one
+     * of the files the lens is naming. Measured against a node the lens pushed
+     * away entirely.
+     */
+    const coolest = hot(0)
+    const pushed = nodeInk(node({ hotspotsOn: true, heat: undefined }), LATTE, false)
+    expect(contrast(coolest, LATTE.base)).toBeGreaterThan(contrast(pushed, LATTE.base))
+  })
+
+  it("pushes away every file the ranking did not reach", () => {
+    const inside = hot(0.5)
+    const outside = nodeInk(node({ hotspotsOn: true, heat: undefined }), MOCHA, true)
+    expect(inside.opacity).toBeGreaterThan(outside.opacity)
+  })
+
+  it("marks the row being followed without leaving the ranking's language", () => {
+    // it is one of these files, not a new subject, so it keeps the heat hue
+    const followed = nodeInk(node({ hotspotsOn: true, heat: 0.5, selected: true }), MOCHA, true)
+    const same = hot(0.5, MOCHA, true)
+    expect(followed.color).toBe(same.color)
+    expect(followed.emissiveIntensity).toBeGreaterThan(same.emissiveIntensity)
+  })
+
+  it("sends the imports to the background: an import is not part of the ranking", () => {
+    const lit = edgeInk(mood({ lit: true, hasActive: true }), LATTE, false)
+    const under = edgeInk(mood({ lit: true, hasActive: true, hotspotsOn: true }), LATTE, false)
+    expect(contrast(under, LATTE.base)).toBeLessThan(contrast(lit, LATTE.base))
+  })
+
+  it("still reads on the dark ground, where the ranking is light and not ink", () => {
+    expect(hot(1, MOCHA, true).emissiveIntensity).toBeGreaterThan(
+      hot(0, MOCHA, true).emissiveIntensity,
+    )
+    expect(contrast(hot(1, MOCHA, true), MOCHA.base)).toBeGreaterThan(3)
   })
 })

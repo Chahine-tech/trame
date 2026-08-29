@@ -41,7 +41,11 @@ export class ConfigError extends Error {
  * growing a member nobody added here, fails loudly the first time the new
  * option is used and needs no compile-time guard.
  */
-const RULE_TYPES = ["unique-caller", "no-direct-import", "no-cycles"] as const satisfies readonly Rule["type"][]
+const RULE_TYPES = [
+  "unique-caller",
+  "no-direct-import",
+  "no-cycles",
+] as const satisfies readonly Rule["type"][]
 const NODE_TYPES = [
   "page",
   "component",
@@ -62,7 +66,11 @@ const EDGE_TYPES = [
 
 const CONFIG_KEYS = ["rules", "exclude"] as const satisfies readonly (keyof TrameConfig)[]
 const RULE_KEYS = ["type", "match", "message"] as const satisfies readonly (keyof Rule)[]
-const MATCH_KEYS = ["edgeType", "sourceType", "targetType"] as const satisfies readonly (keyof RuleMatch)[]
+const MATCH_KEYS = [
+  "edgeType",
+  "sourceType",
+  "targetType",
+] as const satisfies readonly (keyof RuleMatch)[]
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -101,11 +109,13 @@ function checkKeys(
 function checkEnum(
   value: unknown,
   allowed: readonly string[],
-  path: string,
+  // `where`, not `path`: this is a pointer into the config object, and the
+  // only other `path` in this file is the node module
+  where: string,
   problems: string[],
 ): void {
   if (typeof value === "string" && allowed.includes(value)) return
-  problems.push(`${path}: ${describe(value)} — expected one of ${allowed.join(", ")}`)
+  problems.push(`${where}: ${describe(value)} — expected one of ${allowed.join(", ")}`)
 }
 
 function checkMatch(value: unknown, parent: string, problems: string[]): void {
@@ -144,7 +154,9 @@ function checkRule(value: unknown, parent: string, problems: string[]): void {
 /** Throws `ConfigError` listing everything wrong at once, or returns the config. */
 export function validateConfig(value: unknown, file: string): TrameConfig {
   if (!isRecord(value)) {
-    throw new ConfigError(file, [`${describe(value)} — expected an object with rules and/or exclude`])
+    throw new ConfigError(file, [
+      `${describe(value)} — expected an object with rules and/or exclude`,
+    ])
   }
 
   const problems: string[] = []
@@ -181,7 +193,10 @@ export function validateConfig(value: unknown, file: string): TrameConfig {
  * Kept apart from rules.ts so the rule evaluation stays free of node builtins:
  * the viewer runs the very same checks in the browser to simulate a change.
  */
-export async function loadConfig(explicit?: string, cwd = process.cwd()): Promise<TrameConfig | null> {
+export async function loadConfig(
+  explicit?: string,
+  cwd = process.cwd(),
+): Promise<TrameConfig | null> {
   const candidates = explicit ? [explicit] : CONFIG_CANDIDATES
   for (const candidate of candidates) {
     const p = path.resolve(cwd, candidate)
@@ -196,7 +211,11 @@ export async function loadConfig(explicit?: string, cwd = process.cwd()): Promis
       return validateConfig(parsed, p)
     }
     // a module namespace is a record too, so a config written with named
-    // exports rather than a default validates the same way
+    // exports rather than a default validates the same way.
+    //
+    // Sequential on purpose: the candidates are tried in precedence order and
+    // the first one found wins, so loading them in parallel would import
+    // config files the project never asked for.
     const mod = (await import(pathToFileURL(p).href)) as { default?: unknown }
     return validateConfig(mod.default ?? mod, p)
   }

@@ -13,6 +13,7 @@ import {
   toastViolations,
 } from "./ui/toast"
 import { TopBar } from "./ui/TopBar"
+import { Hotspots } from "./ui/Hotspots"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
@@ -157,6 +158,8 @@ export function AppUI() {
         useGraphStore.getState().toggleWhatIf()
       } else if (e.key.toLowerCase() === "c") {
         useGraphStore.getState().toggleCoChange()
+      } else if (e.key.toLowerCase() === "h") {
+        useGraphStore.getState().toggleHotspots()
       } else if (e.key.toLowerCase() === "r") {
         const s = useGraphStore.getState()
         if (s.lens === "replay") s.exitReplay()
@@ -178,8 +181,12 @@ export function AppUI() {
 
   return (
     <>
-      <TopBar onOpenPalette={() => setPaletteOpen(true)} onOpenShortcuts={() => setShortcutsOpen(true)} />
+      <TopBar
+        onOpenPalette={() => setPaletteOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+      />
       <Inspector />
+      <Hotspots />
       <LensBar />
       <FirstRunHint />
       <TimelineBar />

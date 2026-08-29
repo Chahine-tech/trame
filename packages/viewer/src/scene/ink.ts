@@ -38,6 +38,7 @@ export interface EdgeMood {
   /** which ring of the propagation this edge carries, when it carries one */
   impactRing: number | undefined
   coChangeOn: boolean
+  hotspotsOn: boolean
   violated: boolean
   hovered: boolean
   lit: boolean
@@ -71,14 +72,8 @@ export interface EdgeMood {
 export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
   const dimmed = dimmedEdge(dark)
 
-  /**
-   * An accent drawn as an answer rather than as decoration.
-   *
-   * On paper that means ink: near-full strength, walked toward the colour the
-   * page is written in. `mix` says why, for nodes: lowering opacity on
-   * white pushes a mark toward the background, which is the opposite of
-   * emphasis.
-   */
+  /** An accent drawn as an answer: on paper, ink walked toward the page's own
+   *  colour rather than thinned. `recede` below says why opacity is wrong there. */
   const answer = (accent: string, onDark: number, onPaper = 0.95): Ink =>
     dark
       ? { color: accent, opacity: onDark }
@@ -112,16 +107,13 @@ export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
       ? { color: p.yellow, opacity: 0.75 - t * 0.35 }
       : { color: mix(mix(p.yellow, p.text, 0.3), p.subtext, t), opacity: 0.95 }
   }
-  /**
-   * Every import recedes while this lens is open, without exception.
-   *
-   * The other lenses split the edges into answer and context. This one cannot:
-   * a pair only reaches the graph if no import connects it, so no edge here is
-   * ever part of the answer. The answer is drawn by `CoChangeMesh`, in a
-   * straight teal line with no head, and the imports are the ground it needs to
-   * stand out from.
-   */
+  // Every import, without exception: the other lenses split their edges into
+  // answer and context, and this one cannot, since a pair only reaches the
+  // graph when no import connects it. `CoChangeMesh` draws the answer.
   if (mood.coChangeOn) return background
+  // same reason, from the other side: this lens ranks files, and an import is
+  // not part of the ranking
+  if (mood.hotspotsOn) return background
   if (mood.violated) {
     const near = mood.selected || mood.lit
     return answer(p.red, near ? 0.95 : 0.55, near ? 0.95 : 0.7)
@@ -164,6 +156,9 @@ export interface NodeMood {
   /** the selection or one of the files the history moves with it */
   coChanged: boolean
   coChangeOn: boolean
+  hotspotsOn: boolean
+  /** how high this file stands in the ranking, or undefined when it is not in it */
+  heat: number | undefined
   violated: boolean
   lit: boolean
   hasActive: boolean
@@ -247,6 +242,23 @@ export function nodeInk(mood: NodeMood, p: Palette, dark: boolean): Surface {
   // the file asked about and the files that move with it; everything else is
   // the neighbourhood they sit in, which is context and not the answer
   if (mood.coChangeOn) return mood.coChanged ? press(dark, p, p.teal, 0.7) : recede(dark, p, 1)
+  /**
+   * Heat, twice over: the hue runs peach to red as the ranking climbs, and the
+   * ink brightens with it.
+   *
+   * The fade stops at 0.75 rather than 1. `wave` lands its far end exactly on
+   * the resting grey, which is right for a dependent four hops out — an
+   * ordinary node, no longer the story — and wrong here, where the last file in
+   * the list is still one of the hundred and fifty the lens is naming.
+   */
+  if (mood.hotspotsOn) {
+    if (mood.heat === undefined) return recede(dark, p, 1)
+    const ink = mix(p.peach, p.red, mood.heat)
+    // the row the reader is following. It keeps the ranking's hue rather than
+    // taking a colour of its own: it is one of these files, not a new subject
+    if (mood.selected) return press(dark, p, ink, 0.9)
+    return wave(dark, p, ink, (1 - mood.heat) * 0.75)
+  }
   if (mood.violated) {
     if (!dark) return press(dark, p, p.red, 0)
     return {

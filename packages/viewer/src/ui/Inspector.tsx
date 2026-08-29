@@ -16,16 +16,37 @@ export function Inspector() {
 
   const orphans = useGraphStore((s) => s.orphans)
 
-  const node = data?.nodes.find((n) => n.id === selectedId) ?? null
+  /**
+   * The hotspot lens owns the rail while it is on.
+   *
+   * That lens answers about the repository, so it keeps no subject of its own
+   * and leaves whatever was selected a question ago in place. This panel would
+   * then describe a file the picture is not about — on dub it went on
+   * explaining `tinybird`, which is not even in the ranking.
+   */
+  const ranking = useGraphStore((s) => s.hotspotHeat.size > 0)
+
+  const node = ranking ? null : (data?.nodes.find((n) => n.id === selectedId) ?? null)
   const here = locate(node?.file, data?.meta.root)
-  const edge = data?.edges.find((e) => e.id === selectedEdgeId) ?? null
+  const edge = ranking ? null : (data?.edges.find((e) => e.id === selectedEdgeId) ?? null)
   const open = Boolean(node || edge)
   const isOrphan = node ? orphans.has(node.id) : false
+  /**
+   * Two registers, and the panel used to print them as one.
+   *
+   * On dub, opening `lib/tinybird/index.ts` said "API endpoint called from
+   * multiple hooks — extract a shared hook (client: 21 callers)" in red. That
+   * violation is about `client.ts`; this file is one of the twenty-one, and the
+   * only clue was the parenthesis. A sentence describing a neighbour, printed
+   * in the accusing colour, on the largest surface of the screen.
+   */
+  const nodeFindings = node ? (violatedNodes.get(node.id) ?? []) : []
   const violations = node
-    ? (violatedNodes.get(node.id) ?? [])
+    ? nodeFindings.filter((v) => v.about).map((v) => v.message)
     : edge
       ? (violatedEdges.get(edge.id) ?? [])
       : []
+  const involved = nodeFindings.filter((v) => !v.about).map((v) => v.message)
 
   // keep last content while sliding out, so the panel exits as it entered
   return (
@@ -84,14 +105,22 @@ export function Inspector() {
             </div>
           </div>
           {isOrphan && (
-            <div className="insp-warning">
-              ⌀ Nothing imports this — possible dead code
-            </div>
+            <div className="insp-warning">⌀ Nothing imports this — possible dead code</div>
           )}
           {violations.length > 0 && (
             <div className="insp-violation">
               {violations.map((m) => (
                 <div key={m}>✗ {m}</div>
+              ))}
+            </div>
+          )}
+          {involved.length > 0 && (
+            /* stated, because it is true and useful — this file is part of the
+               problem's shape — but not accused, and not in red */
+            <div className="insp-involved">
+              <span className="insp-involved-head">Involved in</span>
+              {involved.map((m) => (
+                <div key={m}>{m}</div>
               ))}
             </div>
           )}

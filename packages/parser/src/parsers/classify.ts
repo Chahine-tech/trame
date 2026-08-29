@@ -21,7 +21,7 @@ export function classify(file: SourceFile): NodeType {
 
   if (/^use[A-Z]/.test(base)) return "hook"
 
-  if (/Page$/.test(base)) return "page"
+  if (base.endsWith("Page")) return "page"
   if (/\/(pages|routes)\//.test(path)) return "page"
   // Next.js app router entrypoints
   if (/\/app\//.test(path) && /^(page|layout)$/.test(base)) return "page"

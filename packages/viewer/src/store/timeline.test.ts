@@ -43,17 +43,30 @@ function timeline(frames: ReplayFrame[]): Timeline {
   }
 }
 
-const empty = { addedNodes: [], changedNodes: [], removedNodes: [], addedEdges: [], changedEdges: [], removedEdges: [] }
+const empty = {
+  addedNodes: [],
+  changedNodes: [],
+  removedNodes: [],
+  addedEdges: [],
+  changedEdges: [],
+  removedEdges: [],
+}
 
 describe("rebuilding a frame", () => {
   const grown = timeline([
     frame({ graph: graph([node("a"), node("b")], [["a", "b"]]) }),
-    frame({ delta: { ...empty, addedNodes: [node("c")], addedEdges: graph([], [["b", "c"]]).edges } }),
+    frame({
+      delta: { ...empty, addedNodes: [node("c")], addedEdges: graph([], [["b", "c"]]).edges },
+    }),
     frame({ delta: { ...empty, removedNodes: ["a"], removedEdges: ["a->b"] } }),
   ])
 
   it("gives the first frame back as it was written", () => {
-    expect(replayOf(grown).at(0)!.nodes.map((n) => n.id)).toEqual(["a", "b"])
+    expect(
+      replayOf(grown)
+        .at(0)!
+        .nodes.map((n) => n.id),
+    ).toEqual(["a", "b"])
   })
 
   it("applies what a commit added", () => {
@@ -123,7 +136,11 @@ describe("replays written before the format changed", () => {
       frame({ graph: graph([node("a")]) }),
       frame({ graph: graph([node("a"), node("b")]) }),
     ])
-    expect(replayOf(old).at(1)!.nodes.map((n) => n.id)).toEqual(["a", "b"])
+    expect(
+      replayOf(old)
+        .at(1)!
+        .nodes.map((n) => n.id),
+    ).toEqual(["a", "b"])
   })
 
   it("says nothing at all when the first frame is missing its graph", () => {

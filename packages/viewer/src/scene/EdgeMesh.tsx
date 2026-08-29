@@ -91,8 +91,14 @@ function defaultCtrl(p0: Vec3, p3: Vec3, edgeId: string): { c1: Vec3; c2: Vec3 }
   const perp = dir.clone().normalize().cross(UP)
   if (perp.lengthSq() < 1e-4) perp.set(1, 0, 0)
   perp.normalize().multiplyScalar(len * 0.14 * side)
-  const c1 = a.clone().lerp(b, 1 / 3).add(perp)
-  const c2 = a.clone().lerp(b, 2 / 3).add(perp)
+  const c1 = a
+    .clone()
+    .lerp(b, 1 / 3)
+    .add(perp)
+  const c2 = a
+    .clone()
+    .lerp(b, 2 / 3)
+    .add(perp)
   return { c1: [c1.x, c1.y, c1.z], c2: [c2.x, c2.y, c2.z] }
 }
 
@@ -267,6 +273,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const onPath = useGraphStore((s) => s.pathEdges.has(edge.id))
   const impactOn = useGraphStore((s) => s.impactOf !== null)
   const coChangeOn = useGraphStore((s) => s.coChangeOf !== null)
+  const hotspotsOn = useGraphStore((s) => s.hotspotHeat.size > 0)
   const sourceRing = useGraphStore((s) => s.impactDepth.get(edge.source))
   const targetRing = useGraphStore((s) => s.impactDepth.get(edge.target))
 
@@ -284,6 +291,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       // the outer end: an importer sits one ring further out than what it imports
       impactRing: Math.max(sourceRing ?? 0, targetRing ?? 0),
       coChangeOn,
+      hotspotsOn,
       violated: isViolated,
       hovered,
       lit: isLit,

@@ -38,31 +38,31 @@ Each of these is real, from this repository, written by an assistant.
 
 **The aphorism.** Opening a block with a slogan.
 
-> *"The hero proves the graph is alive. It does not teach."*
-> *"Scroll is a clock, not a hijack."* *"Paper does not emit."*
+> _"The hero proves the graph is alive. It does not teach."_
+> _"Scroll is a clock, not a hijack."_ _"Paper does not emit."_
 
 Sounds earned. Teaches nothing. Delete the sentence and the block loses no
 information.
 
 **The rhetorical reversal.** `not X, it was Y`, `worse than`, `rather than`.
 
-> *"The marker was not discreet, it was absent."*
-> *"A false orphan is worse than a missed one."*
+> _"The marker was not discreet, it was absent."_
+> _"A false orphan is worse than a missed one."_
 
 A writing tic, repeated 69 times in one codebase. Say the fact once.
 
 **The extended metaphor.** A paragraph of analogy standing in for a mechanism.
 
-> A greedy non-overlap algorithm explained through a road map: *"the capital is
-> named, the village beside it waits until you are closer"*.
+> A greedy non-overlap algorithm explained through a road map: _"the capital is
+> named, the village beside it waits until you are closer"_.
 
 The fact that mattered — 114 folders, `i18n/ 1 file` printed through
 `trpc/ 398 files` — was one line under the metaphor.
 
 **The manifesto.** Product reasoning in a source file.
 
-> *"That is the whole argument of the page: you are not reading about the tool,
-> you are watching it work."*
+> _"That is the whole argument of the page: you are not reading about the tool,
+> you are watching it work."_
 
 True, and it belongs in the README. This is the shape that made the landing
 package 2.5× denser in comments than the parser.
@@ -125,8 +125,8 @@ viewer    13341 → 12284 (−8%)  185 → 0
 parser     5817 → 5227 (−10%)   68 → 2
 ```
 
-A package whose comments explain *code* loses a tenth. A package whose comments
-explain *product decisions* loses half. If every package loses the same
+A package whose comments explain _code_ loses a tenth. A package whose comments
+explain _product decisions_ loses half. If every package loses the same
 fraction, the cut was mechanical and probably wrong.
 
 ## Two failure modes while cutting

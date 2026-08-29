@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // A gate, not an audit. Only `correctness` — "code that is outright wrong or
+  // useless" — and it fails the build, so nothing here is ever a warning
+  // somebody learns to scroll past.
+  //
+  // The wider categories were tried on this codebase and are a bad trade for a
+  // gate: `suspicious` and `perf` found four things worth fixing, all of them a
+  // one-off harvest from code that had never been linted, and they cost ten
+  // standing exceptions. The two that were actual bugs — a `useMemo` keyed on a
+  // fresh array, and a setState in an effect — sit in `correctness` anyway. So
+  // the rest is run by hand, and nothing has to be remembered:
+  //
+  //   pnpm exec oxlint -W suspicious -W perf -A react/react-in-jsx-scope
+  //
+  // `react-in-jsx-scope` is suppressed there because it wants an import the
+  // automatic JSX runtime made dead in React 17, and it alone accounts for 337
+  // of that command's 397 lines. `pedantic` can be added for a deeper dig, but
+  // two thirds of what it adds is length limits and ANSI escape sequences.
+  //
+  // `react` is on where the reference oxlint setups leave it off, because this
+  // is a React app and its hook rules are where the real bugs turn up.
+  "plugins": ["typescript", "react", "unicorn"],
+  "categories": { "correctness": "error" },
+  "env": { "browser": true, "es2024": true, "node": true },
+  "ignorePatterns": ["**/dist/**", "packages/parser/viewer/**"],
+  "rules": {
+    // `new Array(n)` filled in the very next statement is the correct use of
+    // it: an exact-size numeric buffer, in the layout solver and in Louvain.
+    // The rule guards against holey arrays surviving, which none of the three
+    // sites let happen.
+    "unicorn/no-new-array": "off"
+  },
+  "overrides": [
+    {
+      // The scene is a three.js imperative layer under React. `useFrame`
+      // mutates materials, geometries and the fog sixty times a second on
+      // purpose — that is r3f's whole model — and React's purity rule reads
+      // every one of those as a violation. It still applies to the UI.
+      "files": ["packages/viewer/src/scene/**"],
+      "rules": { "react/immutability": "off" }
+    }
+  ]
+}

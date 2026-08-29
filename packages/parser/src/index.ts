@@ -5,6 +5,7 @@ import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
 import { coChangeFor } from "./cochange.js"
+import { hotspotsFor } from "./hotspots.js"
 import { evaluateRules } from "./rules.js"
 import { ConfigError, loadConfig } from "./config.js"
 import { findCycles, findOrphans } from "./analysis.js"
@@ -14,11 +15,27 @@ import { disagreements, findCommunities } from "./communities.js"
 import { diffGraphs } from "./diff.js"
 import { toDot, toMarkdown, toMermaid } from "./export.js"
 import { serve } from "./serve.js"
-import { atCommit, buildTimeline, forEachCommit, listCommits, sampleCommits, type Commit } from "./replay.js"
+import {
+  atCommit,
+  buildTimeline,
+  forEachCommit,
+  listCommits,
+  sampleCommits,
+  type Commit,
+} from "./replay.js"
 import type { GraphData, TrameConfig, Violation } from "./types.js"
 
 interface Args {
-  command: "parse" | "check" | "doctor" | "blame" | "modules" | "watch" | "serve" | "diff" | "replay"
+  command:
+    | "parse"
+    | "check"
+    | "doctor"
+    | "blame"
+    | "modules"
+    | "watch"
+    | "serve"
+    | "diff"
+    | "replay"
   src: string
   out: string
   tsconfig?: string
@@ -80,7 +97,15 @@ function viewerDist(override: string | undefined): string {
   return path.resolve(import.meta.dirname, "../../viewer/dist")
 }
 
-const DEFAULT_EXCLUDE = ["node_modules", "dist", ".test.", ".spec.", ".stories.", "__tests__", "__mocks__"]
+const DEFAULT_EXCLUDE = [
+  "node_modules",
+  "dist",
+  ".test.",
+  ".spec.",
+  ".stories.",
+  "__tests__",
+  "__mocks__",
+]
 
 const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture graph
 
@@ -107,7 +132,7 @@ const HELP = `trame — parse a TypeScript/React codebase into a 3D architecture
     --data ./trame.json        (serve) graph file to serve
     --port 3000                  (serve) port
     --dist ./path                (serve) viewer build override
-    --since "6 months ago"       how far back to read history (replay, co-change)
+    --since "6 months ago"       how far back to read history (replay, co-change, hotspots)
     --max-frames 40              (replay) frame budget — the stride follows from it
     --repo .                     repository root (replay, co-change)
 
@@ -287,8 +312,7 @@ function warnIfUninstalledWorkspace(srcRoot: string): void {
       if (!fs.existsSync(path.join(dir, "node_modules"))) {
         console.warn(
           `  \x1b[33m!\x1b[0m workspace monorepo with no node_modules — imports between packages will not resolve,
-` +
-            `    and each package will look like an island. Run your package manager's install first.`,
+    and each package will look like an island. Run your package manager's install first.`,
         )
       }
       return
@@ -364,9 +388,7 @@ function summarize(graph: GraphData, outPath: string, ms: number): void {
       `  ${graph.meta.nodeCount} nodes · ${graph.meta.edgeCount} edges · ${graph.clusters.length} folders` +
       (vCount ? ` · \x1b[31m${vCount} violations\x1b[0m` : "") +
       `\n  ${typeSummary}` +
-      (orphans || cycles
-        ? `\n  \x1b[33m${orphans} orphans · ${cycles} cycles\x1b[0m`
-        : "") +
+      (orphans || cycles ? `\n  \x1b[33m${orphans} orphans · ${cycles} cycles\x1b[0m` : "") +
       `\n  → ${outPath} (${ms}ms)`,
   )
   if (graph.violations?.length) printViolations(graph.violations)
@@ -384,6 +406,10 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
   // silent where there is no repository to read: a parse does not depend on it
   const coupled = coChangeFor(graph, args.repo, srcRoot, args.since)
   if (coupled.length > 0) graph.coChange = coupled
+  // and where that history lands hardest: the files rewritten again and again
+  // that much of the rest rests on
+  const hot = hotspotsFor(graph, args.repo, srcRoot, args.since)
+  if (hot.length > 0) graph.hotspots = hot
 
   const outPath = path.resolve(args.out)
   fs.writeFileSync(outPath, render(graph, args.format))
@@ -401,13 +427,19 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
  * depend on each other far more than on anything else, then reports only where
  * that disagrees with the folder tree.
  */
+/** A node id as its bare filename, for a console line that has to fit. */
+const short = (id: string) =>
+  id
+    .split("/")
+    .pop()!
+    .replace(/\.[jt]sx?$/, "")
+
 async function runModules(args: Args, srcRoot: string): Promise<void> {
   const config = await loadConfig(args.config)
   const graph = parseOnce(args, srcRoot, resolveExclude(args, config))
   const found = findCommunities(graph)
   const { split, merged } = disagreements(graph, found)
 
-  const short = (id: string) => id.split("/").pop()!.replace(/\.[jt]sx?$/, "")
   // above roughly 0.3 the grouping explains the graph; near 0 it does not
   console.log(
     `  structure found: \x1b[1m${found.quality.toFixed(3)}\x1b[0m · your folders: \x1b[1m${found.folderQuality.toFixed(3)}\x1b[0m  \x1b[90m(0.3+ means the grouping explains the imports)\x1b[0m\n`,
@@ -621,9 +653,7 @@ async function runReplay(args: Args, srcRoot: string): Promise<void> {
     console.error(`error: no commits since "${args.since}"`)
     process.exit(1)
   }
-  console.log(
-    `trame · replay\n  ${commits.length} frames from the history since ${args.since}`,
-  )
+  console.log(`trame · replay\n  ${commits.length} frames from the history since ${args.since}`)
 
   const config = await loadConfig(args.config)
   const started = Date.now()
@@ -647,7 +677,9 @@ async function runReplay(args: Args, srcRoot: string): Promise<void> {
 
   const projectName = args.project ?? path.basename(repo)
   const timeline = buildTimeline(projectName, parsed)
-  const outPath = path.resolve(args.out === defaultOut(args.format) ? "trame-replay.json" : args.out)
+  const outPath = path.resolve(
+    args.out === defaultOut(args.format) ? "trame-replay.json" : args.out,
+  )
   fs.writeFileSync(outPath, JSON.stringify(timeline, null, 2))
 
   const first = timeline.frames[0]
@@ -675,11 +707,20 @@ function readGraph(file: string): GraphData {
   } catch (error) {
     // an fs error already names the path it failed on; a syntax error does not
     const message = (error as Error).message
-    console.error(error instanceof SyntaxError ? `error: could not parse ${p} — ${message}` : `error: ${message}`)
+    console.error(
+      error instanceof SyntaxError
+        ? `error: could not parse ${p} — ${message}`
+        : `error: ${message}`,
+    )
     process.exit(1)
   }
   const graph = parsed as Partial<GraphData>
-  if (!parsed || typeof parsed !== "object" || !Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !Array.isArray(graph.nodes) ||
+    !Array.isArray(graph.edges)
+  ) {
     console.error(
       `error: ${p} is not a trame graph — expected nodes and edges arrays\n` +
         `  generate one with: trame --src ./src --out ${file}`,

@@ -113,6 +113,8 @@ export function findCycles(graph: GraphData): string[][] {
           component.push(id)
           if (id === frame.node) break
         }
+        // built three lines up and handed over here: reversing it in place is
+        // the last thing that happens to it
         if (component.length > 1) cycles.push(component.reverse())
       }
       const parent = work[work.length - 1]

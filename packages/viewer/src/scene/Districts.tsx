@@ -86,9 +86,8 @@ function DistrictBody({
           // clicking a district flies you into it, the camera crossing the
           // threshold is what expands it back into files
           e.stopPropagation()
-          const first = useGraphStore
-            .getState()
-            .data?.clusters.find((c) => c.id === district.id)?.nodeIds[0]
+          const first = useGraphStore.getState().data?.clusters.find((c) => c.id === district.id)
+            ?.nodeIds[0]
           if (first) focus(first)
         }}
       >
@@ -110,16 +109,16 @@ function DistrictBody({
           labels a district; an offset label gets swallowed by the body as
           soon as the camera orbits */}
       {showLabel && (
-      <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
-        <div className="district-label" ref={(el) => onLabel(district.id, el)}>
-          <span className="name" style={{ color: district.color }}>
-            {district.label}/
-          </span>
-          <span className="count">
-            {district.fileCount} {district.fileCount === 1 ? "file" : "files"}
-          </span>
-        </div>
-      </Html>
+        <Html center zIndexRange={[6, 0]} style={{ pointerEvents: "none" }}>
+          <div className="district-label" ref={(el) => onLabel(district.id, el)}>
+            <span className="name" style={{ color: district.color }}>
+              {district.label}/
+            </span>
+            <span className="count">
+              {district.fileCount} {district.fileCount === 1 ? "file" : "files"}
+            </span>
+          </div>
+        </Html>
       )}
 
       {/* a faint shell so the body reads as a region, not a planet */}

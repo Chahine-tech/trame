@@ -81,9 +81,7 @@ export interface ExportOptions {
  * the neighbourhood of what moved is the review.
  */
 export function changedScope(graph: GraphData): Set<string> {
-  const changed = new Set(
-    graph.nodes.filter((n) => n.diff && n.diff !== "same").map((n) => n.id),
-  )
+  const changed = new Set(graph.nodes.filter((n) => n.diff && n.diff !== "same").map((n) => n.id))
   const scope = new Set(changed)
   for (const edge of graph.edges) {
     if (changed.has(edge.source)) scope.add(edge.target)

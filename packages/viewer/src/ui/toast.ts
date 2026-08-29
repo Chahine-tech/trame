@@ -186,6 +186,16 @@ export function toastNoCoChange(): void {
   })
 }
 
+export function toastNoHotspots(): void {
+  const p = getPalette()
+  gooeyToast.info("No hotspots in this graph", {
+    ...tinted(p.red),
+    id: "no-hotspots",
+    description: "Reparse inside a git repository to read its history.",
+    duration: 4000,
+  })
+}
+
 /** The lens works, this file simply never travels with anything. */
 export function toastNoCoChangeFor(label: string): void {
   const p = getPalette()

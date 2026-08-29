@@ -106,9 +106,7 @@ describe("shapes that are not a config at all", () => {
   })
 
   it("rejects rules that are not an array", () => {
-    expect(problems({ rules: { type: "no-cycles" } })).toEqual([
-      expect.stringContaining("rules:"),
-    ])
+    expect(problems({ rules: { type: "no-cycles" } })).toEqual([expect.stringContaining("rules:")])
   })
 
   it("rejects a non-string in exclude, and says which one", () => {
