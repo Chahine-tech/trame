@@ -643,7 +643,41 @@ describe("one gesture cannot both select and deselect", () => {
  * says. A pair only survives the parser when no import connects it, so the
  * partners are almost never in the neighbourhood already.
  */
+/**
+ * How far a file sits from the middle of the view, as the screen sees it.
+ *
+ * Not its distance from the centre: what a camera has to fit is the part of a
+ * set that lies *across* the view, and depth pushes a file nearer or further,
+ * never off the edge. `reachOf` measures it this way whenever the reader has a
+ * vantage, so a test that checks the framing has to measure it the same way or
+ * it is asking the camera to cover a distance nobody can see.
+ *
+ * This is what made the co-change framing tests machine-dependent: they used
+ * the plain radius, which is the same number only when the answer happens to
+ * lie square to the camera. It did here and did not on the CI runner, so the
+ * pair failed there and passed on every developer machine — by exactly the
+ * projection factor, 0.83 in both.
+ */
+function seenFrom(at: Vec3, p: Vec3, dir?: Vec3): number {
+  const d: Vec3 = [p[0] - at[0], p[1] - at[1], p[2] - at[2]]
+  if (!dir) return Math.hypot(d[0], d[1], d[2])
+  const len = Math.hypot(dir[0], dir[1], dir[2])
+  const axis: Vec3 = [dir[0] / len, dir[1] / len, dir[2] / len]
+  const t = d[0] * axis[0] + d[1] * axis[1] + d[2] * axis[2]
+  return Math.hypot(d[0] - t * axis[0], d[1] - t * axis[1], d[2] - t * axis[2])
+}
+
 describe("the co-change lens", () => {
+  /**
+   * The store is a module singleton and `load` does not clear the vantage, so
+   * two tests four hundred lines up left one behind and every lens down here
+   * framed across a view nobody in this block had set. That is what made these
+   * tests depend on the machine: with a vantage, `reachOf` measures the reach
+   * perpendicular to it, and whether that is close to the plain radius depends
+   * entirely on how the simulation happened to lay the three files out.
+   */
+  beforeEach(() => useGraphStore.setState({ vantage: null }))
+
   const withHistory = () => {
     const g = ringWithLeaves()
     g.coChange = [
@@ -727,41 +761,62 @@ describe("the co-change lens", () => {
     const s = useGraphStore.getState()
     const at = s.viewCentre
     const halfHeight = s.extent * 1.35 * Math.tan((30 * Math.PI) / 180)
-    for (const id of ["ring/0.ts", ...s.coChangeWith.keys()]) {
-      const p = s.positions.get(id)!
-      const r = Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2])
+    const ids = ["ring/0.ts", ...s.coChangeWith.keys()]
+    /**
+     * The failure carries its own evidence.
+     *
+     * This went red in CI and green on two developer machines, and reasoning
+     * about it from the numbers alone produced one wrong fix already: with the
+     * three files this fixture pairs, the 2.5-median clamp cannot bind — two
+     * points together and one away give radii of d/3, d/3 and 2d/3, whose
+     * median times 2.5 is always the larger. So something here is not what it
+     * is assumed to be, and the assertion says what it saw rather than leaving
+     * the next reader to guess again.
+     */
+    for (const id of ids) {
+      const r = seenFrom(at, s.positions.get(id)!, s.vantage?.dir)
       expect(r).toBeLessThan(halfHeight)
     }
   })
 
-  it("frames a scattered answer whatever the layout put where", () => {
+  it("frames a scattered answer from wherever the reader is standing", () => {
     /**
-     * The version above asserts the same thing on whatever arrangement the
-     * force simulation happens to produce, and that is not the same arrangement
-     * on every machine: it passed here on radii of 258, 392, 402 and 419 and
-     * failed in CI on a set whose median was 102 and whose furthest was 305.
-     * The clamp in `reachOf` cut the framing to 2.5 medians — 254 — and drew
-     * the furthest partner off the screen.
+     * The version above rides on whatever the force simulation produced, and
+     * that is not the same arrangement on every machine — which is how the pair
+     * came to be green here and red in CI for a week. This one places the three
+     * files itself and then walks the camera around them, so nothing is left to
+     * drift and every direction is exercised rather than the one this laptop
+     * happens to lay out.
      *
-     * So this one places the files itself, in exactly that shape: three close
-     * together and one a long way out. No simulation, nothing to drift.
+     * It holds by arithmetic and not by luck: with three points the 2.5-median
+     * clamp cannot bind — two together and one away give distances of d/3, d/3
+     * and 2d/3, whose median times 2.5 is always the larger — so `across` is
+     * exactly the furthest of them, and the frustum covers 1.13 times that.
      */
-    useGraphStore.getState().select("ring/0.ts")
-    const placed = new Map(useGraphStore.getState().positions)
-    placed.set("ring/0.ts", [0, 0, 0])
-    placed.set("leaf/150.ts", [40, 0, 0])
-    placed.set("leaf/60.ts", [-40, 30, 0])
-    placed.set("ring/140.ts", [0, 400, 0])
-    useGraphStore.setState({ positions: placed, lens: "none" })
+    for (const dir of [
+      [0, 0, 1],
+      [1, 0, 0],
+      [0, 1, 0],
+      [0.4, -0.8, 0.45],
+      [-0.6, 0.2, -0.77],
+    ] as Vec3[]) {
+      useGraphStore.getState().select(null)
+      useGraphStore.getState().select("ring/0.ts")
+      const placed = new Map(useGraphStore.getState().positions)
+      // exactly the answer this fixture produces: the file and its two partners
+      placed.set("ring/0.ts", [0, 0, 0])
+      placed.set("leaf/150.ts", [12, 0, 0])
+      placed.set("leaf/151.ts", [0, 900, 0])
+      useGraphStore.setState({ positions: placed, lens: "none", vantage: { at: [0, 0, 0], dir } })
 
-    useGraphStore.getState().toggleCoChange()
-    const s = useGraphStore.getState()
-    const at = s.viewCentre
-    const halfHeight = s.extent * 1.35 * Math.tan((30 * Math.PI) / 180)
-    for (const id of ["ring/0.ts", ...s.coChangeWith.keys()]) {
-      const p = s.positions.get(id)!
-      const r = Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2])
-      expect(r).toBeLessThan(halfHeight)
+      useGraphStore.getState().toggleCoChange()
+      const s = useGraphStore.getState()
+      expect([...s.coChangeWith.keys()].sort()).toEqual(["leaf/150.ts", "leaf/151.ts"])
+      const at = s.viewCentre
+      const halfHeight = s.extent * 1.35 * Math.tan((30 * Math.PI) / 180)
+      for (const id of ["ring/0.ts", ...s.coChangeWith.keys()]) {
+        expect(seenFrom(at, s.positions.get(id)!, dir)).toBeLessThan(halfHeight)
+      }
     }
   })
 
