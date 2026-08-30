@@ -1,6 +1,7 @@
 import { useGraphStore } from "../store/graph"
 import { NODE_COLOR, EDGE_COLOR, usePalette } from "../theme"
 import { EDITOR_LABEL, getEditor, locate, openInEditor } from "../editor"
+import { coChangeReading, impactReading, pathReading, whatIfReading } from "../store/reading"
 
 export function Inspector() {
   const palette = usePalette()
@@ -24,7 +25,22 @@ export function Inspector() {
    * then describe a file the picture is not about — on dub it went on
    * explaining `tinybird`, which is not even in the ranking.
    */
-  const ranking = useGraphStore((s) => s.hotspotHeat.size > 0)
+  const ranking = useGraphStore((s) => s.hotspotHeat.size > 0 || s.browsing !== null)
+
+  /**
+   * What the lens found, in the panel that is already about the subject.
+   *
+   * Every lens here coloured the graph and put a count in the top bar, and a
+   * count is not an understanding: "955 dependents" says nothing without the
+   * size of the thing it is a share of, and a co-change line drawn without "38
+   * of the 47 commits that touched either" asks the reader to assume it is
+   * strong. Each of these is computed from what the lens already holds.
+   */
+  const lens = useGraphStore((s) => s.lens)
+  const whatIf = useGraphStore((s) => s.whatIf)
+  const impactDepth = useGraphStore((s) => s.impactDepth)
+  const pathNodes = useGraphStore((s) => s.pathNodes)
+  const coChangeOf = useGraphStore((s) => s.coChangeOf)
 
   const node = ranking ? null : (data?.nodes.find((n) => n.id === selectedId) ?? null)
   const here = locate(node?.file, data?.meta.root)
@@ -47,6 +63,20 @@ export function Inspector() {
       ? (violatedEdges.get(edge.id) ?? [])
       : []
   const involved = nodeFindings.filter((v) => !v.about).map((v) => v.message)
+
+  const reading = (() => {
+    if (!data) return []
+    if (whatIf) return whatIfReading(whatIf, data.nodes.length)
+    if (lens === "impact" && node) return impactReading(impactDepth, node.label, data)
+    if (lens === "cochange" && coChangeOf && node)
+      return coChangeReading(coChangeOf, node.label, data)
+    if (lens === "path" && pathNodes.length > 1) {
+      const degree = new Map<string, number>()
+      for (const [id, near] of adjacency) degree.set(id, near.size)
+      return pathReading(pathNodes, data, degree)
+    }
+    return []
+  })()
 
   // keep last content while sliding out, so the panel exits as it entered
   return (
@@ -104,6 +134,13 @@ export function Inspector() {
               <b>{adjacency.get(node.id)?.size ?? 0}</b>
             </div>
           </div>
+          {reading.length > 0 && (
+            <div className="insp-reading">
+              {reading.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+          )}
           {isOrphan && (
             <div className="insp-warning">⌀ Nothing imports this — possible dead code</div>
           )}

@@ -196,4 +196,11 @@ export interface Hotspot {
   churn: number
   /** imports in and out: how much rests on it */
   degree: number
+  /**
+   * Commits touching this file in the last quarter of the window.
+   *
+   * Absent on a graph parsed before this existed, or outside a repository, in
+   * which case the reading says nothing about recency rather than guessing.
+   */
+  recent?: number
 }

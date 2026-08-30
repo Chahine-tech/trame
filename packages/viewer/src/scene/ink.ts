@@ -39,6 +39,8 @@ export interface EdgeMood {
   impactRing: number | undefined
   coChangeOn: boolean
   hotspotsOn: boolean
+  /** an import running between two files of the same cycle: the knot itself */
+  knotEdge: boolean
   violated: boolean
   hovered: boolean
   lit: boolean
@@ -111,9 +113,22 @@ export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
   // answer and context, and this one cannot, since a pair only reaches the
   // graph when no import connects it. `CoChangeMesh` draws the answer.
   if (mood.coChangeOn) return background
-  // same reason, from the other side: this lens ranks files, and an import is
-  // not part of the ranking
-  if (mood.hotspotsOn) return background
+  /**
+   * The knot, drawn.
+   *
+   * This returned `background` for every import, on the grounds that the lens
+   * ranked files and an import was not part of a ranking. That was true of a
+   * ranking and the lens stopped being one: what it reports now is the files
+   * that sit inside an import cycle, so the imports are not context, they are
+   * the entire reason the finding exists. The map was showing the members of
+   * the set and hiding the thing that binds them.
+   *
+   * It is also what fixes the picture. Thirty-six dots scattered through a
+   * hundred and fourteen others lose to whichever context dot happens to sit
+   * alone in some empty corner; a closed tangle of 198 imports is an object,
+   * and an object holds the eye without anything else having to be flattened.
+   */
+  if (mood.hotspotsOn) return mood.knotEdge ? answer(p.red, 0.9) : background
   if (mood.violated) {
     const near = mood.selected || mood.lit
     return answer(p.red, near ? 0.95 : 0.55, near ? 0.95 : 0.7)
@@ -159,6 +174,8 @@ export interface NodeMood {
   hotspotsOn: boolean
   /** how high this file stands in the ranking, or undefined when it is not in it */
   heat: number | undefined
+  /** in the ranking *and* inside an import cycle: the lens's actual answer */
+  knotted: boolean
   violated: boolean
   lit: boolean
   hasActive: boolean
@@ -251,13 +268,33 @@ export function nodeInk(mood: NodeMood, p: Palette, dark: boolean): Surface {
    * ordinary node, no longer the story — and wrong here, where the last file in
    * the list is still one of the hundred and fifty the lens is naming.
    */
+  /**
+   * Three registers, and every boundary between them is a fact about the file.
+   *
+   * The answer is the ranking's files that sit inside an import cycle: they
+   * change constantly and none of them can be changed on its own. They carry the
+   * mark. The rest of the ranking is drawn behind them in the same red, quieter,
+   * because a reader following a row of the panel has to be able to find its
+   * file on the map whether or not it is knotted. Everything else recedes.
+   *
+   * `scene/CHANNELS.md` is why this is allowed where a gradient was not. In or
+   * out of a cycle is a category, and categories are what an identity channel
+   * carries; rank is a magnitude and no perspective scene can hold one. The
+   * first version of this lens spent four attempts learning that — radius, hue,
+   * halo, shape — and the arithmetic killed all four the same way.
+   *
+   * Same size, same shape, same hue in both registers, so nothing here can be
+   * read as an order. Only presence separates them, and presence is answering
+   * one question: is this file trapped.
+   */
   if (mood.hotspotsOn) {
     if (mood.heat === undefined) return recede(dark, p, 1)
-    const ink = mix(p.peach, p.red, mood.heat)
-    // the row the reader is following. It keeps the ranking's hue rather than
-    // taking a colour of its own: it is one of these files, not a new subject
-    if (mood.selected) return press(dark, p, ink, 0.9)
-    return wave(dark, p, ink, (1 - mood.heat) * 0.75)
+    // the row the reader is following, pressed harder, knotted or not: every row
+    // of the panel is clickable, so every row has to be findable. It keeps the
+    // same colour, because it is one of these files and not a new subject
+    if (mood.selected) return press(dark, p, p.red, 0.9)
+    if (!mood.knotted) return wave(dark, p, p.red, 0.72)
+    return press(dark, p, p.red, 0.55)
   }
   if (mood.violated) {
     if (!dark) return press(dark, p, p.red, 0)

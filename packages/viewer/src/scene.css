@@ -25,14 +25,31 @@
   border-radius: 50%;
   flex: none;
 }
+/* Over the canvas, under every panel. `overflow: hidden` rather than clipping
+   each label: a name whose node has left the frame is switched off by the
+   director, but one mid-flight would otherwise widen the page. */
+#node-labels {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
 .node-label {
+  position: absolute;
+  top: 0;
+  left: 0;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text);
   white-space: nowrap;
-  transform: translate(-50%, -180%);
   pointer-events: none;
   text-shadow: 0 1px 4px var(--crust);
+  /* placed by `NameDirector`; the percentages lift the name clear of its node,
+     and they come last so they apply to the element's own box */
+  transform: translate3d(0, 0, 0) translate(-50%, -180%);
+  /* nothing is drawn until the director has had a look at it */
+  opacity: 0;
 }
 .node-label.dim { color: var(--subtext); }
 .district-label {

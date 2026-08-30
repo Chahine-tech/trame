@@ -1,12 +1,12 @@
-import { useMemo, useRef } from "react"
+import { useLayoutEffect, useMemo, useRef } from "react"
 import * as THREE from "three"
-import { useFrame } from "@react-three/fiber"
-import { Billboard, Html } from "@react-three/drei"
+import { useFrame, useThree } from "@react-three/fiber"
+import { Billboard } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js"
-import { useGraphStore } from "../store/graph"
-import { registerLabel } from "./nodeLabels"
+import { positionOf, useGraphStore } from "../store/graph"
 import { isDarkGround, mix, NODE_COLOR, usePalette } from "../theme"
 import { nodeInk } from "./ink"
+import { MARK_PX, markScale } from "./mark"
 import { nodeProgress, overshoot } from "./arrival"
 import type { GraphNode } from "../types"
 
@@ -26,6 +26,17 @@ const GEOMETRY: Record<GraphNode["type"], () => THREE.BufferGeometry> = {
   store: () => new THREE.DodecahedronGeometry(1),
   module: () => new THREE.IcosahedronGeometry(0.65),
 }
+
+/** Reused for the world position read under the lens: one per module, not per frame. */
+const scratch = new THREE.Vector3()
+const GOAL = new THREE.Vector3()
+
+/**
+ * How fast a file travels when a lens gathers it, in "fraction of the remaining
+ * distance per second". The camera rig eases at 5; this is a touch quicker,
+ * because a hundred files moving at once reads as slower than one camera does.
+ */
+const GATHER_LAMBDA = 6.5
 
 const FACETED: Set<GraphNode["type"]> = new Set(["page", "query-key", "store", "module"])
 
@@ -90,14 +101,12 @@ function geometryFor(type: GraphNode["type"]): THREE.BufferGeometry {
 
 export function NodeMesh({ node }: { node: GraphNode }) {
   const palette = usePalette()
-  const position = useGraphStore((s) => s.positions.get(node.id))
+  const position = useGraphStore((s) => positionOf(s, node.id))
   const degree = useGraphStore((s) => s.adjacency.get(node.id)?.size ?? 0)
   const isLit = useGraphStore((s) => s.litSet.has(node.id))
   const hasActive = useGraphStore((s) => s.litSet.size > 0)
   const isHovered = useGraphStore((s) => s.hoverId === node.id)
   const isSelected = useGraphStore((s) => s.selectedId === node.id)
-  const showLabels = useGraphStore((s) => s.showLabels)
-  const name = useGraphStore((s) => s.names.get(node.id) ?? node.label)
   const setHover = useGraphStore((s) => s.setHover)
   const select = useGraphStore((s) => s.select)
   const focus = useGraphStore((s) => s.focus)
@@ -127,6 +136,8 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const coChanged = useGraphStore((s) => s.coChangeOf === node.id || s.coChangeWith.has(node.id))
   const hotspotsOn = useGraphStore((s) => s.hotspotHeat.size > 0)
   const heat = useGraphStore((s) => s.hotspotHeat.get(node.id))
+  // in the ranking and inside an import cycle: what the lens is actually about
+  const knotted = useGraphStore((s) => s.hotspotKnot.has(node.id))
   const impactStartedAt = useGraphStore((s) => s.impactStartedAt)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
@@ -134,6 +145,8 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const justAdded = useGraphStore((s) => s.frameAdded.has(node.id))
   const arrivedAt = useGraphStore((s) => s.arrivedAt)
   const landed = useRef(false)
+  // false until the first placement; afterwards the position is eased, never set
+  const settled = useRef(false)
   const whatIfOn = useGraphStore((s) => s.whatIf !== null)
   const isDoomed = useGraphStore((s) => s.whatIf?.nodeId === node.id)
   const isStranded = useGraphStore((s) => s.whatIfOrphaned.has(node.id))
@@ -143,23 +156,24 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const dark = isDarkGround()
 
   /**
-   * Size = importance: hubs read bigger at a glance. Under the hotspot lens,
-   * size = rank instead.
+   * Size = importance: hubs read bigger at a glance. It says how much rests on
+   * a file, and nothing else — a rank is never encoded here.
    *
-   * The resting scale saturates at 1.7, which it reaches at degree 23 — and
-   * every hotspot is past that, so the whole ranking came out one size. Worse,
-   * the lens stands the camera off the entire repository: measured on dub it
-   * parks at 824 units, where one unit of scale is 1.05 px, so `lib/types.ts`
-   * and its 776 dependants were a 1.8 px dot next to a 1.5 px dot. Colour has
-   * no surface to live on at that size, and no camera distance fixes it — the
-   * hotspots span the graph, and framing only the top ten still gives 3.7 px.
+   * The hotspot lens did encode one, briefly: 2.4 + rank × 3.4, so the top of
+   * the ranking came out more than twice the size of the tail. It cannot work,
+   * and the arithmetic says so without needing to look. Framed on dub's
+   * `lib/zod` the camera parks 250 units out with the constellation spanning
+   * 128, so the nearest file sits at 122 and the furthest at 378 — a 3.1x
+   * spread in apparent size from depth alone, against the 2.4x the encoding
+   * asked for. The last file in the ranking, close to the camera, came out
+   * larger on screen than the first one behind it.
    *
-   * So the rank drives the radius, chosen against that measurement to land the
-   * list between roughly 2.5 and 6 px. Nothing else on screen competes: every
-   * file outside the ranking is receded.
+   * Which is the same thing that rules the footprint out of a code city: in a
+   * perspective scene, a magnitude cannot live in a size. It lives in colour
+   * and light, which depth does not distort, and the exact order lives in the
+   * panel, which is made of text.
    */
-  const baseScale =
-    heat === undefined ? Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7) : 2.4 + heat * 3.4
+  const baseScale = Math.min(0.65 + Math.sqrt(degree) * 0.22, 1.7)
 
   // Colour = information: grey at rest, type colour only when attention lands.
   // Analysis overlays (path, impact, violations) take precedence, since they are
@@ -182,6 +196,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
           coChanged,
           hotspotsOn,
           heat,
+          knotted,
           violated: isViolated,
           lit: isLit,
           hasActive,
@@ -207,6 +222,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
       coChanged,
       hotspotsOn,
       heat,
+      knotted,
       isViolated,
       isLit,
       hasActive,
@@ -219,7 +235,61 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   )
 
   // Hover growth eased per-frame (interruptible), never snapped
-  const targetScale = baseScale * (isHovered || isSelected ? 1.22 : 1)
+  const lift = isHovered || isSelected ? 1.22 : 1
+  const targetScale = baseScale * lift
+  /**
+   * A file in the ranking drops the size language entirely while the lens is up.
+   *
+   * `baseScale` says how much rests on a file, which is honest at rest and a lie
+   * here: it is half of what the ranking is made of, so the map looks like it is
+   * ranking and ranks by depth instead. `mark.ts` has the arithmetic.
+   */
+  const uniformMark = hotspotsOn && heat !== undefined
+
+  /**
+   * `flatShading` is part of the shader, not of the draw call.
+   *
+   * `flatShading` is one, and it had always been a constant here — a file's type
+   * never changes — so the uniform mark makes it a value that flips, which is a
+   * different thing
+   * entirely: three compiles a program per material and only recompiles when
+   * the material's version moves. React Three Fiber assigns changed props
+   * straight onto the material and does not touch `needsUpdate` (checked in
+   * fiber 9.7's dist: the only `needsUpdate` it writes is the shadow map's), so
+   * without this the flag would be set and silently ignored, and half the
+   * ranking would keep the shading of the shape it no longer has.
+   *
+   * `fog={!uniformMark}` used to live here too, holding the ranked marks out of
+   * a fog that `extent` was pulling in around them. That was a patch on a
+   * coupling, not a fix: the fog reads `depth` now and has no quarrel with the
+   * marks, so the exemption is gone rather than kept.
+   */
+  /**
+   * Placed before the browser paints, and moved by hand after that.
+   *
+   * `position` used to be a prop, which means React writes it the instant it
+   * changes — right for a layout that only ever changes on a reload, wrong for
+   * the hotspot lens, which gathers each knot onto itself and would teleport a
+   * hundred files. A layout effect gets the first placement in before the first
+   * paint, so nothing is ever seen at the origin, and `useFrame` owns it
+   * afterwards.
+   */
+  const invalidate = useThree((s) => s.invalidate)
+  useLayoutEffect(() => {
+    const m = meshRef.current
+    if (!m || !position || settled.current) return
+    m.position.set(...position)
+    m.updateMatrix()
+    settled.current = true
+    invalidate()
+  }, [position, invalidate])
+
+  useLayoutEffect(() => {
+    const material = meshRef.current?.material
+    if (!material || Array.isArray(material)) return
+    material.needsUpdate = true
+    invalidate()
+  }, [uniformMark, invalidate])
   // Impact reveals ring by ring so the eye reads propagation, not a flat
   // highlight: each hop waits its turn, like a wave leaving the change.
   const waveRef = useRef<THREE.Mesh>(null)
@@ -240,7 +310,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
     if (t < 1) invalidate()
   })
 
-  useFrame(({ invalidate }, dt) => {
+  useFrame(({ invalidate, camera, size }, dt) => {
     const m = meshRef.current
     if (!m) return
 
@@ -256,6 +326,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
       const t = nodeProgress(arrivedAt, node.id, performance.now())
       if (t < 1) {
         m.scale.setScalar(baseScale * overshoot(t))
+        m.updateMatrix()
         m.visible = t > 0
         invalidate()
         return
@@ -267,43 +338,82 @@ export function NodeMesh({ node }: { node: GraphNode }) {
       m.visible = true
     }
 
+    /**
+     * Recomputed every frame under the lens, because the target moves with the
+     * camera: this scale exists to cancel the projection, and a projection the
+     * camera is still flying through changes between frames.
+     *
+     * The settle below then does nothing for the rest of a still frame, exactly
+     * as it did before — a parked camera gives the same distance twice, so the
+     * cheap path is reached on the second one.
+     */
+    let want = targetScale
+    if (uniformMark) {
+      const fov = (camera as THREE.PerspectiveCamera).fov ?? 60
+      want =
+        markScale(
+          camera.position.distanceTo(m.getWorldPosition(scratch)),
+          fov,
+          size.height,
+          MARK_PX,
+        ) * lift
+    }
+
+    /**
+     * The knot gathering, eased. Snapped while a file is being dragged, because
+     * a node that trails the cursor by a tenth of a second feels broken rather
+     * than smooth — the same reason the drag has hysteresis rather than easing.
+     */
+    if (position) {
+      if (drag.current?.moved) {
+        m.position.set(...position)
+        m.updateMatrix()
+      } else if (m.position.distanceTo(GOAL.set(...position)) > 0.01) {
+        m.position.lerp(GOAL, 1 - Math.exp(-GATHER_LAMBDA * dt))
+        m.updateMatrix()
+        invalidate()
+      }
+    }
+
     const current = m.scale.x
     // damp approaches asymptotically and never lands: settle explicitly, then
     // do nothing. One subscriber per node runs every frame, and the scale is
     // already at rest almost all of the time.
-    if (Math.abs(current - targetScale) < 0.001) {
-      if (current !== targetScale) m.scale.setScalar(targetScale)
+    if (Math.abs(current - want) < 0.001) {
+      if (current !== want) {
+        m.scale.setScalar(want)
+        m.updateMatrix()
+      }
       return
     }
-    m.scale.setScalar(THREE.MathUtils.damp(current, targetScale, 12, dt))
+    m.scale.setScalar(THREE.MathUtils.damp(current, want, 12, dt))
+    m.updateMatrix()
     invalidate() // under frameloop="demand", ask for the frame that continues this
   })
 
   if (!position) return null
 
-  /**
-   * A lens names what it is answering about, whether or not it is a neighbour.
-   *
-   * The rule was "lit, or on the traced path", and lit means adjacent to the
-   * selection. A co-change partner is by definition not adjacent, so no label
-   * element was ever created for one, and the lens drew five lines to five
-   * unlabelled dots. Ranking them in `NameDirector` could not help: it arbitrates
-   * between labels that exist.
-   */
-  const showLabel =
-    showLabels &&
-    (onPath ||
-      coChanged ||
-      // a ranked file with no name is a dot with a temperature. The director
-      // thins them where they collide, hottest first
-      heat !== undefined ||
-      (isLit && (isHovered || isSelected || hasActive)))
+  // The name this node carries is drawn by `ui/NodeLabels`, outside the 3D
+  // tree — see that file for why it cannot live in here.
 
   return (
     <mesh
       ref={meshRef}
-      position={position}
-      geometry={geometryFor(node.type)}
+      /**
+       * One shape for the whole ranking, for the reason the size gave up first.
+       *
+       * The set is 98 modules, 47 components, 3 contexts and 2 pages, and those
+       * geometries are not the same amount of ink: a module is an icosahedron
+       * 1.3 across and a component is a filled cube of side 1.5, up to 2.12 in
+       * silhouette on its diagonal — between 1.7x and 2.4x the mark at the same
+       * scale. With depth cancelled it was the only variation left standing, so
+       * it inherited the meaning depth had just been relieved of, and the four
+       * big blocks in the picture were simply the components.
+       *
+       * A file's kind is a real fact and it is not this lens's fact. The
+       * background keeps its shapes, because that is the map being itself.
+       */
+      geometry={geometryFor(uniformMark ? "module" : node.type)}
       scale={baseScale}
       onPointerOver={(e) => {
         e.stopPropagation()
@@ -371,11 +481,20 @@ export function NodeMesh({ node }: { node: GraphNode }) {
         color={color}
         emissive={isViolated ? palette.red : isLit ? typeColor : palette.overlay}
         emissiveIntensity={emissiveIntensity}
-        transparent
+        /**
+         * Transparent only when it is: on paper every node the ink language
+         * produces comes back at full opacity, so all of them were being sorted
+         * into the transparent pass and drawn back to front for nothing.
+         * "Transparent objects are slow, use as few as possible" is the one
+         * rule in the three.js list that this scene was breaking on every
+         * object it draws. On the dark ground most nodes really are see-through
+         * and stay in that pass.
+         */
+        transparent={opacity < 1}
         opacity={opacity}
         roughness={0.5}
         metalness={0.12}
-        flatShading={FACETED.has(node.type)}
+        flatShading={FACETED.has(uniformMark ? "module" : node.type)}
         // hollow: dead code, or a node this branch removed (a ghost)
         wireframe={(isOrphan && !isLit) || node.diff === "removed" || isDoomed}
       />
@@ -389,16 +508,29 @@ export function NodeMesh({ node }: { node: GraphNode }) {
        *
        * A halo is a multiple of the node rather than a fraction of it, so it
        * survives any zoom the node itself survives. Both grounds get one now;
-       * only how it composites differs. */}
-      {(isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
+       * only how it composites differs.
+       *
+       * The hotspot lens keeps exactly one, on the row that was clicked. Left to
+       * the rule below, roughly half the ranking wore a ring and half did not —
+       * `isLit` means adjacent to the current selection, so a ranked file was
+       * marked according to whether it happened to touch whatever had been
+       * selected before the lens opened, and `isViolated` answers a different
+       * question entirely. `lib/types` sat first in the ranking with no ring
+       * while `cache` had one. Two tiers, carrying no fact: the same vice as the
+       * gradient this lens started with. */}
+      {(hotspotsOn
+        ? isSelected
+        : isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
         (() => {
-          const accent = onPath
-            ? palette.lav
-            : impactOn
-              ? palette.yellow
-              : isViolated
-                ? palette.red
-                : typeColor
+          const accent = hotspotsOn
+            ? palette.red
+            : onPath
+              ? palette.lav
+              : impactOn
+                ? palette.yellow
+                : isViolated
+                  ? palette.red
+                  : typeColor
           const strong = isHovered || isSelected
           return (
             <sprite scale={[5.2, 5.2, 1]} raycast={() => null}>
@@ -438,17 +570,6 @@ export function NodeMesh({ node }: { node: GraphNode }) {
             />
           </mesh>
         </Billboard>
-      )}
-
-      {showLabel && (
-        <Html zIndexRange={[5, 0]} style={{ pointerEvents: "none" }}>
-          <div
-            className={`node-label${isHovered || isSelected ? "" : " dim"}`}
-            ref={(el) => registerLabel(node.id, el)}
-          >
-            {name}
-          </div>
-        </Html>
       )}
     </mesh>
   )

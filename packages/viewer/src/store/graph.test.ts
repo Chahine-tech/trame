@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { useGraphStore } from "./graph"
-import type { GraphData, Timeline } from "../types"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { positionOf, useGraphStore } from "./graph"
+import type { GraphData, Timeline, Vec3 } from "../types"
 
 // the store reaches for toasts and the DOM palette; neither is the subject here
 vi.mock("../ui/toast", () => ({
@@ -761,6 +761,82 @@ describe("the co-change lens", () => {
   })
 })
 
+describe("framing across the view", () => {
+  // the store is a module singleton: a vantage left behind would change how
+  // every later suite frames, which is exactly the bug this block is about
+  afterEach(() => useGraphStore.setState({ vantage: null }))
+
+  /**
+   * The invariant the whole correction rests on: what a camera has to fit is
+   * the part of a set that lies across the view, and that can never be more
+   * than the radius around its middle. So handing a lens the direction the
+   * reader is standing in can tighten a framing and can never loosen one —
+   * which is what makes it safe to give to all of them at once.
+   */
+  it("never asks the camera to stand further back than it did before", () => {
+    const g = ringWithLeaves()
+    useGraphStore.getState().load(g)
+
+    for (const dir of [
+      [0, 0, 1],
+      [1, 0, 0],
+      [0, 1, 0],
+      [0.4, -0.8, 0.45],
+    ] as Vec3[]) {
+      useGraphStore.setState({ vantage: null, lens: "none" })
+      useGraphStore.getState().select("ring/0.ts")
+      const blind = useGraphStore.getState().extent
+
+      useGraphStore.setState({ vantage: { at: [0, 0, 0], dir }, lens: "none" })
+      useGraphStore.getState().select(null)
+      useGraphStore.getState().select("ring/0.ts")
+      const across = useGraphStore.getState().extent
+
+      expect(across).toBeLessThanOrEqual(blind + 1e-9)
+    }
+  })
+
+  it("hands the view back unchanged, now that both legs measure the same way", () => {
+    /**
+     * The risk of giving the direction to every lens at once: if a lens frames
+     * across the view and the path back frames around the middle, a round trip
+     * lands somewhere else every time. Both legs go through `viewOf`, and this
+     * is what says so — with a vantage set, which is the case the plain
+     * round-trip test never exercises.
+     */
+    const g = ringWithLeaves()
+    g.hotspots = [{ id: "ring/0.ts", churn: 30, degree: 30 }]
+    useGraphStore.getState().load(g)
+    useGraphStore.setState({ vantage: { at: [0, 0, 0], dir: [0.4, -0.8, 0.45] }, lens: "none" })
+    useGraphStore.getState().select("ring/1.ts")
+    const [extent, depth, centre] = [
+      useGraphStore.getState().extent,
+      useGraphStore.getState().depth,
+      useGraphStore.getState().viewCentre,
+    ]
+
+    useGraphStore.getState().toggleHotspots()
+    useGraphStore.getState().toggleHotspots()
+    const s = useGraphStore.getState()
+    expect(s.extent).toBe(extent)
+    expect(s.depth).toBe(depth)
+    expect(s.viewCentre).toEqual(centre)
+  })
+
+  it("keeps the depth the camera discards, for the fog", () => {
+    // the two are one number only while that number is a radius; the moment the
+    // camera measures across the view, the fog needs the other axis or it closes
+    // in on a scene that has not got any shallower
+    const g = ringWithLeaves()
+    useGraphStore.getState().load(g)
+    useGraphStore.setState({ vantage: { at: [0, 0, 0], dir: [0, 0, 1] }, lens: "none" })
+    useGraphStore.getState().select("ring/0.ts")
+    const s = useGraphStore.getState()
+    expect(s.depth).toBeGreaterThan(0)
+    expect(s.extent).toBeGreaterThan(0)
+  })
+})
+
 describe("the hotspot lens", () => {
   const withHistory = () => {
     const g = ringWithLeaves()
@@ -829,39 +905,241 @@ describe("the hotspot lens", () => {
     for (let i = 1; i < heats.length; i++) expect(heats[i]!).toBeLessThan(heats[i - 1]!)
   })
 
-  it("adds the ranking to what is drawn without hiding anything", () => {
-    // a file the lens names must never be a file the lens hid
-    useGraphStore.getState().select("ring/0.ts")
-    const before = useGraphStore.getState().nearby!
-    expect(before.has("leaf/150.ts")).toBe(false)
-
+  it("keeps the folder its sentence names on screen", () => {
+    /**
+     * The panel says "23 of its 65 files", so the other 42 have to be drawn or
+     * the ratio is a ratio of nothing visible. What the camera frames is a
+     * separate question and the answer changed: it used to stand on the named
+     * folder because the whole ranking framed came to 1.8px a node, and node
+     * size stopped depending on the camera — see the framing test below.
+     */
+    const g = ringWithLeaves()
+    g.hotspots = Array.from({ length: 14 }, (_, i) => ({
+      id: `leaf/${i}.ts`,
+      churn: 30 - i,
+      degree: 30 - i,
+    }))
+    useGraphStore.getState().load(g)
     useGraphStore.getState().toggleHotspots()
-    const shown = useGraphStore.getState().nearby!
-    for (const id of before) expect(shown.has(id)).toBe(true)
-    for (const id of ["leaf/150.ts", "ring/40.ts", "leaf/9.ts"]) expect(shown.has(id)).toBe(true)
+    const s = useGraphStore.getState()
+
+    // every file of the named folder is drawn, so "14 of its 200" can be seen
+    for (const id of ["leaf/0.ts", "leaf/150.ts"]) expect(s.nearby!.has(id)).toBe(true)
+    // and the whole ranking stays drawn, because every row of the panel is clickable
+    for (const h of g.hotspots!) expect(s.nearby!.has(h.id)).toBe(true)
+    expect(s.lens).toBe("hotspots")
   })
 
-  it("does not take the camera, because a ranking has no place to frame", () => {
+  it("leaves the graph exactly as it found it", () => {
     /**
-     * Every other lens frames its answer, and every other answer has a place:
-     * a neighbourhood, a chain, a pair. This one ranks the repository. Framing
-     * all of it meant standing 824 units off the whole of dub, where the first
-     * file and the twentieth are dots four pixels apart, and the reader had
-     * lost wherever they were. The list carries the order; the map is only
-     * asked where, which it can only answer if it is still their map.
+     * The answer is drawn on its own map now — a treemap of the folder tree,
+     * over the canvas — so this lens has no business touching what the scene
+     * shows. It spent a day trying: reframing put the reader 824 units off the
+     * whole repository, and annotating in place left 43% of the ranking out of
+     * the frame. Neither was a framing problem.
      */
     useGraphStore.getState().select("ring/0.ts")
     const before = useGraphStore.getState()
-    const [extent, centre, target] = [before.extent, before.viewCentre, before.focusTarget]
+    const [drawn, extent, centre] = [before.nearby, before.extent, before.viewCentre]
+
+    useGraphStore.getState().toggleHotspots()
+    useGraphStore.getState().toggleHotspots()
+    const s = useGraphStore.getState()
+    // it takes the view and hands it back, the way every framing lens does
+    expect(s.lens).toBe("none")
+    expect(s.nearby).toEqual(drawn)
+    expect(s.extent).toBe(extent)
+    expect(s.viewCentre).toEqual(centre)
+  })
+
+  it("frames the knot, which is the answer, and the ranking when there is none", () => {
+    /**
+     * A percentile is not a finding: a p90 cut on two distributions returns
+     * about a tenth of the files whatever the repository looks like. What the
+     * lens actually reports is the part of the ranking that sits inside an
+     * import cycle — files that change constantly and that nobody can change on
+     * their own — so that is what the camera stands on, as it does under every
+     * other lens. On dub it is 36 files against 150, and 21 of them in one
+     * folder, which is small enough to be a place.
+     */
+    const g = ringWithLeaves()
+    g.hotspots = Array.from({ length: 14 }, (_, i) => ({
+      id: `leaf/${i}.ts`,
+      churn: 30 - i,
+      degree: 30 - i,
+    }))
+    // three of the fourteen are knotted; the other eleven are only ranked
+    g.analysis = { orphans: [], cycles: [["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"]] }
+    useGraphStore.getState().load(g)
+    useGraphStore.getState().toggleHotspots()
+    const s = useGraphStore.getState()
+    expect([...s.hotspotKnot].sort()).toEqual(["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"])
+    for (const k of [0, 1, 2]) {
+      const mean = [...s.hotspotKnot].reduce((a, id) => a + s.positions.get(id)![k]! / 3, 0)
+      expect(s.viewCentre![k]).toBeCloseTo(mean, 6)
+    }
+    // and the eleven that are only ranked stay drawn, because their rows click
+    for (const h of g.hotspots!) expect(s.nearby!.has(h.id)).toBe(true)
+  })
+
+  it("mounts every file the knot touches, not only the ranked ones", () => {
+    /**
+     * The scene mounts an edge only when both ends are mounted, so a cycle
+     * whose unranked members are missing is not a thinner cycle, it is a cut
+     * one. Measured on dub: the knot's 273 imports hang off 109 files, 51 of
+     * which the ranking and the densest folder had already drawn — 138 of the
+     * 273 would have appeared, and half a drawn cycle is a claim the picture
+     * cannot support.
+     */
+    const g = ringWithLeaves()
+    // a three-file cycle where only one file is under pressure
+    g.edges = [
+      ...g.edges,
+      { id: "c1", source: "leaf/0.ts", target: "leaf/1.ts", type: "import" as const },
+      { id: "c2", source: "leaf/1.ts", target: "leaf/2.ts", type: "import" as const },
+      { id: "c3", source: "leaf/2.ts", target: "leaf/0.ts", type: "import" as const },
+    ]
+    g.hotspots = [{ id: "leaf/0.ts", churn: 30, degree: 30 }]
+    g.analysis = { orphans: [], cycles: [["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"]] }
+    useGraphStore.getState().load(g)
+    useGraphStore.getState().toggleHotspots()
+    const s = useGraphStore.getState()
+
+    expect([...s.hotspotKnot]).toEqual(["leaf/0.ts"])
+    expect([...s.hotspotKnotEdges].sort()).toEqual(["c1", "c2", "c3"])
+    // the two files that are in the cycle without being in the ranking
+    for (const id of ["leaf/1.ts", "leaf/2.ts"]) expect(s.nearby!.has(id)).toBe(true)
+    // and they arrive without heat, so the ink recedes them
+    expect(s.hotspotHeat.has("leaf/1.ts")).toBe(false)
+  })
+
+  it("gathers each knot onto itself without writing the layout", () => {
+    /**
+     * Drawing the knot's imports made the map worse: its members are scattered
+     * by the whole-graph layout, which answers to their external imports too,
+     * so every internal one came out as a line across the canvas. Each
+     * component is settled on its own instead — `scene/knot.ts` has the
+     * measurement that ruled out drawing it as a ring.
+     *
+     * An override and not a write, so leaving the lens cannot leave the graph
+     * deformed. `positions` must come back untouched.
+     */
+    const g = ringWithLeaves()
+    g.edges = [
+      ...g.edges,
+      { id: "c1", source: "leaf/0.ts", target: "leaf/1.ts", type: "import" as const },
+      { id: "c2", source: "leaf/1.ts", target: "leaf/2.ts", type: "import" as const },
+      { id: "c3", source: "leaf/2.ts", target: "leaf/0.ts", type: "import" as const },
+    ]
+    g.hotspots = [{ id: "leaf/0.ts", churn: 30, degree: 30 }]
+    g.analysis = { orphans: [], cycles: [["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"]] }
+    useGraphStore.getState().load(g)
+    const before = new Map(useGraphStore.getState().positions)
+
+    useGraphStore.getState().toggleHotspots()
+    const on = useGraphStore.getState()
+    expect([...on.hotspotKnotAt.keys()].sort()).toEqual(["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"])
+    // the three were scattered across the ring's leaves and now stand together
+    const apart = (m: Map<string, Vec3>) => {
+      const p = ["leaf/0.ts", "leaf/1.ts", "leaf/2.ts"].map((id) => m.get(id)!)
+      return Math.max(
+        ...p.flatMap((a) => p.map((b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]))),
+      )
+    }
+    expect(apart(on.hotspotKnotAt)).toBeLessThan(apart(before))
+    // and every reader sees the new place, the ones outside the knot the old one
+    expect(positionOf(on, "leaf/0.ts")).toEqual(on.hotspotKnotAt.get("leaf/0.ts"))
+    expect(positionOf(on, "ring/5.ts")).toEqual(before.get("ring/5.ts"))
+    expect(on.positions.get("leaf/0.ts")).toEqual(before.get("leaf/0.ts"))
+
+    useGraphStore.getState().toggleHotspots()
+    const off = useGraphStore.getState()
+    expect(off.hotspotKnotAt.size).toBe(0)
+    expect(positionOf(off, "leaf/0.ts")).toEqual(before.get("leaf/0.ts"))
+  })
+
+  it("frames the whole ranking when nothing is knotted", () => {
+    /**
+     * The fallback, and it is the whole lens on a repository with no cycles.
+     *
+     * It framed one folder for a real reason once: all 150 of dub's hotspots in
+     * view put the camera 809 units out at 1.8px a node, against 5.9 for
+     * `lib/zod`'s 23. Both figures are node sizes, and a ranked node is now
+     * drawn at a fixed eleven pixels wherever it stands (`scene/mark.ts`), so
+     * that reason expired and the ranking became framable again.
+     */
+    const g = ringWithLeaves()
+    g.hotspots = Array.from({ length: 14 }, (_, i) => ({
+      id: `leaf/${i}.ts`,
+      churn: 30 - i,
+      degree: 30 - i,
+    }))
+    useGraphStore.getState().load(g)
+    useGraphStore.getState().select("ring/0.ts")
+    const wide = useGraphStore.getState().extent
 
     useGraphStore.getState().toggleHotspots()
     const s = useGraphStore.getState()
     expect(s.lens).toBe("hotspots")
-    expect(s.extent).toBe(extent)
-    expect(s.viewCentre).toEqual(centre)
-    expect(s.focusTarget).toEqual(target)
-    // and nothing to hand back on the way out, so no vantage is held hostage
-    expect(s.savedVantage).toBeNull()
+    expect(s.extent).not.toBe(wide)
+    expect(s.focusTarget).not.toBeNull()
+    // the middle of the ranking, not the middle of any one folder
+    const hot = g.hotspots!.map((h) => s.positions.get(h.id)!)
+    for (const k of [0, 1, 2]) {
+      const mean = hot.reduce((a, p) => a + p[k]! / hot.length, 0)
+      expect(s.viewCentre![k]).toBeCloseTo(mean, 6)
+    }
+  })
+
+  it("measures its reach across the view, not around the centre", () => {
+    /**
+     * A set framed from further away is not seen from further away in the
+     * direction it is deep, and depth is the one direction a fixed-size mark is
+     * completely indifferent to. Measured on dub: the ranking's furthest file
+     * is 413 from the middle while its half-extents on the three axes are 269,
+     * 384 and 240 — so which number the screen's vertical actually gets depends
+     * on where the reader happens to be standing, and framing on 413 from an
+     * angle that shows the 240 left the constellation in half the height it had
+     * been given.
+     */
+    const g = ringWithLeaves()
+    g.hotspots = [0, 1, 2].map((i) => ({ id: `leaf/${i}.ts`, churn: 30 - i, degree: 30 - i }))
+    useGraphStore.getState().load(g)
+    // two files abreast and one far behind them, seen down the z axis
+    const placed = new Map(useGraphStore.getState().positions)
+    placed.set("leaf/0.ts", [60, 0, 0])
+    placed.set("leaf/1.ts", [-60, 0, 0])
+    placed.set("leaf/2.ts", [0, 0, 600])
+    // with no vantage there is no view to measure across, which is the state the
+    // graph arrives in and the fallback this has to keep working
+    useGraphStore.setState({ positions: placed, lens: "none", vantage: null })
+
+    useGraphStore.getState().toggleHotspots()
+    const blind = useGraphStore.getState().extent
+    useGraphStore.getState().toggleHotspots()
+
+    useGraphStore.getState().setVantage([0, 0, 0], [0, 0, 1])
+    useGraphStore.getState().toggleHotspots()
+    const across = useGraphStore.getState().extent
+
+    // the 600 of depth counts for nothing; what is left is the 60 abreast
+    expect(across).toBeLessThan(blind / 4)
+    expect(across).toBeCloseTo(60 * 1.45, 6)
+
+    /**
+     * And the depth the camera threw away is kept, because the fog needs it.
+     *
+     * These were one number and it survived only while that number was a plain
+     * radius — wrong for both, but wrong by the same amount. The moment the
+     * framing started measuring across the view they parted company, and a fog
+     * scaled off the framing would close in on a scene that had not got any
+     * shallower. That was patched once by holding the ranked marks out of the
+     * fog; the patch is gone, and this is what replaced it.
+     */
+    const s = useGraphStore.getState()
+    // 200, 200 and 400 from the middle along z: the median clamp keeps 400
+    expect(s.depth).toBeCloseTo(400 * 1.45, 6)
+    expect(s.depth).toBeGreaterThan(s.extent * 6)
   })
 
   it("follows a row without letting go of the ranking", () => {

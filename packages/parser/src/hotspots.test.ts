@@ -73,4 +73,26 @@ describe("hotspots", () => {
     expect(hotspots(new Map(), new Map(), ids)).toHaveLength(0)
     expect(hotspots(new Map(), new Map(), [])).toHaveLength(0)
   })
+
+  it("reports the recent count beside the total, and omits it when unknown", () => {
+    /**
+     * A count and not a decayed score. Google's study asks a prediction to bias
+     * towards the new, and folding age into the product would have bought that
+     * with a number nobody can check: the ranking is `churn x degree`, both of
+     * which a reader can reproduce with `git log`, and a churn of 43.7 is
+     * neither reproducible nor a number of anything. So the recency is a second
+     * fact rather than a thumb on the first.
+     */
+    const rows: [number, number][] = Array.from({ length: 10 }, (_, i) =>
+      i === 0 ? [40, 40] : [1, 1],
+    )
+    const { churn, degree } = map(rows)
+    const withDates = hotspots(churn, degree, ids, DEFAULTS, new Map([["f0.ts", 7]]))
+    expect(withDates[0]).toMatchObject({ id: "f0.ts", churn: 40, recent: 7 })
+
+    // a file the recent map does not mention was not touched recently; a graph
+    // with no recent map at all does not know, and must not answer zero
+    expect(hotspots(churn, degree, ids, DEFAULTS, new Map())[0]!.recent).toBe(0)
+    expect(hotspots(churn, degree, ids)[0]).not.toHaveProperty("recent")
+  })
 })

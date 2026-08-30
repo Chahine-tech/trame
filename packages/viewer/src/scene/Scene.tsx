@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from "react"
 import * as THREE from "three"
 import { useFrame, useThree } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
+import { AdaptiveDpr, OrbitControls } from "@react-three/drei"
 
 type OrbitControlsImpl = ComponentRef<typeof OrbitControls>
 import { useGraphStore } from "../store/graph"
@@ -14,7 +14,7 @@ import { Clusters } from "./Clusters"
 import { Districts } from "./Districts"
 import { ZoomDirector } from "./ZoomDirector"
 import { CaptureFrame } from "./CaptureFrame"
-import { applyLabels, textSize, withoutOverlap, type LabelBox } from "./labels"
+import { applyLabels, textSize, withoutOverlap, type LabelBox, type Reserved } from "./labels"
 import { labelElements } from "./nodeLabels"
 
 /** Scratch vectors, reused every frame and always rewritten before read. */
@@ -38,6 +38,27 @@ const AT = new THREE.Vector3()
 /** Above every depth rank, so what a lens is answering about keeps its name. */
 const ANSWER = 1e9
 
+/**
+ * Everything fixed over the canvas that a name must not be written across.
+ *
+ * Read from the DOM rather than listed as numbers here: the rail is 300px until
+ * someone changes it, and a constant that has to be kept in step with a
+ * stylesheet is a constant that drifts. Three or four rectangles per pass, on a
+ * pass that already reads `offsetParent` for every label.
+ */
+const CHROME = ".topbar, .lensbar, .inspector.open, .first-hint, .palette"
+
+function chromeOver(canvas: HTMLCanvasElement): Reserved[] {
+  const c = canvas.getBoundingClientRect()
+  const out: Reserved[] = []
+  for (const el of document.querySelectorAll(CHROME)) {
+    const r = el.getBoundingClientRect()
+    if (r.width === 0 || r.height === 0) continue
+    out.push({ x: r.x - c.x, y: r.y - c.y, width: r.width, height: r.height })
+  }
+  return out
+}
+
 function NameDirector() {
   const positions = useGraphStore((s) => s.positions)
   const selectedId = useGraphStore((s) => s.selectedId)
@@ -45,7 +66,7 @@ function NameDirector() {
   const hotspotHeat = useGraphStore((s) => s.hotspotHeat)
   const lastView = useRef("")
 
-  useFrame(({ camera, size }) => {
+  useFrame(({ camera, size, gl }) => {
     const elements = labelElements()
     const view = `${camera.position.toArray().join()}|${camera.quaternion.toArray().join()}|${elements.size}|${selectedId}|${coChangeWith.size}|${hotspotHeat.size}`
     if (view === lastView.current) return
@@ -60,9 +81,14 @@ function NameDirector() {
       AT.set(p[0], p[1], p[2]).project(camera)
       if (AT.z > 1) continue
       const { width, height } = textSize(el.textContent ?? "", 11)
+      // where the node lands on screen: the anchor the DOM needs, and the point
+      // the rectangle below is measured from
+      const sx = ((AT.x + 1) / 2) * size.width
+      const sy = ((1 - AT.y) / 2) * size.height
       boxes.push({
         id,
-        x: ((AT.x + 1) / 2) * size.width,
+        at: [sx, sy],
+        x: sx,
         /**
          * Where the label sits, not where the node does. `.node-label` carries
          * `translate(-50%, -180%)` and drei anchors its top-left corner at the
@@ -70,7 +96,7 @@ function NameDirector() {
          * Reckoning on one height put the rectangles a third of a line low, and
          * names the arbitration believed were clear touched on screen.
          */
-        y: ((1 - AT.y) / 2) * size.height - height * 1.3,
+        y: sy - height * 1.3,
         width,
         height,
         tier: 0,
@@ -98,7 +124,23 @@ function NameDirector() {
       })
     }
 
-    applyLabels(elements, boxes, withoutOverlap(boxes))
+    /**
+     * A name has to fit on the canvas whole, and not just start on it.
+     *
+     * Nodes outside the frame kept their labels, so the edge cut them
+     * mid-word — `bounty-availability` arriving as `lity`, a route as
+     * `oadcast/route`. That reads as broken rather than as "there is more over
+     * there". Every box is still passed to `applyLabels`, so the ones dropped
+     * here are switched off rather than left on from a previous pass.
+     */
+    const onScreen = boxes.filter(
+      (b) =>
+        b.x - b.width / 2 >= 0 &&
+        b.x + b.width / 2 <= size.width &&
+        b.y - b.height / 2 >= 0 &&
+        b.y + b.height / 2 <= size.height,
+    )
+    applyLabels(elements, boxes, withoutOverlap(onScreen, chromeOver(gl.domElement)))
   })
 
   return null
@@ -150,7 +192,18 @@ const FOG = {
 
 function FocusDepth() {
   const attentive = useGraphStore((s) => s.litSet.size > 0 || s.selectedEdgeId !== null)
-  const extent = useGraphStore((s) => s.extent)
+  /**
+   * Scaled off how deep the scene runs, not off how wide it was framed.
+   *
+   * These were the same number until the camera started measuring its framing
+   * across the view, which is the only direction a camera can see. Fog is the
+   * other axis entirely: it fades what is far from the eye. On dub's ranking the
+   * two differ by nearly a factor of two, so keeping the fog on `extent` pulled
+   * it in around a scene that had not got any shallower — and the first thing it
+   * would have bleached is the hotspot lens's marks, whose whole point is that
+   * distance does not change them.
+   */
+  const depth = useGraphStore((s) => s.depth)
   const scene = useThree((s) => s.scene)
   const invalidate = useThree((s) => s.invalidate)
   const dark = isDarkGround()
@@ -163,8 +216,8 @@ function FocusDepth() {
     // the dimming the ink language already does. Two washes, and the scene
     // faded out about a second after every hover.
     const band = dark && attentive ? FOG.attentive : dark ? FOG.void : FOG.paper
-    const near = band.near * extent
-    const far = band.far * extent
+    const near = band.near * depth
+    const far = band.far * depth
     const nextNear = THREE.MathUtils.damp(fog.near, near, 4, dt)
     const nextFar = THREE.MathUtils.damp(fog.far, far, 4, dt)
     if (Math.abs(nextFar - fog.far) < 0.05 && Math.abs(nextNear - fog.near) < 0.05) return
@@ -255,9 +308,23 @@ const PANEL = 300
  * scene: the same view, recentred on the window that is left.
  *
  * Cleared when the panel is away, or every graph would sit permanently askew.
+ *
+ * Three panels write into that column now, and this asked about one of them.
+ * The hotspot rail and the findings list stand in exactly the same 300 pixels —
+ * measured live, `x: 1170, width: 300` in a 1470 window — and the inspector
+ * stands down while either is up, so a lens opened with nothing selected put a
+ * panel over a scene that had not been told to move. It only ever looked right
+ * because the graph arrives with a file selected. What matters is that the
+ * column is occupied, not who is writing in it.
  */
 function PanelOffset() {
-  const open = useGraphStore((s) => s.selectedId !== null || s.selectedEdgeId !== null)
+  const open = useGraphStore(
+    (s) =>
+      s.selectedId !== null ||
+      s.selectedEdgeId !== null ||
+      s.hotspotHeat.size > 0 ||
+      s.browsing !== null,
+  )
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
   const size = useThree((s) => s.size)
   const invalidate = useThree((s) => s.invalidate)
@@ -316,6 +383,7 @@ export function Scene() {
   const introSpin = useIntroSpin()
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
+  const depth = useGraphStore((s) => s.depth)
   const extent = useGraphStore((s) => s.extent)
   const controls = useRef<OrbitControlsImpl | null>(null)
   const invalidate = useThree((s) => s.invalidate)
@@ -353,7 +421,8 @@ export function Scene() {
       {/* depth fog: far nodes recede into the void, never a flat board.
           It tightens on selection: the surroundings lose contrast like a
           shallow depth of field, without paying for a blur pass. */}
-      <fog attach="fog" args={[palette.base, extent, extent * 2.5]} />
+      {/* the same question FocusDepth answers every frame: how deep, not how wide */}
+      <fog attach="fog" args={[palette.base, depth, depth * 2.5]} />
       <FocusDepth />
 
       <Lighting />
@@ -377,9 +446,13 @@ export function Scene() {
         </>
       )}
 
+      {/* puts the resolution back the moment the camera stops; `regress` below
+          is what drops it while it moves */}
+      <AdaptiveDpr />
       <OrbitControls
         ref={controls}
         makeDefault
+        regress
         enabled={controlsEnabled}
         enableDamping
         dampingFactor={0.08}

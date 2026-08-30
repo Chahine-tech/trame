@@ -20,6 +20,18 @@ export function TopBar({
   const districtMode = useGraphStore((s) => s.districtMode)
   const nearby = useGraphStore((s) => s.nearby)
   const whatIf = useGraphStore((s) => s.whatIf)
+  const browsing = useGraphStore((s) => s.browsing)
+  const browse = useGraphStore((s) => s.browse)
+  const found = useGraphStore((s) => s.findings)
+  /**
+   * These counts have been text for as long as they have existed, sitting
+   * directly over a hundred and forty-three ranked findings the viewer computes
+   * on every load and throws away. They are the best real estate on the screen
+   * and the only place that already says what the tool knows.
+   */
+  const open = (kind: "cycle" | "violation" | "orphan") => () =>
+    browse(browsing === kind ? null : kind)
+  const has = (kind: "cycle" | "violation" | "orphan") => found.some((f) => f.kind === kind)
   const hotspots = useGraphStore((s) => s.hotspotHeat.size)
 
   const healthy =
@@ -80,15 +92,45 @@ export function TopBar({
           ) : (
             <>
               {(data.violations?.length ?? 0) > 0 && (
-                <span className="viol"> · ✗ {data.violations!.length} violations</span>
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    className={`count viol${browsing === "violation" ? " on" : ""}`}
+                    onClick={open("violation")}
+                    disabled={!has("violation")}
+                  >
+                    ✗ {data.violations!.length} violations
+                  </button>
+                </>
               )}
               {(data.analysis?.cycles.length ?? 0) > 0 && (
-                <span className="warn"> · ↻ {data.analysis!.cycles.length} cycles</span>
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    className={`count warn${browsing === "cycle" ? " on" : ""}`}
+                    onClick={open("cycle")}
+                    disabled={!has("cycle")}
+                  >
+                    ↻ {data.analysis!.cycles.length} cycles
+                  </button>
+                </>
               )}
               {(data.analysis?.orphans.length ?? 0) > 0 && (
                 /* "unused" claimed more than the analysis knows: nothing here
                    imports these, which is not the same as nobody running them */
-                <span className="warn"> · ⌀ {data.analysis!.orphans.length} unimported</span>
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    className={`count warn${browsing === "orphan" ? " on" : ""}`}
+                    onClick={open("orphan")}
+                    disabled={!has("orphan")}
+                  >
+                    ⌀ {data.analysis!.orphans.length} unimported
+                  </button>
+                </>
               )}
             </>
           )}
@@ -126,12 +168,11 @@ export function TopBar({
            which is true of what is drawn and says nothing about what is being
            answered. Every other lens states its own finding here; this one
            states the size of the ranking and what tops it. */
-        <span className="mode hotspots">
-          hotspots · {hotspots} files ·{" "}
-          {data?.hotspots?.[0]
-            ? `${data.hotspots[0].churn} changes, ${data.hotspots[0].degree} dependants at the top`
-            : ""}
-        </span>
+        /* the top file's counts used to sit here too: sixty-one characters,
+           which made this the widest thing in the bar and the reason a narrow
+           window wrapped it onto two rows. The panel says them right below,
+           and says them better. */
+        <span className="mode hotspots">hotspots · {hotspots} files</span>
       )}
       {impactLabel && (
         <span className="mode impact">

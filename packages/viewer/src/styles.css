@@ -18,6 +18,12 @@ html, body, #root {
   height: 46px;
   display: flex;
   align-items: center;
+  /* One line, always. It had no overflow rule at all: at 1470px the contents
+     came to 839px at rest and 1318px with the hotspot lens on, so a narrower
+     window wrapped it to two rows and pushed the wordmark off its baseline.
+     A status bar that changes height as you work is worse than one that
+     truncates. */
+  flex-wrap: nowrap;
   gap: 16px;
   padding: 0 16px;
   border-bottom: 1px solid var(--surface0);
@@ -27,7 +33,17 @@ html, body, #root {
   font-size: 0.8125rem;
   z-index: 20;
 }
-.topbar .brand { color: var(--text); letter-spacing: -0.02em; font-weight: 500; }
+.topbar .brand { color: var(--text); letter-spacing: -0.02em; font-weight: 500; flex: none; }
+/* the counts give way first: they are the longest and the least urgent once a
+   lens is answering, and their own chips stay whole because a button does not
+   break mid-phrase */
+.topbar .counts {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .mode { flex: none; white-space: nowrap; }
 .topbar .brand .d { color: var(--lav); }
 .topbar .counts { color: var(--overlay); font-variant-numeric: tabular-nums; }
 .topbar .counts b { color: var(--subtext); font-weight: 500; }
@@ -632,6 +648,26 @@ html, body, #root {
   color: var(--red);
 }
 .hot-rank { font-size: 0.66rem; color: var(--overlay); text-align: right; }
+/* The knot, in the list. A row is in the lens' answer or it is not, and that is
+   a category, so it gets a category's mark: the name in the lens' own red,
+   against the resting grey of the rows that are only in the ranking. The rank
+   number stays grey in both, because the rank is not what is being said.
+
+   The dimming is the load-bearing half, and it was missing at first. Hue alone
+   separated the two by 1.06:1 on Mocha — `--red` and `--subtext` are within a
+   twentieth of each other in luminance there, so the panel was leaning on the
+   one channel `scene/CHANNELS.md` spends four failures warning about, in the one
+   place that had been getting it right. Latte hid it, because its red is dark
+   and saturated against a pale page.
+
+   So the rest of the ranking recedes instead, which is what it is: context, on
+   a channel neither palette can flatten. How far it recedes is a token, because
+   the two grounds need different amounts — `tokens.css` carries the measurement.
+   Hover puts a row back to full, because all 150 stay clickable. */
+.hot-row:not(.knotted) { opacity: var(--context-dim); }
+.hot-row:hover { opacity: 1; }
+.hot-row.knotted { color: color-mix(in srgb, var(--red) 78%, var(--text)); }
+.hot-row.knotted .hot-name { font-weight: 500; }
 /* A gauge, not a decoration: the same number the node's radius is drawn from.
    Spans the row under the name, because a gauge narrower than its own spread
    cannot show one. */
@@ -659,3 +695,82 @@ html, body, #root {
 .hot-counts { font-size: 0.7rem; color: var(--overlay); letter-spacing: 0.02em; }
 .hot-counts b { font-weight: 500; color: var(--subtext); }
 .hot-row.on .hot-counts, .hot-row.on .hot-counts b { color: var(--red); }
+
+/* The counts were text for as long as they existed, over a hundred and
+   forty-three findings nobody could reach. They read the same at rest — the
+   affordance is that they answer, not that they shout. */
+.topbar .count {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px dashed color-mix(in srgb, currentColor 40%, transparent);
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.topbar .count:hover:not(:disabled) { border-bottom-color: currentColor; }
+.topbar .count:disabled { cursor: default; border-bottom-color: transparent; }
+.topbar .count.on { border-bottom-style: solid; }
+
+.findings-rail { gap: 10px; }
+.find-list {
+  list-style: none;
+  margin: 0 -8px;
+  padding: 0 2px;
+  overflow-y: auto;
+  flex: 1;
+  mask-image: linear-gradient(to bottom, transparent, #000 12px, #000 calc(100% - 16px), transparent);
+}
+.find-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.find-row:hover { background: color-mix(in srgb, var(--surface0) 70%, transparent); }
+.find-row.on { background: color-mix(in srgb, var(--yellow) 13%, transparent); }
+.find-title {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text);
+}
+/* the sentence doctor writes: quieter than the problem, since it is the part
+   you read second */
+.find-fix {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--subtext);
+}
+.find-close {
+  font: inherit;
+  color: var(--lav);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+
+/* What the lens found. Sits above the warnings because it is the answer to the
+   question just asked, where those are standing conditions of the file. */
+.insp-reading {
+  border-left: 2px solid var(--lav);
+  padding: 2px 0 2px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.insp-reading p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text);
+}

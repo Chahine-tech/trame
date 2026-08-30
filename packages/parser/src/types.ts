@@ -172,4 +172,16 @@ export interface Hotspot {
   churn: number
   /** imports in and out: how much rests on it */
   degree: number
+  /**
+   * Commits touching this file in the last `recentDays` of the window.
+   *
+   * Reported rather than folded into the score: the score is a product of two
+   * counts a reader can check against `git log`, and a decayed churn of 43.7 is
+   * neither checkable nor a number of anything. This says which of the pressured
+   * files are still moving, which is the part a reader can act on.
+   *
+   * Absent on a graph parsed before this existed, and on any graph parsed
+   * outside a repository.
+   */
+  recent?: number
 }

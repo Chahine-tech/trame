@@ -14,6 +14,7 @@ import {
 } from "./ui/toast"
 import { TopBar } from "./ui/TopBar"
 import { Hotspots } from "./ui/Hotspots"
+import { Findings } from "./ui/Findings"
 import { Inspector } from "./ui/Inspector"
 import { Palette } from "./ui/Palette"
 import { Shortcuts } from "./ui/Shortcuts"
@@ -118,6 +119,8 @@ export function AppUI() {
         // then the lens, then the selection itself
         if (shortcutsOpen) setShortcutsOpen(false)
         else if (paletteOpen) setPaletteOpen(false)
+        // a list is a panel, so it goes before the lens on the way out
+        else if (useGraphStore.getState().browsing) useGraphStore.getState().browse(null)
         else if (useGraphStore.getState().lens === "replay") useGraphStore.getState().exitReplay()
         else if (useGraphStore.getState().lens !== "none") useGraphStore.getState().clearLens()
         else clear()
@@ -186,6 +189,7 @@ export function AppUI() {
         onOpenShortcuts={() => setShortcutsOpen(true)}
       />
       <Inspector />
+      <Findings />
       <Hotspots />
       <LensBar />
       <FirstRunHint />

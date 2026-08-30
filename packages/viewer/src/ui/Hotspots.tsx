@@ -1,5 +1,7 @@
 import { useMemo } from "react"
 import { useGraphStore } from "../store/graph"
+import { disambiguate } from "../scene/names"
+import { hotspotReading } from "../store/reading"
 import { usePalette } from "../theme"
 
 /**
@@ -21,8 +23,9 @@ export function Hotspots() {
   const palette = usePalette()
   const data = useGraphStore((s) => s.data)
   const heat = useGraphStore((s) => s.hotspotHeat)
+  const knot = useGraphStore((s) => s.hotspotKnot)
   const selectedId = useGraphStore((s) => s.selectedId)
-  const names = useGraphStore((s) => s.names)
+  const nodes = useGraphStore((s) => s.data?.nodes)
   const pick = useGraphStore((s) => s.pickHotspot)
 
   /**
@@ -47,6 +50,21 @@ export function Hotspots() {
     }
   }, [ranked])
   const rows = ranked ?? []
+  /**
+   * Qualified against the ranking, not against what the scene draws.
+   *
+   * The store's `names` describes whoever shares the screen, and this lens no
+   * longer puts anything on it — so every row fell back to its full path and
+   * the list became a column of truncated directories. The set worth telling
+   * apart is the hundred and fifty in the list.
+   */
+  const reading = useMemo(() => (data ? hotspotReading(data) : []), [data])
+  const names = useMemo(() => {
+    // keyed on the graph's own array, not on the `?? []` fallback, which is a
+    // fresh one on every render — the same trap this file already fell into
+    const inRanking = new Set((ranked ?? []).map((h) => h.id))
+    return disambiguate((nodes ?? []).filter((n) => inRanking.has(n.id)))
+  }, [ranked, nodes])
 
   if (heat.size === 0 || rows.length === 0) return null
 
@@ -59,23 +77,34 @@ export function Hotspots() {
         />
         hotspots
       </div>
+      {/* The title says the finding, not the size of the cut.
+          "150 of 3562 files" is a percentile: a p90 cut on two distributions
+          returns about a tenth of the files whatever the repository looks like,
+          so the number was a property of the cut and said nothing. What is a
+          finding is how many of them cannot be changed on their own. */}
       <div className="insp-title">
-        {rows.length} of {data?.meta.nodeCount} files
+        {knot.size > 0 ? `${knot.size} caught in a cycle` : `${rows.length} under pressure`}
       </div>
       {cut && (
         /* not `insp-path`: that class breaks anywhere, which is right for a
            file path and wrong for a sentence — it split "dependants" across
            two lines */
         <div className="hot-cut">
-          changed {cut.churn}+ times · {cut.degree}+ dependants
+          of {rows.length} files changed {cut.churn}+ times · {cut.degree}+ dependants
         </div>
       )}
-      {/* the claim, once, at the top: neither count means anything alone, and a
-          list of numbers with no sentence over it invites the wrong reading */}
-      <p className="hot-lede">
-        Often rewritten, and much rests on them — where a mistake is most likely to be made and
-        travels furthest.
-      </p>
+      {/* What was found, not what a hotspot is.
+          This was a definition — "often rewritten, and much rests on them" —
+          true of the feature and silent about the repository in front of you.
+          Every sentence here is computed, carries a figure this graph produced,
+          and is dropped when the graph does not support it: on dub the third
+          claim stays quiet, because the top of the ranking is neither the
+          most-changed file nor the most depended-on. */}
+      {reading.map((line) => (
+        <p className="hot-lede" key={line}>
+          {line}
+        </p>
+      ))}
       <ol className="hot-list">
         {rows.map((h, i) => {
           const on = h.id === selectedId
@@ -83,11 +112,13 @@ export function Hotspots() {
             <li key={h.id}>
               <button
                 type="button"
-                className={`hot-row${on ? " on" : ""}`}
+                className={`hot-row${on ? " on" : ""}${knot.has(h.id) ? " knotted" : ""}`}
                 onClick={() => pick(h.id)}
                 title={h.id}
                 aria-current={on || undefined}
               >
+                {/* the rank is a number and stays one; being in the knot is a
+                    fact and gets a mark, the same red the map uses */}
                 <span className="hot-rank">{i + 1}</span>
                 {/* the same disambiguated name the map writes, so a row and its
                     dot are recognisably the same file */}

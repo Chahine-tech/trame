@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
-import { useGraphStore } from "../store/graph"
+import { positionOf, useGraphStore } from "../store/graph"
 import { EDGE_COLOR, isDarkGround, usePalette } from "../theme"
 import { edgeInk } from "./ink"
 import type { GraphEdge, Vec3 } from "../types"
@@ -10,6 +10,18 @@ import { edgeProgress, easeOut } from "./arrival"
 
 /** Sides of the extruded tube. Named because the draw-in steps by whole rings. */
 const RADIAL_SEGMENTS = 6
+
+/**
+ * How long the knot's imports wait, and how long they take to draw.
+ *
+ * The hold covers the gathering: `NodeMesh` eases at 6.5, so a file is within a
+ * hundredth of its destination after about seven tenths of a second. Drawing
+ * starts a little before that, while the last of the movement is still settling,
+ * because a line that begins at the exact moment everything stops reads as two
+ * separate events rather than one.
+ */
+const KNOT_HOLD_MS = 520
+const KNOT_DRAW_MS = 420
 
 /**
  * The arrangement these tube widths were chosen against: trame's own graph,
@@ -190,8 +202,8 @@ function GuideLine({ from, to, color }: { from: Vec3; to: Vec3; color: string })
 export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const palette = usePalette()
   const [hovered, setHovered] = useState(false)
-  const p0 = useGraphStore((s) => s.positions.get(edge.source))
-  const p3 = useGraphStore((s) => s.positions.get(edge.target))
+  const p0 = useGraphStore((s) => positionOf(s, edge.source))
+  const p3 = useGraphStore((s) => positionOf(s, edge.target))
   const edited = useGraphStore((s) => s.ctrl.get(edge.id))
   const isViolated = useGraphStore((s) => s.violatedEdges.has(edge.id))
   const isSelected = useGraphStore((s) => s.selectedEdgeId === edge.id)
@@ -242,6 +254,46 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
     invalidate()
   })
 
+  /**
+   * The knot's imports, drawn after its files have gathered.
+   *
+   * They cannot simply appear with the lens. The tube is memoised on its two
+   * endpoints, so following the nodes through the move would rebuild 273 of
+   * them every frame; and standing them at the destination while the nodes are
+   * still travelling leaves every line detached from both its ends, which reads
+   * as a rendering fault and not as a movement. So the geometry is built once,
+   * at the places the files are going, and held back until they are there.
+   *
+   * The reveal is the arrival's, because it is the right one and it already
+   * exists: a draw range along the tube grows the line from one file to the
+   * other, where a fade would only make a finished line faint.
+   */
+  const grown = useRef(true)
+  useFrame(({ invalidate }) => {
+    const tube = tubeRef.current
+    // the build-in owns the geometry until it lets go
+    if (!tube || !drawn.current) return
+    const full = () => {
+      if (grown.current) return
+      tube.geometry.setDrawRange(0, Infinity)
+      grown.current = true
+      invalidate()
+    }
+    if (!knotEdge || hotspotStartedAt === 0) return full()
+
+    const t = THREE.MathUtils.clamp(
+      (performance.now() - hotspotStartedAt - KNOT_HOLD_MS) / KNOT_DRAW_MS,
+      0,
+      1,
+    )
+    if (t >= 1) return full()
+    grown.current = false
+    const ring = RADIAL_SEGMENTS * 6
+    const total = tube.geometry.index?.count ?? 0
+    tube.geometry.setDrawRange(0, Math.floor((total * easeOut(t)) / ring) * ring)
+    invalidate()
+  })
+
   const isLit = isSelected || (litSet.has(edge.source) && litSet.has(edge.target) && hasActive)
   // changes on load and on the opening move of a selection, never per frame,
   // so the tubes are not rebuilt while the camera turns
@@ -274,6 +326,10 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
   const impactOn = useGraphStore((s) => s.impactOf !== null)
   const coChangeOn = useGraphStore((s) => s.coChangeOf !== null)
   const hotspotsOn = useGraphStore((s) => s.hotspotHeat.size > 0)
+  // an import between two files of the same cycle: what the hotspot lens is
+  // actually reporting, and the only edges it lights
+  const knotEdge = useGraphStore((s) => s.hotspotKnotEdges.has(edge.id))
+  const hotspotStartedAt = useGraphStore((s) => s.hotspotStartedAt)
   const sourceRing = useGraphStore((s) => s.impactDepth.get(edge.source))
   const targetRing = useGraphStore((s) => s.impactDepth.get(edge.target))
 
@@ -292,6 +348,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       impactRing: Math.max(sourceRing ?? 0, targetRing ?? 0),
       coChangeOn,
       hotspotsOn,
+      knotEdge,
       violated: isViolated,
       hovered,
       lit: isLit,
@@ -308,6 +365,15 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
       <mesh
         ref={tubeRef}
         geometry={geometry}
+        /**
+         * The tube's own transform is the identity and always will be: the
+         * curve is built from the two files' world positions, so the geometry
+         * already sits where it belongs. Left on, three recomposes a matrix from
+         * an unchanging position, quaternion and scale for every edge on every
+         * frame — 755 of them here, for nothing. The arrowhead keeps its
+         * automatic update, because it does carry a position and a rotation.
+         */
+        matrixAutoUpdate={false}
         onPointerOver={(e) => {
           e.stopPropagation()
           setHovered(true)
@@ -326,7 +392,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
           resetCtrl(edge.id)
         }}
       >
-        <meshBasicMaterial color={color} transparent opacity={opacity} />
+        <meshBasicMaterial color={color} transparent={opacity < 1} opacity={opacity} />
       </mesh>
 
       {/* the head shrinks with the line it belongs to, or it stops reading as a
@@ -339,7 +405,7 @@ export function EdgeMesh({ edge }: { edge: GraphEdge }) {
         quaternion={arrowQuat}
         scale={[0.32 * growth, 0.9 * growth, 0.32 * growth]}
       >
-        <meshBasicMaterial color={color} transparent opacity={opacity} />
+        <meshBasicMaterial color={color} transparent={opacity < 1} opacity={opacity} />
       </mesh>
 
       {isSelected && (
