@@ -61,6 +61,8 @@ const RESTING: EdgeMood = {
   impacted: false,
   impactRing: undefined,
   coChangeOn: false,
+  hotspotsOn: false,
+  knotEdge: false,
   violated: false,
   hovered: false,
   lit: false,
@@ -111,7 +113,14 @@ describe("an answer stands clear of the map it is drawn over", () => {
         [MOCHA, true],
       ] as const) {
         const answer = contrast(edgeInk(mood(over), palette, dark), palette.base)
-        const ground = contrast(edgeInk(mood({ ...over, onPath: false, impacted: false, violated: false, lit: false }), palette, dark), palette.base)
+        const ground = contrast(
+          edgeInk(
+            mood({ ...over, onPath: false, impacted: false, violated: false, lit: false }),
+            palette,
+            dark,
+          ),
+          palette.base,
+        )
         expect(answer / ground).toBeGreaterThan(3)
       }
     })
@@ -151,6 +160,9 @@ const RESTING_NODE: NodeMood = {
   impactDepth: undefined,
   coChanged: false,
   coChangeOn: false,
+  hotspotsOn: false,
+  heat: undefined,
+  knotted: false,
   violated: false,
   lit: false,
   hasActive: false,
@@ -316,5 +328,105 @@ describe("the co-change lens repaints, like the others", () => {
     const context = nodeInk(node({ coChangeOn: true, coChanged: false }), MOCHA, true)
     expect(answer.opacity).toBeGreaterThan(context.opacity)
     expect(contrast({ ...answer, opacity: answer.opacity }, MOCHA.base)).toBeGreaterThan(3)
+  })
+})
+
+describe("the hotspot lens draws a ranking, not a set", () => {
+  // a file in the ranking and in a cycle: the mark. `cool` is the rest of the
+  // ranking, drawn behind it
+  const hot = (heat: number, p = LATTE, dark = false) =>
+    nodeInk(node({ hotspotsOn: true, heat, knotted: true }), p, dark)
+  const cool = (heat: number, p = LATTE, dark = false) =>
+    nodeInk(node({ hotspotsOn: true, heat, knotted: false }), p, dark)
+
+  it("separates the answer from the ranking it was drawn from", () => {
+    /**
+     * The one distinction the map is allowed to make here, and it is allowed
+     * because it is a category: this file is inside an import cycle, or it is
+     * not. `scene/CHANNELS.md` has the rule and the four attempts that broke it.
+     *
+     * The rest of the ranking stays drawn rather than receding to the
+     * background, because every row of the panel is clickable and a row you can
+     * click has to be a file you can find.
+     */
+    expect(contrast(hot(0.5), LATTE.base)).toBeGreaterThan(contrast(cool(0.5), LATTE.base))
+    expect(contrast(cool(0.5), LATTE.base)).toBeGreaterThan(
+      contrast(nodeInk(node({ hotspotsOn: true }), LATTE, false), LATTE.base),
+    )
+  })
+
+  it("finds a row that was clicked, whether or not it is in a cycle", () => {
+    // following the list must work on all 150 rows, not on the 36
+    const picked = nodeInk(
+      node({ hotspotsOn: true, heat: 0.2, knotted: false, selected: true }),
+      LATTE,
+      false,
+    )
+    expect(contrast(picked, LATTE.base)).toBeGreaterThan(contrast(cool(0.2), LATTE.base))
+  })
+
+  it("marks the whole ranking alike, because rank cannot live in a picture", () => {
+    /**
+     * There was a gradient here — radius, then hue and glow — and the same
+     * arithmetic killed each: what a node looks like on screen is its weight
+     * over its distance from the camera, 2.6x of range against 3.1x of depth,
+     * so the loudest mark belongs to whatever is nearest. Fifth in the ranking
+     * came out a block in the foreground while first sat behind it as a dot.
+     */
+    expect(hot(1)).toEqual(hot(0))
+    expect(hot(1, MOCHA, true)).toEqual(hot(0.5, MOCHA, true))
+    // and the quieter register is uniform in itself for the same reason
+    expect(cool(1)).toEqual(cool(0))
+  })
+
+  it("keeps the last file in the ranking visible, unlike a fourth impact ring", () => {
+    /**
+     * `wave` lands its far end on the resting grey, which is right for a
+     * dependent four hops out and wrong here: the coolest hotspot is still one
+     * of the files the lens is naming. Measured against a node the lens pushed
+     * away entirely.
+     */
+    const coolest = hot(0)
+    const pushed = nodeInk(node({ hotspotsOn: true, heat: undefined }), LATTE, false)
+    expect(contrast(coolest, LATTE.base)).toBeGreaterThan(contrast(pushed, LATTE.base))
+  })
+
+  it("pushes away every file the ranking did not reach", () => {
+    const inside = hot(0.5)
+    const outside = nodeInk(node({ hotspotsOn: true, heat: undefined }), MOCHA, true)
+    expect(inside.opacity).toBeGreaterThan(outside.opacity)
+  })
+
+  it("marks the row being followed without leaving the ranking's language", () => {
+    // it is one of these files, not a new subject, so it keeps the heat hue
+    const followed = nodeInk(node({ hotspotsOn: true, heat: 0.5, selected: true }), MOCHA, true)
+    const same = hot(0.5, MOCHA, true)
+    expect(followed.color).toBe(same.color)
+    expect(followed.emissiveIntensity).toBeGreaterThan(same.emissiveIntensity)
+  })
+
+  it("draws the knot and backgrounds every other import", () => {
+    /**
+     * This sent every import to the background, because a ranking has no use
+     * for one. The lens stopped being a ranking: what it reports is the files
+     * that sit inside an import cycle, so those particular imports are not
+     * context — they are the whole reason the finding exists, and the map was
+     * showing the members of the set while hiding what binds them.
+     */
+    const lit = edgeInk(mood({ lit: true, hasActive: true }), LATTE, false)
+    const other = edgeInk(mood({ lit: true, hasActive: true, hotspotsOn: true }), LATTE, false)
+    const knot = edgeInk(mood({ hotspotsOn: true, knotEdge: true }), LATTE, false)
+    expect(contrast(other, LATTE.base)).toBeLessThan(contrast(lit, LATTE.base))
+    expect(contrast(knot, LATTE.base)).toBeGreaterThan(contrast(other, LATTE.base) * 2)
+
+    // and on the dark ground, where an answer emits rather than inks
+    const onDark = edgeInk(mood({ hotspotsOn: true, knotEdge: true }), MOCHA, true)
+    expect(contrast(onDark, MOCHA.base)).toBeGreaterThan(3)
+  })
+
+  it("still reads on the dark ground, where the answer is light and not ink", () => {
+    // uniform is not quiet: the one thing the map claims has to be unmistakable
+    expect(hot(1, MOCHA, true).emissiveIntensity).toBeGreaterThan(0)
+    expect(contrast(hot(1, MOCHA, true), MOCHA.base)).toBeGreaterThan(3)
   })
 })

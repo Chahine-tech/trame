@@ -95,13 +95,7 @@ function git(repo: string, args: string[]): string {
  * log₂(n) commits and is only made less precise by thinning the list first.
  */
 export function listCommits(repo: string, since: string): Commit[] {
-  const raw = git(repo, [
-    "log",
-    "--reverse",
-    `--since=${since}`,
-    "--date=iso-strict",
-    FORMAT,
-  ])
+  const raw = git(repo, ["log", "--reverse", `--since=${since}`, "--date=iso-strict", FORMAT])
   const all: Commit[] = raw
     .split("\n")
     .filter(Boolean)
@@ -200,13 +194,13 @@ export function forEachCommit(
  * thousand files forty times over. Written as differences it is fifteen times
  * smaller and rebuilds byte for byte.
  */
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
 function changesBetween(before: GraphData, after: GraphData): FrameDelta {
   const wasNode = new Map(before.nodes.map((n) => [n.id, n]))
   const wasEdge = new Map(before.edges.map((e) => [e.id, e]))
   const nowNodes = new Set(after.nodes.map((n) => n.id))
   const nowEdges = new Set(after.edges.map((e) => e.id))
-
-  const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
   return {
     addedNodes: after.nodes.filter((n) => !wasNode.has(n.id)),

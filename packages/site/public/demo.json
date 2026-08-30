@@ -752,5 +752,17 @@
       "together": 8,
       "jaccard": 0.4
     }
+  ],
+  "hotspots": [
+    {
+      "id": "store/graph.ts",
+      "churn": 21,
+      "degree": 16
+    },
+    {
+      "id": "App.tsx",
+      "churn": 17,
+      "degree": 11
+    }
   ]
 }

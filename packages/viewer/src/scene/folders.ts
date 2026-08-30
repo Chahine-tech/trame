@@ -93,25 +93,17 @@ function neighboursOf(
 /**
  * Place a folder name over the files of that folder that are actually drawn.
  *
- * Two things went wrong before, and both put a name in empty space.
+ * Two attempts put the name in empty space. Taking the centre from every file
+ * a folder holds, drawn or not, described a different population than the dots
+ * on screen; `nearby` fixes that. Then the mean lifted by the farthest drawn
+ * file put `app/` alone in the black above dub's tinybird, and lifting by the
+ * typical radius instead barely moved it: a mean is a point no file has to
+ * occupy, at any radius.
  *
- * The centre used to come from every file a folder holds, drawn or not, so a
- * detail view showing a subset had its labels describing a different
- * population than its dots. That is fixed by passing `nearby`.
- *
- * The position was the folder's mean, lifted by the distance to its farthest
- * drawn file: the top of a bounding sphere rather than anywhere near its
- * files. On a neighbourhood of dub's tinybird that put `app/` in open black
- * with its route handlers strewn below and to the left. Lifting by the typical
- * radius instead of the farthest one moved the name a little closer and left
- * it in the same emptiness, because a mean is a point no file has to occupy
- * and the radius of a spread folder is large whichever way you take it.
- *
- * So the name is hung on a file rather than on an average: the member nearest
- * the mean, raised by the typical gap between two of the folder's own files.
- * That is enough to clear the dot, follows the local density instead of the
- * size of the folder, and cannot land in a void, since there is a file under
- * it by construction.
+ * So the name hangs on a file — the member nearest the mean, raised by the
+ * typical gap between two of the folder's own files. It follows local density
+ * rather than folder size, and cannot land in a void, since a file is under it
+ * by construction.
  */
 export function folderAnchors(
   clusters: GraphCluster[],

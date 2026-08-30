@@ -11,10 +11,7 @@ function node(id: string, type: NodeType = "module"): GraphNode {
   return { id, label: id, type, file: id, line: 1, cluster: "src" }
 }
 
-function graph(
-  nodes: [string, NodeType][],
-  edges: [string, string, EdgeType?][],
-): GraphData {
+function graph(nodes: [string, NodeType][], edges: [string, string, EdgeType?][]): GraphData {
   return {
     meta: { project: "t", generated: "", nodeCount: nodes.length, edgeCount: edges.length },
     nodes: nodes.map(([id, type]) => node(id, type)),
@@ -32,12 +29,28 @@ describe("unique-caller", () => {
   const rule = { type: "unique-caller" as const, message: "one caller only" }
 
   it("passes when a target has a single caller", () => {
-    const g = graph([["a", "module"], ["b", "module"]], [["a", "b"]])
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+      ],
+      [["a", "b"]],
+    )
     expect(evaluateRules(g, { rules: [rule] })).toEqual([])
   })
 
   it("fails when two callers reach the same target", () => {
-    const g = graph([["a", "module"], ["b", "module"], ["t", "module"]], [["a", "t"], ["b", "t"]])
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+        ["t", "module"],
+      ],
+      [
+        ["a", "t"],
+        ["b", "t"],
+      ],
+    )
     const found = evaluateRules(g, { rules: [rule] })
     expect(found).toHaveLength(1)
     expect(found[0]!.nodeIds).toEqual(["t", "a", "b"])
@@ -49,8 +62,15 @@ describe("unique-caller", () => {
     // rule scoped to api-call there is a single matching caller, so no
     // violation: the filter must be applied before counting, not after
     const g = graph(
-      [["a", "module"], ["b", "module"], ["t", "module"]],
-      [["a", "t", "import"], ["b", "t", "api-call"]],
+      [
+        ["a", "module"],
+        ["b", "module"],
+        ["t", "module"],
+      ],
+      [
+        ["a", "t", "import"],
+        ["b", "t", "api-call"],
+      ],
     )
     const scoped = { ...rule, match: { edgeType: "api-call" as const } }
     expect(evaluateRules(g, { rules: [scoped] })).toEqual([])
@@ -60,8 +80,15 @@ describe("unique-caller", () => {
 describe("no-direct-import", () => {
   it("reports every edge the match selects, and only those", () => {
     const g = graph(
-      [["page", "page"], ["store", "store"], ["hook", "hook"]],
-      [["page", "store", "import"], ["hook", "store", "import"]],
+      [
+        ["page", "page"],
+        ["store", "store"],
+        ["hook", "hook"],
+      ],
+      [
+        ["page", "store", "import"],
+        ["hook", "store", "import"],
+      ],
     )
     const rule = {
       type: "no-direct-import" as const,
@@ -76,7 +103,16 @@ describe("no-direct-import", () => {
 
 describe("no-cycles", () => {
   it("reports the cycle and the edges that close it", () => {
-    const g = graph([["a", "module"], ["b", "module"]], [["a", "b"], ["b", "a"]])
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+      ],
+      [
+        ["a", "b"],
+        ["b", "a"],
+      ],
+    )
     const found = evaluateRules(g, { rules: [{ type: "no-cycles", message: "no cycles" }] })
     expect(found).toHaveLength(1)
     expect(found[0]!.edgeIds).toHaveLength(2)
@@ -85,14 +121,32 @@ describe("no-cycles", () => {
 
 describe("evaluateRules", () => {
   it("returns nothing when no rules are configured", () => {
-    const g = graph([["a", "module"], ["b", "module"]], [["a", "b"], ["b", "a"]])
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+      ],
+      [
+        ["a", "b"],
+        ["b", "a"],
+      ],
+    )
     expect(evaluateRules(g, {})).toEqual([])
   })
 
   it("accumulates across rules rather than stopping at the first", () => {
     const g = graph(
-      [["a", "module"], ["b", "module"], ["t", "module"]],
-      [["a", "t"], ["b", "t"], ["a", "b"], ["b", "a"]],
+      [
+        ["a", "module"],
+        ["b", "module"],
+        ["t", "module"],
+      ],
+      [
+        ["a", "t"],
+        ["b", "t"],
+        ["a", "b"],
+        ["b", "a"],
+      ],
     )
     const found = evaluateRules(g, {
       rules: [
@@ -101,5 +155,66 @@ describe("evaluateRules", () => {
       ],
     })
     expect(found.map((v) => v.rule).sort()).toEqual(["no-cycles", "unique-caller"])
+  })
+})
+
+describe("who a violation is about", () => {
+  /**
+   * `nodeIds` is everyone implicated and has always been, which the viewer read
+   * as "everyone at fault": on dub it printed "client: 21 callers" in red on
+   * each of the twenty-one callers. The set is right; what was missing was
+   * which member of it the sentence describes.
+   */
+  it("names the target of a unique-caller, not its callers", () => {
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+        ["t", "module"],
+      ],
+      [
+        ["a", "t"],
+        ["b", "t"],
+      ],
+    )
+    const [found] = evaluateRules(g, { rules: [{ type: "unique-caller", message: "one caller" }] })
+    expect(found!.subject).toBe("t")
+    expect(found!.nodeIds).toContain("a")
+  })
+
+  it("names the file that writes the import, which is where the fix is", () => {
+    const g = graph(
+      [
+        ["a", "page"],
+        ["b", "page"],
+      ],
+      [["a", "b"]],
+    )
+    const [found] = evaluateRules(g, {
+      rules: [
+        {
+          type: "no-direct-import",
+          match: { sourceType: "page", targetType: "page" },
+          message: "no",
+        },
+      ],
+    })
+    expect(found!.subject).toBe("a")
+  })
+
+  it("blames nobody for a cycle, because no one file holds it", () => {
+    const g = graph(
+      [
+        ["a", "module"],
+        ["b", "module"],
+      ],
+      [
+        ["a", "b"],
+        ["b", "a"],
+      ],
+    )
+    const [found] = evaluateRules(g, { rules: [{ type: "no-cycles", message: "loop" }] })
+    expect(found!.subject).toBeUndefined()
+    expect(found!.nodeIds.sort()).toEqual(["a", "b"])
   })
 })

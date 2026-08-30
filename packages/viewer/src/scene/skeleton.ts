@@ -66,24 +66,14 @@ export function coreness(ids: string[], edges: GraphEdge[]): Map<string, number>
  * Returns null when the whole graph already fits, which is how every graph the
  * tool has drawn until now keeps behaving exactly as it did.
  */
-export function skeleton(
-  ids: string[],
-  edges: GraphEdge[],
-  budget: number,
-): Set<string> | null {
+export function skeleton(ids: string[], edges: GraphEdge[], budget: number): Set<string> | null {
   if (ids.length <= budget) return null
 
   /**
-   * The utilities come out first, and it is worth being clear that this is a
-   * second rule and not a consequence of the first.
-   *
-   * Coreness puts them at the very centre, since they are imported by everything
-   * that matters, so they are as densely connected as anything can be. But a
-   * file every part of the system reaches for says nothing about how the system
-   * is arranged, and it drags a line to each of its neighbours: on cal.com, ten
-   * such files carried thirty per cent of the edges inside the core. Taking
-   * them out leaves the core in one piece, which says they were traffic rather
-   * than structure.
+   * The utilities come out first, and this is a second rule rather than a
+   * consequence of the first: coreness puts them at the centre, since being
+   * imported by everything that matters makes a file as densely connected as
+   * anything can be. `coreness` above measures what removing them costs.
    */
   const traffic = impassable(ids, edges)
   const structural = ids.filter((id) => !traffic.has(id))
@@ -115,7 +105,9 @@ export function neighbourhood(
   focus: string,
   edges: GraphEdge[],
   hops: number,
-  impassable: Set<string>,
+  // named for what it does here, not for the function that produced it: it is
+  // `impassable()`'s result, and sharing its name hid the function inside
+  blocked: Set<string>,
 ): Set<string> {
   const neighbours = new Map<string, Set<string>>()
   const add = (a: string, b: string) => {
@@ -135,7 +127,7 @@ export function neighbourhood(
     const next: string[] = []
     for (const id of frontier) {
       // shown, but not travelled through; the focus itself always expands
-      if (id !== focus && impassable.has(id)) continue
+      if (id !== focus && blocked.has(id)) continue
       for (const other of neighbours.get(id) ?? []) {
         if (seen.has(other)) continue
         seen.add(other)

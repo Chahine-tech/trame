@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest"
 import { diagnose } from "./doctor.js"
 import type { GraphData, NodeType } from "./types.js"
 
-function graph(ids: string[], links: [string, string][], types: Record<string, NodeType> = {}): GraphData {
+function graph(
+  ids: string[],
+  links: [string, string][],
+  types: Record<string, NodeType> = {},
+): GraphData {
   return {
     meta: { project: "t", generated: "", nodeCount: ids.length, edgeCount: links.length },
     nodes: ids.map((id) => ({
@@ -30,7 +34,14 @@ describe("cycles", () => {
   })
 
   it("names an import that verifiably breaks the loop", () => {
-    const g = graph(["main", "a", "b"], [["main", "a"], ["a", "b"], ["b", "a"]])
+    const g = graph(
+      ["main", "a", "b"],
+      [
+        ["main", "a"],
+        ["a", "b"],
+        ["b", "a"],
+      ],
+    )
     const cycle = diagnose(g).find((f) => f.kind === "cycle")
     expect(cycle).toBeDefined()
     expect(cycle!.fix).toMatch(/Remove the import of/)
@@ -41,7 +52,13 @@ describe("cycles", () => {
     // one edge, b→a, closes both a→b→a and a→c→b→a: cutting it frees all three
     const g = graph(
       ["main", "a", "b", "c"],
-      [["main", "a"], ["a", "b"], ["b", "a"], ["a", "c"], ["c", "b"]],
+      [
+        ["main", "a"],
+        ["a", "b"],
+        ["b", "a"],
+        ["a", "c"],
+        ["c", "b"],
+      ],
     )
     const cycle = diagnose(g).find((f) => f.kind === "cycle")!
     expect(cycle.fix).toMatch(/Remove the import of a from b/)
@@ -54,9 +71,12 @@ describe("cycles", () => {
       ["main", "a", "b", "c", "d"],
       [
         ["main", "a"],
-        ["a", "b"], ["b", "a"],
-        ["c", "d"], ["d", "c"],
-        ["b", "c"], ["d", "a"],
+        ["a", "b"],
+        ["b", "a"],
+        ["c", "d"],
+        ["d", "c"],
+        ["b", "c"],
+        ["d", "a"],
       ],
     )
     const cycle = diagnose(g).find((f) => f.kind === "cycle")!
@@ -69,7 +89,10 @@ describe("dead code", () => {
     // nothing imports "widow"; helper and deep exist only because it does
     const g = graph(
       ["main", "widow", "helper", "deep"],
-      [["widow", "helper"], ["helper", "deep"]],
+      [
+        ["widow", "helper"],
+        ["helper", "deep"],
+      ],
     )
     const orphan = diagnose(g).find((f) => f.kind === "orphan" && f.nodeIds[0] === "widow")!
     expect(orphan.nodeIds).toEqual(["widow", "helper", "deep"])
@@ -80,7 +103,10 @@ describe("dead code", () => {
     // shared is imported by main too, so deleting widow does not remove it
     const g = graph(
       ["main", "widow", "shared"],
-      [["widow", "shared"], ["main", "shared"]],
+      [
+        ["widow", "shared"],
+        ["main", "shared"],
+      ],
     )
     const orphan = diagnose(g).find((f) => f.nodeIds[0] === "widow")!
     expect(orphan.nodeIds).toEqual(["widow"])
@@ -97,8 +123,12 @@ describe("ordering", () => {
     const g = graph(
       ["main", "a", "b", "widow", "h1", "h2", "h3"],
       [
-        ["main", "a"], ["a", "b"], ["b", "a"],
-        ["widow", "h1"], ["h1", "h2"], ["h2", "h3"],
+        ["main", "a"],
+        ["a", "b"],
+        ["b", "a"],
+        ["widow", "h1"],
+        ["h1", "h2"],
+        ["h2", "h3"],
       ],
     )
     const found = diagnose(g)
@@ -109,14 +139,24 @@ describe("ordering", () => {
   it("still orders dead code by how much of it there is", () => {
     const g = graph(
       ["main", "small", "big", "b1", "b2", "b3"],
-      [["big", "b1"], ["b1", "b2"], ["b2", "b3"]],
+      [
+        ["big", "b1"],
+        ["b1", "b2"],
+        ["b2", "b3"],
+      ],
     )
     const orphans = diagnose(g).filter((f) => f.kind === "orphan")
     expect(orphans[0]!.nodeIds.length).toBeGreaterThan(orphans[1]!.nodeIds.length)
   })
 
   it("is stable across runs so a diff of two reports means something", () => {
-    const g = graph(["main", "x", "y"], [["main", "x"], ["main", "y"]])
+    const g = graph(
+      ["main", "x", "y"],
+      [
+        ["main", "x"],
+        ["main", "y"],
+      ],
+    )
     expect(diagnose(g).map((f) => f.title)).toEqual(diagnose(g).map((f) => f.title))
   })
 })

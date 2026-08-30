@@ -58,6 +58,8 @@ export function replayOf(timeline: Timeline): Replay {
       // a frame that carries its own graph needs no walking at all
       if (frame.graph && index > 0) return frame.graph
       if (index < cursor) rewind()
+      // `cursor` advances inside `step()`, so nothing in this line shows it
+      // moving
       while (cursor < index && step()) {
         /* forward to the frame asked for */
       }

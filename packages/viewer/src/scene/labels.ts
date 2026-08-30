@@ -4,6 +4,20 @@ export interface LabelBox {
   /** centre, in pixels from the top left of the canvas */
   x: number
   y: number
+  /**
+   * Where the node itself projects to, which is where the name is anchored.
+   *
+   * Distinct from `x`/`y`, which is the middle of the rectangle the name
+   * occupies: the label floats clear of its node, so the two differ by most of
+   * a line's height. The arbitration wants the rectangle; the DOM wants the
+   * anchor.
+   *
+   * Optional because the migration off drei's `Html` is per consumer. A box
+   * without one is still positioned by drei, and writing a transform onto it
+   * here would only fight whatever drei puts there on the next frame. File
+   * names carry one; district names do not, yet.
+   */
+  at?: [number, number]
   width: number
   height: number
   /**
@@ -14,6 +28,15 @@ export interface LabelBox {
   tier: number
   /** within a tier, bigger wins; ties break on id, so runs agree */
   rank: number
+}
+
+/** A rectangle already spoken for, in the same pixels as a `LabelBox`. */
+export interface Reserved {
+  /** top-left, not centre: this comes straight from `getBoundingClientRect` */
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 /**
@@ -29,8 +52,25 @@ export interface LabelBox {
  * non-overlapping boxes is NP-hard, but taking the most important first puts
  * the error where it costs least.
  */
-export function withoutOverlap(boxes: LabelBox[]): Set<string> {
-  const kept: LabelBox[] = []
+export function withoutOverlap(boxes: LabelBox[], reserved: Reserved[] = []): Set<string> {
+  /**
+   * The chrome enters as a label that has already won.
+   *
+   * Names were drawn straight through the lens bar — `cron/groups/remap-de…`
+   * crossing the `path` and `what if` chips — because the arbitration only ever
+   * knew about other names. Anything fixed over the canvas occupies space on
+   * the same terms, so it is seeded into the kept set rather than handled as a
+   * special case afterwards.
+   */
+  const kept: LabelBox[] = reserved.map((r, i) => ({
+    id: `reserved-${i}`,
+    x: r.x + r.width / 2,
+    y: r.y + r.height / 2,
+    width: r.width,
+    height: r.height,
+    tier: -1,
+    rank: Number.MAX_SAFE_INTEGER,
+  }))
   const ids = new Set<string>()
   const ordered = [...boxes].sort(
     (a, b) => a.tier - b.tier || b.rank - a.rank || a.id.localeCompare(b.id),
@@ -70,12 +110,32 @@ export function textSize(text: string, fontSize: number): { width: number; heigh
  * until something moved the camera, which on cal.com left the map labelled
  * with nothing but its smallest integrations.
  */
+/**
+ * Place the names that won, hide the rest.
+ *
+ * Placing them is this function's job now because the position was already
+ * computed and thrown away: every box here carries the projection the
+ * arbitration was decided on. It used to be drei's `Html`, one `useFrame` per
+ * label, redoing the same projection and writing a z-index every frame — and
+ * this runs only when the view has actually moved.
+ *
+ * A label that lost is left where it is rather than moved: it is invisible, and
+ * moving it would cost a layout for something nobody can see.
+ */
 export function applyLabels(
   elements: Map<string, HTMLElement>,
   boxes: LabelBox[],
   keep: Set<string>,
 ): void {
   const considered = new Set(boxes.map((b) => b.id))
+  for (const b of boxes) {
+    if (!b.at || !keep.has(b.id)) continue
+    const el = elements.get(b.id)
+    if (!el) continue
+    // rounded to whole pixels: a name on a half pixel is a blurry name, and
+    // the arbitration that put it there worked in whole pixels anyway
+    el.style.transform = `translate3d(${Math.round(b.at[0])}px, ${Math.round(b.at[1])}px, 0) translate(-50%, -180%)`
+  }
   for (const [id, el] of elements) {
     if (!considered.has(id) && el.style.opacity === "") continue
     el.style.opacity = keep.has(id) ? "1" : "0"

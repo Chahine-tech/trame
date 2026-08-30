@@ -19,9 +19,7 @@ describe("finding a node's file on this machine", () => {
 
   it("still opens graphs written before paths were made relative", () => {
     // every node used to carry the whole path; those files are already findable
-    expect(locate("/home/me/project/src/App.tsx", undefined)).toBe(
-      "/home/me/project/src/App.tsx",
-    )
+    expect(locate("/home/me/project/src/App.tsx", undefined)).toBe("/home/me/project/src/App.tsx")
   })
 
   it("recognises a windows path as already absolute", () => {

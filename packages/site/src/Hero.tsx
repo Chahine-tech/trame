@@ -42,9 +42,9 @@ export function Hero() {
         </h1>
 
         <p>
-          Parse any TypeScript codebase and explore it as an interactive 3D map. See what
-          breaks before you touch it, trace how two files got connected, and fail CI when
-          the architecture drifts.
+          Parse any TypeScript codebase and explore it as an interactive 3D map. See what breaks
+          before you touch it, trace how two files got connected, and fail CI when the architecture
+          drifts.
         </p>
 
         <div className="hero-actions">
@@ -62,8 +62,8 @@ export function Hero() {
             clicking a node. */}
         <p className="hero-hint">
           <span className="live">live</span>
-          trame parsed its own source — the files drawing this graph are in it. Scroll
-          to see it answer questions.
+          trame parsed its own source — the files drawing this graph are in it. Scroll to see it
+          answer questions.
         </p>
       </div>
     </section>

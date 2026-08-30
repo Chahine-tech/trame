@@ -123,7 +123,8 @@ const SEP = String.fromCharCode(31)
  * Every commit in the window as its list of changed files.
  *
  * One `git log` pass, where `replay.ts` needs a worktree per frame: the names
- * are in the log itself, so nothing is checked out.
+ * are in the log itself, so nothing is checked out. `hotspots.ts` reads the same
+ * log through `readCommits`, which keeps the dates this one throws away.
  *
  * Deliberately no `-M`. Rename detection compares contents, so it needs the
  * blobs, and it fails outright on the partial clones CI tends to hand you: on a
@@ -133,20 +134,45 @@ const SEP = String.fromCharCode(31)
  * graph, so the cost is a few commits of history for the file's new name.
  */
 function readCommitFiles(repo: string, since: string): string[][] {
+  return readCommits(repo, since).map((c) => c.files)
+}
+
+/** A commit in the window: when it landed, and what it touched. */
+export interface Commit {
+  /** committer timestamp, in seconds, as git reports it */
+  at: number
+  files: string[]
+}
+
+/**
+ * The same pass, with the dates kept.
+ *
+ * `hotspots.ts` needs them and co-change does not, so the date is read once here
+ * rather than in a second `git log` — on dub that pass is 26 177 commits, and
+ * running it twice to recover a field git was already willing to print would be
+ * silly.
+ *
+ * A commit whose header will not parse is dropped rather than dated zero: an
+ * undated commit counted as 1970 is a commit that silently never looks recent.
+ */
+export function readCommits(repo: string, since: string): Commit[] {
   const raw = execFileSync(
     "git",
-    ["-C", repo, "log", "--name-only", `--since=${since}`, "--pretty=format:%x1f"],
+    ["-C", repo, "log", "--name-only", `--since=${since}`, "--pretty=format:%x1f%ct"],
     { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] },
   )
-  return raw
-    .split(SEP)
-    .map((block) =>
-      block
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean),
-    )
-    .filter((files) => files.length > 0)
+  const out: Commit[] = []
+  for (const block of raw.split(SEP)) {
+    const lines = block.split("\n")
+    const at = Number(lines[0]?.trim())
+    if (!Number.isFinite(at) || at <= 0) continue
+    const files = lines
+      .slice(1)
+      .map((l) => l.trim())
+      .filter(Boolean)
+    if (files.length > 0) out.push({ at, files })
+  }
+  return out
 }
 
 /**

@@ -30,8 +30,20 @@ const ENTRIES: Entry[] = [
   { kind: "path", by: "⇧click" },
   { kind: "whatif", by: "W" },
   { kind: "cochange", by: "C" },
+  { kind: "hotspots", by: "H" },
   { kind: "replay", by: "R" },
 ]
+
+/** Reads the store when pressed rather than closing over it, so it is written
+ *  once rather than rebuilt on every render. */
+function activate(kind: Entry["kind"]): void {
+  const s = useGraphStore.getState()
+  if (kind === "impact") s.toggleImpact()
+  else if (kind === "whatif") s.toggleWhatIf()
+  else if (kind === "cochange") s.toggleCoChange()
+  else if (kind === "hotspots") s.toggleHotspots()
+  else if (kind === "replay") (s.lens === "replay" ? s.exitReplay : s.enterReplay)()
+}
 
 export function LensBar() {
   const palette = usePalette()
@@ -40,37 +52,35 @@ export function LensBar() {
   const selectedId = useGraphStore((s) => s.selectedId)
   const hasTimeline = useGraphStore((s) => s.timeline !== null)
   const hasCoChange = useGraphStore((s) => (s.data?.coChange?.length ?? 0) > 0)
+  const hasHotspots = useGraphStore((s) => (s.data?.hotspots?.length ?? 0) > 0)
 
   if (!data) return null
-
-  const activate = (kind: Entry["kind"]) => {
-    const s = useGraphStore.getState()
-    if (kind === "impact") s.toggleImpact()
-    else if (kind === "whatif") s.toggleWhatIf()
-    else if (kind === "cochange") s.toggleCoChange()
-    else if (kind === "replay") (s.lens === "replay" ? s.exitReplay : s.enterReplay)()
-  }
 
   return (
     <div className="lensbar" role="group" aria-label="Lenses">
       {ENTRIES.map(({ kind, by }) => {
         const info = LENSES[kind]
         const on = lens === kind
-        const why = blockedBecause(kind, { selectedId, hasTimeline, hasCoChange })
+        const why = blockedBecause(kind, { selectedId, hasTimeline, hasCoChange, hasHotspots })
         const inert = kind === "path"
         return (
           <button
             key={kind}
             type="button"
             className={`lens-chip${on ? " on" : ""}${why ? " off" : ""}`}
-            style={on ? { color: palette[info.accent], borderColor: palette[info.accent] } : undefined}
+            style={
+              on ? { color: palette[info.accent], borderColor: palette[info.accent] } : undefined
+            }
             // the gesture chip is a label: pressing it would promise a mode
             disabled={inert}
             aria-pressed={inert ? undefined : on}
             title={why ?? info.hint}
             onClick={() => !why && activate(kind)}
           >
-            <span className="dot" style={{ background: on ? palette[info.accent] : "currentColor" }} />
+            <span
+              className="dot"
+              style={{ background: on ? palette[info.accent] : "currentColor" }}
+            />
             {info.label}
             {/* the key that entered is no use once you are inside; the way
                 out is what a reader needs from a lit control */}

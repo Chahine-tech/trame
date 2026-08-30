@@ -26,7 +26,9 @@ export interface ServeOptions {
  */
 export function serve({ dataFile, distDir, port }: ServeOptions): void {
   if (!fs.existsSync(path.join(distDir, "index.html"))) {
-    console.error(`error: viewer build not found at ${distDir}\n       run: pnpm --filter @trame/viewer build`)
+    console.error(
+      `error: viewer build not found at ${distDir}\n       run: pnpm --filter @trame/viewer build`,
+    )
     process.exit(1)
   }
 
@@ -54,8 +56,20 @@ export function serve({ dataFile, distDir, port }: ServeOptions): void {
     if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
       filePath = path.join(distDir, "index.html") // SPA fallback
     }
+    /**
+     * The entry document is never cached; everything it names, forever.
+     *
+     * Vite fingerprints the assets, so a hashed bundle can only mean one build
+     * and is safe to keep. `index.html` is the opposite: the only file whose
+     * name stays put, and the one that points at the fingerprint. With no
+     * header the browser applied its own heuristic and reused it, so a rebuilt
+     * viewer kept serving the previous bundle to a reader who had done nothing
+     * wrong — twice in one evening, once on a build two days stale.
+     */
+    const entry = path.basename(filePath) === "index.html"
     res.writeHead(200, {
       "content-type": MIME[path.extname(filePath)] ?? "application/octet-stream",
+      "cache-control": entry ? "no-store" : "public, max-age=31536000, immutable",
     })
     fs.createReadStream(filePath).pipe(res)
   })

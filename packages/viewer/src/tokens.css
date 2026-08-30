@@ -16,6 +16,21 @@
   --subtext: #6c6f85;
   --text: #4c4f69;
 
+  /* How far a secondary row recedes when a panel has an answer and a context.
+   *
+   * A token and not a constant, because how much dimming it takes to separate
+   * two rows depends on the palette underneath. Measured on the hotspot rail:
+   * Mocha's --red and --subtext are within 1.06:1 of each other, so hue alone
+   * separated nothing and the dimming does all the work; Latte's red is dark
+   * and saturated against a pale page, where it already carried 1.31:1 on its
+   * own and the same dimming would only have pushed the context below legible.
+   *
+   *          knot vs context     context vs ground
+   *   dark      1.06 -> 2.10           3.69
+   *   light     1.31 -> 1.82           3.17
+   */
+  --context-dim: 0.82;
+
   /* Marks, not text. Catppuccin Latte's accents are tuned for syntax on its
      own background; as filled 3D marks on our surface, five of them sat under
      the 3:1 floor and teal fell under the chroma floor (it read as grey).
@@ -64,6 +79,7 @@
     --overlay: #6c7086;
     --subtext: #a6adc8;
     --text: #cdd6f4;
+    --context-dim: 0.62;
 
     --blue: #89b4fa;
     --green: #a6e3a1;
@@ -85,6 +101,7 @@
 :root[data-theme="light"] {
   --crust: #dce0e8; --mantle: #e6e9ef; --base: #eff1f5; --surface0: #ccd0da;
   --surface1: #bcc0cc; --overlay: #8c8fa1; --subtext: #6c6f85; --text: #4c4f69;
+  --context-dim: 0.82;
   --blue: #1e66f5; --green: #2f8a1f; --mauve: #8839ef; --peach: #e0530a;
   --pink: #d4529f; --yellow: #b0700f; --teal: #00969e; --lav: #5a71f0;
   --red: #d20f39;
@@ -93,6 +110,7 @@
 :root[data-theme="dark"] {
   --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
   --surface1: #45475a; --overlay: #6c7086; --subtext: #a6adc8; --text: #cdd6f4;
+  --context-dim: 0.62;
   --blue: #89b4fa; --green: #a6e3a1; --mauve: #cba6f7; --peach: #fab387;
   --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
   --red: #f38ba8;

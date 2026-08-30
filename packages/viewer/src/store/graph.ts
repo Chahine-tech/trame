@@ -4,10 +4,12 @@ import { runLayout } from "../scene/Layout"
 import { BUDGET, READABLE } from "../scene/budget"
 import { fittingNeighbourhood, fittingRings, impassable, skeleton } from "../scene/skeleton"
 import { disambiguate } from "../scene/names"
-import { diagnose } from "tramejs/doctor"
+import { diagnose, type Finding } from "tramejs/doctor"
 import { simulateDelete, type WhatIfReport } from "./whatif"
 import { replayOf, type Replay } from "./timeline"
 import type { LensKind } from "./lens"
+import { densestFolder, knotOf } from "./reading"
+import { layOutKnot } from "../scene/knot"
 
 /**
  * Toasts, fetched when one is needed and only where one can be drawn.
@@ -37,10 +39,7 @@ function toast(show: (m: typeof import("../ui/toast")) => void): void {
  * `neighbours` is a direction, not a fixed map: pass `importers` for "what
  * depends on this", `adjacency` for "what is near this".
  */
-export function reachable(
-  neighbours: Map<string, Set<string>>,
-  from: string,
-): Map<string, number> {
+export function reachable(neighbours: Map<string, Set<string>>, from: string): Map<string, number> {
   const depth = new Map<string, number>([[from, 0]])
   let frontier = [from]
   let d = 0
@@ -75,6 +74,11 @@ function noLens() {
     whatIfBroken: new Set<string>(),
     coChangeOf: null,
     coChangeWith: new Map<string, number>(),
+    hotspotHeat: new Map<string, number>(),
+    hotspotKnot: new Set<string>(),
+    hotspotKnotEdges: new Set<string>(),
+    hotspotKnotAt: new Map<string, Vec3>(),
+    hotspotStartedAt: 0,
   }
 }
 
@@ -182,12 +186,38 @@ interface GraphState {
   /** user-edited Bézier control points, by edge id */
   ctrl: Map<string, { c1: Vec3; c2: Vec3 }>
 
-  /** rule violations, drawn red */
-  violatedNodes: Map<string, string[]>
+  /**
+   * Rule violations by node, split into what each one is saying.
+   *
+   * `about` is the difference between "this file has twenty-one callers" and
+   * "this file is one of them". Both used to arrive as the same red sentence,
+   * so a file whose only involvement was calling something read as the
+   * offender — and on dub that is twenty-one files wrongly accused per
+   * endpoint. A cycle sets it on every member, which is the truth there: the
+   * loop is not one file's doing.
+   */
+  violatedNodes: Map<string, { message: string; about: boolean }[]>
   violatedEdges: Map<string, string[]>
 
   /** nodes nothing imports: likely dead code */
   orphans: Set<string>
+
+  /**
+   * Everything `doctor` found, ranked, kept.
+   *
+   * It was already computed on every load and thrown away: `openOnFinding` ran
+   * `diagnose`, took the first cycle it could stand in, and dropped the other
+   * hundred and forty-two. On dub that is 80 violations, 17 cycles and 46
+   * orphans — each with a sentence saying what to do about it, none of which
+   * ever reached the screen. The counts in the top bar have been sitting over
+   * them the whole time.
+   */
+  findings: Finding[]
+  /** which kind the rail is listing, or null when it is not open */
+  browsing: Finding["kind"] | null
+  browse: (kind: Finding["kind"] | null) => void
+  /** go to a finding: select where it is, and fly there */
+  goToFinding: (f: Finding) => void
 
   /** directed adjacency, for impact and path queries */
   importers: Map<string, Set<string>>
@@ -209,7 +239,56 @@ interface GraphState {
    */
   coChangeOf: string | null
   coChangeWith: Map<string, number>
+  /**
+   * How high each hotspot stands in the ranking, 1 for the first and 0 for the
+   * last, empty when the lens is off. See `toggleHotspots` for why it is drawn
+   * on the log of the rank rather than on the counts themselves.
+   */
+  hotspotHeat: Map<string, number>
+  /**
+   * The answer, inside the ranking: the pressured files that sit in an import
+   * cycle. Empty when the lens is off, and empty on a repository with no cycles,
+   * where the lens falls back to reporting the ranking's shape.
+   *
+   * Kept beside `hotspotHeat` rather than derived in each consumer so the
+   * sentence, the marks and the camera cannot come to disagree — the same reason
+   * `densestFolder` is shared. `store/reading.ts` owns the definition.
+   */
+  hotspotKnot: Set<string>
+  /**
+   * The imports that tie the knot together — what the map draws as the answer.
+   * `store/reading.ts` owns the definition; see `Knot.edges` for why they are
+   * the induced subgraph rather than a loop through each cycle in order.
+   */
+  hotspotKnotEdges: Set<string>
+  /**
+   * Where the knot's files stand while the lens is up, overriding `positions`.
+   *
+   * An override rather than a write, so leaving the lens cannot leave the graph
+   * deformed: this map is cleared by `noLens()` and every reader falls back to
+   * the real layout. `scene/knot.ts` says why the arrangement exists and why it
+   * is not a ring.
+   */
+  hotspotKnotAt: Map<string, Vec3>
+  /**
+   * When the knot began gathering, or 0 when the lens is off.
+   *
+   * The nodes glide to their new places and the imports that tie them wait,
+   * then draw themselves in. Not decoration: the edge geometry is memoised on
+   * its endpoints, so following the nodes frame by frame would rebuild 273
+   * tubes sixty times a second — and drawing them at the destination while the
+   * nodes are still in transit detaches every line from both its ends, which
+   * looks like a rendering fault rather than a movement.
+   *
+   * The same shape as `impactStartedAt`, and the reveal is the one the arrival
+   * already uses: a draw range along the tube, so a line grows from one file to
+   * the other instead of appearing whole.
+   */
+  hotspotStartedAt: number
   toggleCoChange: () => void
+  toggleHotspots: () => void
+  /** follow a row of the ranking: aim the camera at it, keep the lens */
+  pickHotspot: (id: string) => void
 
   /** dependency path between two nodes (shift-click) */
   pathNodes: string[]
@@ -276,6 +355,20 @@ interface GraphState {
    * cloud with no way to rise above the map. They are ratios of this now.
    */
   extent: number
+  /**
+   * How deep the framed set runs along the view — the fog's scale, and nothing
+   * else's.
+   *
+   * Split off `extent` because they are different questions and had started
+   * giving different answers. `extent` became a reach measured across the view,
+   * which is what a camera needs and what a fog must not use: on dub's ranking
+   * the two differ by nearly a factor of two, so a fog scaled off the framing
+   * would have closed in on a scene that had not got any shallower, and the one
+   * set in this viewer that must not have a depth gradient would have grown one.
+   * That was patched once, by taking the marks out of the fog. This is the
+   * payment, and the patch goes with it.
+   */
+  depth: number
 
   /** the architecture replayed across git history, when one was generated */
   timeline: Timeline | null
@@ -335,12 +428,67 @@ interface GraphState {
  * a knot off to one side, so its distance from the origin says how far away it
  * is, not how big it is, and using that framed a thumbnail in an empty screen.
  */
-function reachOf(
-  ids: string[],
-  positions: Map<string, Vec3>,
-): { at: Vec3; spread: number } {
+/**
+ * Where a set of files sits, and how far it reaches from there.
+ *
+ * `along` is the direction the camera is looking from, and when it is given the
+ * reach is measured across that direction rather than around the centre. The
+ * two are not the same number and the gap is not small. Measured on dub's 150
+ * hotspots: radius 413 at the furthest, but half-extents of 269, 384 and 240 on
+ * the three axes, so which of them the screen's vertical picks up depends
+ * entirely on where the reader is standing. Framed on 413 from an angle that
+ * shows the 240, the constellation used a little over half the height it was
+ * given and sat in a field of empty ground.
+ *
+ * Depth is the part that never mattered: a set framed from further away is not
+ * seen from further away in the direction it is deep. It mattered less than
+ * nothing here, because the hotspot lens draws every mark at a fixed size, so
+ * the only question left is whether the thing fits across the window.
+ */
+/**
+ * Where a file stands right now, which is not always where the layout put it.
+ *
+ * The hotspot lens gathers each knot onto itself, and it does that as an
+ * override rather than by writing `positions`, so that leaving the lens cannot
+ * leave the graph deformed. Every reader has to go through here or the picture
+ * comes apart: a node drawn at the knot with its edges drawn to where it used
+ * to be is worse than not moving it at all.
+ */
+export function positionOf(
+  s: Pick<GraphState, "positions" | "hotspotKnotAt">,
+  id: string,
+): Vec3 | undefined {
+  return s.hotspotKnotAt.get(id) ?? s.positions.get(id)
+}
+
+export interface Reach {
+  /** the middle of the set */
+  at: Vec3
+  /**
+   * How far it reaches across the view — the camera's question, and only the
+   * camera's. What a reader sees of a set is its width and height on screen;
+   * how deep it runs towards them costs nothing and shows nothing.
+   */
+  across: number
+  /**
+   * How far it reaches along the view — the fog's question.
+   *
+   * These were one number for a long time and it worked because the number was
+   * a plain radius, which is wrong for both but wrong by the same amount. The
+   * moment the camera started measuring across the view the two parted company:
+   * the ranking's files reach 413 from the middle while the screen's vertical
+   * only ever picks up 240 to 384 of it, so a fog scaled off the framing radius
+   * would have pulled in around a scene that had not got any shallower.
+   *
+   * Equal to `across` when no view direction is known, which is the honest
+   * answer: without one there is no across and no along, only a radius.
+   */
+  deep: number
+}
+
+function reachOf(ids: string[], positions: Map<string, Vec3>, along?: Vec3): Reach {
   const points = ids.map((id) => positions.get(id)).filter((p): p is Vec3 => Boolean(p))
-  if (points.length === 0) return { at: [0, 0, 0], spread: 60 }
+  if (points.length === 0) return { at: [0, 0, 0], across: 60, deep: 60 }
 
   const at: Vec3 = [0, 0, 0]
   for (const p of points) {
@@ -348,9 +496,24 @@ function reachOf(
     at[1] += p[1] / points.length
     at[2] += p[2] / points.length
   }
-  const radii = points
-    .map((p) => Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2]))
-    .sort((a, b) => a - b)
+  const len = along ? Math.hypot(along[0], along[1], along[2]) : 0
+  const axis: Vec3 | null = len > 1e-6 ? [along![0] / len, along![1] / len, along![2] / len] : null
+
+  const across: number[] = []
+  const deep: number[] = []
+  for (const p of points) {
+    const d: Vec3 = [p[0] - at[0], p[1] - at[1], p[2] - at[2]]
+    if (!axis) {
+      const r = Math.hypot(d[0], d[1], d[2])
+      across.push(r)
+      deep.push(r)
+      continue
+    }
+    const t = d[0] * axis[0] + d[1] * axis[1] + d[2] * axis[2]
+    across.push(Math.hypot(d[0] - t * axis[0], d[1] - t * axis[1], d[2] - t * axis[2]))
+    deep.push(Math.abs(t))
+  }
+
   /**
    * Frame everything, unless one file has wandered absurdly far.
    *
@@ -361,11 +524,28 @@ function reachOf(
    * ninety-fifth with a single file at 323, and letting that one decide would
    * halve the other thirty-nine.
    *
-   * So the whole set counts, up to a few times the middle of it.
+   * So the whole set counts, up to a few times the middle of it — and each
+   * direction is clamped against its own distribution, because a set can be
+   * wide and shallow or narrow and long, and one median cannot describe both.
+   *
+   * The clamp only applies to a set big enough to have a middle. It exists to
+   * stop *one* wanderer deciding the view, and with four files a wanderer is a
+   * quarter of the answer: CI caught this on the co-change lens, where four
+   * partners came out at radii whose median was 102 and whose furthest was 305,
+   * so the clamp cut the framing to 254 and drew the furthest partner off the
+   * screen. That is the exact failure the test guarding this describes, and it
+   * had been passing on the layouts this machine happens to produce. A median
+   * over four points is not a median.
    */
-  const median = radii[Math.floor(radii.length / 2)] ?? 60
-  const furthest = radii[radii.length - 1] ?? 60
-  return { at, spread: Math.max(40, Math.min(furthest, median * 2.5)) }
+  const ENOUGH_FOR_A_MIDDLE = 12
+  const bounded = (xs: number[]) => {
+    xs.sort((a, b) => a - b)
+    const furthest = xs[xs.length - 1] ?? 60
+    if (xs.length < ENOUGH_FOR_A_MIDDLE) return Math.max(40, furthest)
+    const median = xs[Math.floor(xs.length / 2)] ?? 60
+    return Math.max(40, Math.min(furthest, median * 2.5))
+  }
+  return { at, across: bounded(across), deep: bounded(deep) }
 }
 
 function computeLit(state: Pick<GraphState, "adjacency">, id: string | null): Set<string> {
@@ -386,13 +566,35 @@ function viewOf(
   ids: Set<string> | null,
   data: GraphData | null,
   positions: Map<string, Vec3>,
+  /**
+   * Where the reader is standing, when anyone knows.
+   *
+   * Every framing in this store measured a radius around the middle of a set,
+   * and a radius is not what a camera has to fit — the screen only ever gets
+   * the part across the view. The hotspot lens was corrected first and the
+   * difference was not marginal: its ranking reaches 413 from the middle while
+   * the screen's vertical picks up between 240 and 384 of that depending on
+   * where the reader happens to be, so the constellation sat in a little over
+   * half the height it had been given. Every other lens had the same error and
+   * kept it while the fog was still reading the same number.
+   *
+   * Absent on the opening framing, where no camera has settled yet, and there
+   * `reachOf` falls back to the radius — the honest answer when there is no
+   * view to measure across.
+   */
+  along?: Vec3,
 ) {
   const nodes = ids && data ? data.nodes.filter((n) => ids.has(n.id)) : (data?.nodes ?? [])
-  const { at, spread } = reachOf(nodes.map((n) => n.id), positions)
+  const { at, across, deep } = reachOf(
+    nodes.map((n) => n.id),
+    positions,
+    along,
+  )
   return {
     nearby: ids,
     names: disambiguate(nodes),
-    extent: spread,
+    extent: across,
+    depth: deep,
     focusTarget: at,
     viewCentre: at,
     // a fresh framing is somewhere new: keep the angle the reader is holding.
@@ -436,6 +638,32 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 
   orphans: new Set(),
 
+  findings: [],
+  browsing: null,
+  browse: (kind) => set({ browsing: kind }),
+  /**
+   * A finding is a place, not a mode. It hands the reader to the machinery that
+   * already exists — select, fly — rather than inventing a sixth way for the
+   * graph to be painted. The rail stays open behind it, so a list of a hundred
+   * and forty-three is walked, not consumed one at a time.
+   */
+  goToFinding: (f) => {
+    const { adjacency, positions } = get()
+    // the member of the finding that shows the most of it at once, the same
+    // rule `openOnFinding` uses to choose where to stand in a cycle
+    const at = f.nodeIds
+      .filter((id) => positions.has(id))
+      .sort(
+        (a, b) =>
+          (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
+      )[0]
+    if (!at) return
+    const keep = get().browsing
+    get().select(at)
+    get().focus(at)
+    set({ browsing: keep })
+  },
+
   importers: new Map(),
   imports: new Map(),
 
@@ -444,6 +672,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   impactStartedAt: 0,
   coChangeOf: null,
   coChangeWith: new Map(),
+  hotspotHeat: new Map(),
+  hotspotKnot: new Set(),
+  hotspotKnotEdges: new Set(),
+  hotspotKnotAt: new Map(),
+  hotspotStartedAt: 0,
   /** the view a selection alone would show, for a lens closing behind itself */
   restoreView: () => {
     const { selectedId, skeletonSet, data, traffic, positions } = get()
@@ -455,7 +688,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     // fresh but does not hand it back: restoring the angle onto a recomputed
     // centre left the view fifty units off on the first round trip. Both
     // halves of where the reader stood, or neither.
-    const view = viewOf(nearby, data, positions)
+    const view = viewOf(nearby, data, positions, get().vantage?.dir)
     const stood = get().savedVantage
     return stood ? { ...view, focusTarget: stood.at, focusDir: stood.dir } : view
   },
@@ -483,7 +716,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      */
     set({
       ...noLens(),
-      ...viewOf(fittingRings(depth, BUDGET), data, positions),
+      ...viewOf(fittingRings(depth, BUDGET), data, positions, vantage?.dir),
       // after the spread, which cleared it: this is the angle to come back to
       savedVantage: vantage,
       lens: "impact",
@@ -534,18 +767,173 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       skeletonSet && data ? fittingNeighbourhood(selectedId, data.edges, traffic, READABLE) : null
     const answer = [selectedId, ...partners.keys()]
     const shown = new Set([...(near ?? []), ...answer])
-    const { at, spread } = reachOf(answer, positions)
+    const { at, across, deep } = reachOf(answer, positions, vantage?.dir)
     set({
       ...noLens(),
-      ...viewOf(shown, data, positions),
+      ...viewOf(shown, data, positions, vantage?.dir),
       // after the spread, which framed everything drawn
-      extent: spread * FRAME_WHOLE,
+      extent: across * FRAME_WHOLE,
+      depth: deep * FRAME_WHOLE,
       focusTarget: at,
       viewCentre: at,
       savedVantage: vantage,
       lens: "cochange",
       coChangeOf: selectedId,
       coChangeWith: partners,
+    })
+  },
+
+  toggleHotspots: () => {
+    const { data, lens, positions, vantage } = get()
+    if (lens === "hotspots") {
+      set({ ...noLens(), ...get().restoreView() })
+      return
+    }
+    if (!data?.hotspots?.length) {
+      toast((t) => t.toastNoHotspots())
+      return
+    }
+    /**
+     * The one lens that asks nothing of the reader.
+     *
+     * Every other lens answers about a file; this one answers about the
+     * codebase. The answer is a sentence — the panel says which folder holds
+     * the most of it and in what proportion — and the map's job is to stand
+     * where that sentence points.
+     */
+    const heat = new Map<string, number>()
+    const span = Math.log(Math.max(data.hotspots.length, 2))
+    /**
+     * A log of the rank. Three scales were measured on dub's 150: the raw
+     * product paints one file and a flat floor, since the top scores 132x776
+     * against 11x12 at the tail; rank spread linearly puts the first and the
+     * twentieth 7% apart, which is invisible. The log of the rank opens that to
+     * 36% and, caring only about the order, cannot be distorted by an outlier.
+     */
+    data.hotspots.forEach((h, i) => heat.set(h.id, 1 - Math.log(i + 1) / span))
+
+    /**
+     * Frame the answer, and the answer is the knot.
+     *
+     * This framed one folder, then the whole ranking, and both were right at the
+     * time. The folder was a compromise forced by node size — 150 files in view
+     * came to 1.8 CSS pixels each against 5.9 for `lib/zod`'s 23 — and it
+     * expired when `mark.ts` fixed the mark at eleven pixels wherever it stands.
+     * The whole ranking followed, because the ranking was then the answer.
+     *
+     * It no longer is. A percentile cut is not a finding, and the panel now
+     * leads with the part that is one: the files in the ranking that sit inside
+     * an import cycle. So the camera goes back to standing on the answer, which
+     * is what it does under every other lens — 36 files here rather than 150,
+     * and 21 of them in one folder, which is small enough to be a place.
+     *
+     * Falls back to the ranking when nothing is knotted, because on a repository
+     * with no cycles the ranking is all the lens has to show.
+     *
+     * `shown` keeps the densest folder's files drawn around it, so any ratio the
+     * reading states has something on screen to be a ratio of.
+     */
+    /**
+     * Everything the knot touches, drawn — including the files in those cycles
+     * that the ranking never reached.
+     *
+     * The scene mounts an edge only when both of its ends are mounted, so
+     * leaving them out does not thin the tangle, it cuts it: measured on dub,
+     * the knot's 273 imports hang off 109 files, only 51 of which the ranking
+     * and the densest folder had already put on screen. 138 of the 273 would
+     * have drawn. Half a cycle drawn is not a cycle, it is a claim the picture
+     * cannot support.
+     *
+     * They arrive without heat, so `nodeInk` recedes them, which is right: the
+     * cycle is larger than the part of it under pressure, and saying so is the
+     * honest version of "36 of the 150 sit inside an import cycle".
+     */
+    const knot = knotOf(data)
+    const tied = new Set<string>()
+    for (const e of data.edges) {
+      if (!knot.edges.has(e.id)) continue
+      tied.add(e.source)
+      tied.add(e.target)
+    }
+
+    /**
+     * Each component gathered onto itself, at the place it already occupies.
+     *
+     * Drawing the knot's imports made the map worse before this: its members
+     * are scattered by the whole-graph layout, which answers to their hundreds
+     * of external imports as well, so every internal one came out as a red line
+     * crossing the canvas. `scene/knot.ts` carries the measurement that ruled
+     * out a ring and the argument for settling each component alone instead.
+     *
+     * Placed on its own centroid rather than anywhere chosen, so the knot
+     * appears where the reader last saw those files rather than teleporting to
+     * the middle of the scene.
+     */
+    const knotAt = new Map<string, Vec3>()
+    for (const members of knot.components) {
+      const here = members.map((id) => positions.get(id)).filter((p): p is Vec3 => Boolean(p))
+      if (here.length === 0) continue
+      const centre: Vec3 = [0, 1, 2].map((k) =>
+        here.reduce((a, p) => a + p[k]! / here.length, 0),
+      ) as unknown as Vec3
+      const inside = data.edges.filter((e) => knot.edges.has(e.id))
+      for (const [id, at] of layOutKnot(members, inside, centre).at) knotAt.set(id, at)
+    }
+    // every reader of a position has to see the same map, the camera included
+    const placed = knotAt.size > 0 ? new Map([...positions, ...knotAt]) : positions
+    const densest = densestFolder(data)
+    const shown =
+      densest || tied.size > 0 ? new Set([...(densest?.ids ?? []), ...heat.keys(), ...tied]) : null
+    // frame what is drawn as the answer, and fall back the way the reading does
+    const answer =
+      tied.size > 0 ? [...tied] : knot.files.size > 0 ? [...knot.files] : [...heat.keys()]
+    const framed = reachOf(answer, placed, vantage?.dir)
+    set({
+      ...noLens(),
+      ...(shown ? viewOf(shown, data, placed, vantage?.dir) : {}),
+      extent: framed.across * FRAME_WHOLE,
+      depth: framed.deep * FRAME_WHOLE,
+      focusTarget: framed.at,
+      viewCentre: framed.at,
+      savedVantage: vantage,
+      lens: "hotspots",
+      hotspotHeat: heat,
+      hotspotKnot: knot.files,
+      hotspotKnotEdges: knot.edges,
+      hotspotKnotAt: knotAt,
+      hotspotStartedAt: knotAt.size > 0 ? performance.now() : 0,
+    })
+  },
+
+  pickHotspot: (id) => {
+    const state = get()
+    const { adjacency, hotspotHeat } = state
+    // through the override: a row clicked has to fly to where its file is drawn
+    const at = positionOf(state, id)
+    if (!at || !hotspotHeat.has(id)) return
+    /**
+     * Reading a row is not choosing a new subject, which is why this is not
+     * `select`.
+     *
+     * `select` spreads `noLens()` — a new selection invalidates the lens that
+     * was answering about the old one, which is right for every lens that
+     * answers *about a file*. This one answers about the codebase, so the
+     * ranking is still the answer after a click; and `select` would also
+     * recompute `nearby` from the file's neighbourhood, which would take the
+     * other hundred and fifty answers off the screen.
+     *
+     * `extent` is left alone on purpose: the camera re-aims without coming
+     * closer, so following the list pans across the ranking rather than diving
+     * in and out of it. `esc` drops the lens and hands the file to the
+     * inspector, which is where the details live.
+     */
+    set({
+      selectedId: id,
+      selectedEdgeId: null,
+      litSet: computeLit({ adjacency }, id),
+      selectedAt: performance.now(),
+      focusTarget: at,
+      cleared: null,
     })
   },
 
@@ -612,7 +1000,9 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   edgeFilter: null,
   cycleEdgeFilter: () => {
     const next =
-      EDGE_FILTER_CYCLE[(EDGE_FILTER_CYCLE.indexOf(get().edgeFilter) + 1) % EDGE_FILTER_CYCLE.length]!
+      EDGE_FILTER_CYCLE[
+        (EDGE_FILTER_CYCLE.indexOf(get().edgeFilter) + 1) % EDGE_FILTER_CYCLE.length
+      ]!
     // an edge selected under the old filter may no longer be visible
     set({ edgeFilter: next, selectedEdgeId: null })
   },
@@ -731,6 +1121,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
   traffic: new Set(),
   names: new Map(),
   extent: 60,
+  depth: 60,
   setNearby: (ids) => {
     const current = get().nearby
     // same membership, same render: replacing the set would remount the scene
@@ -778,11 +1169,18 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       const live = prev.ctrl.get(e.id)
       if (live) ctrl.set(e.id, live)
     }
-    const violatedNodes = new Map<string, string[]>()
+    const violatedNodes = new Map<string, { message: string; about: boolean }[]>()
     const violatedEdges = new Map<string, string[]>()
     for (const v of data.violations ?? []) {
-      for (const id of v.nodeIds) violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), v.message])
-      for (const id of v.edgeIds) violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
+      for (const id of v.nodeIds) {
+        // no subject means no single file is answerable, so every member is:
+        // that is a cycle, and it is also what graphs parsed before this
+        // distinction existed look like
+        const about = v.subject === undefined || v.subject === id
+        violatedNodes.set(id, [...(violatedNodes.get(id) ?? []), { message: v.message, about }])
+      }
+      for (const id of v.edgeIds)
+        violatedEdges.set(id, [...(violatedEdges.get(id) ?? []), v.message])
     }
     // a node that disappeared from the codebase shouldn't stay pinned forever
     const alive = new Set(data.nodes.map((n) => n.id))
@@ -800,7 +1198,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const traffic = impassable(ids, data.edges)
     const bones = skeleton(ids, data.edges, BUDGET)
 
-    const { at: centre, spread: extent } = reachOf(bones ? [...bones] : ids, positions)
+    const { at: centre, across: extent, deep: depth } = reachOf(bones ? [...bones] : ids, positions)
 
     set({
       data,
@@ -811,6 +1209,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       skeletonSet: bones,
       traffic,
       extent,
+      depth,
       pinned,
       adjacency,
       inDeg,
@@ -819,6 +1218,11 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       violatedNodes,
       violatedEdges,
       orphans: new Set(data.analysis?.orphans ?? []),
+      // computed here rather than on demand because `openOnFinding` needs it a
+      // few lines below anyway, and running the cycle search twice on a graph
+      // this size is not free
+      findings: diagnose(data),
+      browsing: null,
       importers,
       imports,
       // stale interaction state must not survive a data swap (watch mode)
@@ -845,7 +1249,6 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      * everything at once and has nothing to lead with.
      */
     if (bones) get().openOnFinding()
-
   },
 
   openOnFinding: () => {
@@ -862,7 +1265,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      * is 87% load-bearing. So the skeleton picks the question and the ranking
      * only orders what is left.
      */
-    const worth = diagnose(data).find(
+    const worth = get().findings.find(
       (f) => f.kind === "cycle" && f.nodeIds.some((id) => skeletonSet.has(id)),
     )
     if (!worth) return
@@ -871,7 +1274,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
     const focus = worth.nodeIds
       .filter((id) => skeletonSet.has(id))
       .sort(
-        (a, b) => (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
+        (a, b) =>
+          (adjacency.get(b)?.size ?? 0) - (adjacency.get(a)?.size ?? 0) || a.localeCompare(b),
       )[0]
     if (!focus) return
     get().select(focus)
@@ -884,10 +1288,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
      * Only on the opening move: re-framing on every later click would take the
      * camera out of the reader's hands.
      */
-    const { nearby, positions } = get()
+    const { nearby, positions, vantage } = get()
     if (!nearby) return
-    const { at, spread } = reachOf([...nearby], positions)
-    set({ extent: spread, focusTarget: at, viewCentre: at })
+    const { at, across, deep } = reachOf([...nearby], positions, vantage?.dir)
+    set({ extent: across, depth: deep, focusTarget: at, viewCentre: at })
   },
 
   setHover: (id) => {
@@ -914,7 +1318,10 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       selectedEdgeId: null,
       // two files can share a basename without sharing a screen; qualify only
       // the ones that now do
-      ...viewOf(nearby, data, get().positions),
+      // the same measure the way back uses: a selection framed around its
+      // middle and restored across the view would land somewhere new on every
+      // round trip, which the round-trip test in `graph.test.ts` now catches
+      ...viewOf(nearby, data, get().positions, get().vantage?.dir),
       litSet: computeLit({ adjacency }, id),
       selectedAt: performance.now(),
       // choosing something else is moving on: the offer to take back the last
@@ -1012,7 +1419,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       return
     }
     const ids = skeletonSet ? [...skeletonSet] : data.nodes.map((n) => n.id)
-    const { at, spread } = reachOf(ids, positions)
+    const { at, across, deep } = reachOf(ids, positions, vantage?.dir)
     set({
       ...rest,
       nearby: skeletonSet,
@@ -1020,7 +1427,8 @@ export const useGraphStore = create<GraphState>((set, get) => ({
       names: disambiguate(
         skeletonSet ? data.nodes.filter((n) => skeletonSet.has(n.id)) : data.nodes,
       ),
-      extent: spread,
+      extent: across,
+      depth: deep,
       // fly back rather than cut: letting go should undo the arrival
       focusTarget: at,
     })

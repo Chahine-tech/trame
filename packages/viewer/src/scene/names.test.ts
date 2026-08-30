@@ -5,7 +5,10 @@ import type { GraphNode, NodeType } from "../types"
 function file(id: string): GraphNode {
   return {
     id,
-    label: id.split("/").pop()!.replace(/\.tsx?$/, ""),
+    label: id
+      .split("/")
+      .pop()!
+      .replace(/\.tsx?$/, ""),
     type: "module" as NodeType,
     file: id,
     line: 1,

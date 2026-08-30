@@ -2,10 +2,11 @@
  * Where file labels announce themselves so the scene can arbitrate between
  * them.
  *
- * A module-level registry rather than props threaded down: a node's label is
- * born inside a `Html` portal several layers below the scene, and the only
- * thing the scene needs from it is a rectangle. Passing a callback through
- * every mesh to collect one element each would be a lot of wiring for a list.
+ * A module-level registry rather than props threaded down. The names are drawn
+ * by `ui/NodeLabels`, which lives outside the canvas because R3F's reconciler
+ * resolves every element against the THREE namespace; the scene, inside the
+ * canvas, needs a rectangle from each of them. Threading a callback across that
+ * boundary would be a lot of wiring for a list.
  */
 const elements = new Map<string, HTMLElement>()
 

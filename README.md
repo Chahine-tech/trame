@@ -43,14 +43,14 @@ in, with the neighbourhood around it already drawn.
 
 Once you are there:
 
-| | |
-|---|---|
-| `shift-click` a second file | lights the dependency chain between the two. *Why does LoginPage depend on Chart?* |
-| `I` | everything that transitively depends on this file, fading with distance |
-| `W` | what deleting it would break, what it would strand, which cycles it would resolve — without touching disk |
-| `C` | the files your history keeps changing alongside this one that no import connects. *Nothing in the code says these belong together* |
-| `O` | opens the file at its line in VS Code, Cursor, Windsurf or Zed |
-| `⌘K` → *Copy link to this view* | puts the selection and the active question in the URL, so a colleague opens where you left off |
+|                                 |                                                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `shift-click` a second file     | lights the dependency chain between the two. _Why does LoginPage depend on Chart?_                                                 |
+| `I`                             | everything that transitively depends on this file, fading with distance                                                            |
+| `W`                             | what deleting it would break, what it would strand, which cycles it would resolve — without touching disk                          |
+| `C`                             | the files your history keeps changing alongside this one that no import connects. _Nothing in the code says these belong together_ |
+| `O`                             | opens the file at its line in VS Code, Cursor, Windsurf or Zed                                                                     |
+| `⌘K` → _Copy link to this view_ | puts the selection and the active question in the URL, so a colleague opens where you left off                                     |
 
 `trame watch` re-parses on save and the viewer swaps the graph under you.
 
@@ -127,6 +127,30 @@ Coupling is scored by Jaccard, not by raw co-occurrence, so a file that changes
 with everything scores low rather than pairing with the whole repository, and
 commits touching more than twenty files are dropped: a sweep is not a claim that
 its files belong together. `--since` sets the window.
+
+Ask where the codebase is under pressure:
+
+The same log answers a second question. A file rewritten again and again is
+where mistakes are made; a file much of the codebase imports is where a mistake
+travels furthest. Neither is a finding on its own — `lib/prisma/index.ts` carries
+858 dependants and was touched once all year, which is a structure doing its job.
+Where the two meet is a hotspot.
+
+Press `H` — the only lens that needs no selection, because it is a statement
+about the codebase rather than about a file. On dub it names 151 files, 4.2% of
+the graph, and the top of the list is `lib/types.ts` (132 changes, 776
+dependants), then almost the whole `lib/zod/schemas` layer. Both cuts are the
+ninetieth percentile of the graph's own distribution, not a number written down
+in advance: a threshold in commits means something different on fifty files and
+on five thousand.
+
+The ranking is read in the panel, and this is the one lens that does not take
+the camera. Framing a hundred and fifty scattered files means standing 824
+units off the whole repository, where the first of them and the twentieth are
+dots four pixels apart and you have lost wherever you were. A ranking has no
+place to frame. So it annotates instead: the panel carries the order, the
+files join whatever is already drawn, and the map is asked only _where_. Click
+a row to fly to it, `esc` to leave with that file selected.
 
 Ask who introduced it:
 
@@ -224,9 +248,29 @@ pnpm install && pnpm build
 pnpm dev            # viewer   → http://localhost:5173
 pnpm dev:site       # landing  → http://localhost:5174
 pnpm parse -- --src ./path/to/src --out ./packages/viewer/public/trame.json
+pnpm lint           # oxlint — correctness only, and it fails the build
+pnpm format         # oxfmt  — `--check` in CI
 pnpm knip           # exports, files and dependencies nothing reaches
 pnpm check:package  # publint + are-the-types-wrong on the published package
 ```
+
+`lint` is a gate, not an audit: only `correctness`, and it fails the build, so
+nothing there is ever a warning somebody learns to scroll past. The wider
+categories were measured on this codebase and cost ten standing exceptions for
+four one-off findings, of which the two that were bugs sat in `correctness`
+anyway. They are run by hand instead:
+
+```bash
+pnpm exec oxlint -W suspicious -W perf -A react/react-in-jsx-scope
+```
+
+That suppression is not taste: the rule wants an import the automatic JSX
+runtime made dead in React 17, and it alone is 337 of the command's 397 lines.
+
+Both rules turned off in `.oxlintrc.json` say why on the line above them, and
+the formatter is kept off two things on purpose: stylesheets, whose one-line
+rules are written that way deliberately, and the order of keys in a
+`package.json` that is published.
 
 ## Tests
 
@@ -234,7 +278,7 @@ pnpm check:package  # publint + are-the-types-wrong on the published package
 pnpm test
 ```
 
-187 tests, on the parts where being wrong is silent.
+286 tests, on the parts where being wrong is silent.
 
 In the parser: Tarjan's SCC detection, including a 20 000-node chain since the
 implementation promises to be iterative; the three constraint rules `trame
@@ -283,6 +327,7 @@ hosting and no artifact upload. The diagram is text in the comment body.
 **+1** / **−0** nodes · +3 / −0 edges
 
 ### ✗ 1 rule violation
+
 - `no-cycles` — Circular dependency (Card → Widget → Card)
 
 <details><summary>Architecture diagram</summary>
@@ -320,38 +365,39 @@ trame replay --src ./src [--since --max-frames]  how the architecture grew, acro
 
 ## Keyboard
 
-| Key | Action |
-|---|---|
-| `drag` | orbit · `wheel` zoom |
-| `click` node | select + inspector |
-| `double-click` node | focus camera |
-| drag node | reposition it (6px threshold — below that it's a click) |
-| `click` edge | show Bézier handles · drag to reshape · `double-click` reset |
-| `I` | impact of selection (transitive dependents) |
-| `W` | what if — what deleting the selection would break |
-| `C` | co-change — what the history moves with it, unimported |
-| `shift-click` | trace dependency path from selection |
-| `⌘Z` | take back a deselection — file, lens and vantage |
-| `O` | open selection in your editor |
-| `⌘K` / `/` | command palette (search nodes, commands) |
-| `⌘E` | export PNG |
-| `E` | cycle edge-type filter |
-| `L` | toggle labels |
-| `G` | toggle folder labels |
-| `?` | all shortcuts, any time |
-| `F` | focus selection · `Space` reset camera · `Esc` deselect |
+| Key                 | Action                                                       |
+| ------------------- | ------------------------------------------------------------ |
+| `drag`              | orbit · `wheel` zoom                                         |
+| `click` node        | select + inspector                                           |
+| `double-click` node | focus camera                                                 |
+| drag node           | reposition it (6px threshold — below that it's a click)      |
+| `click` edge        | show Bézier handles · drag to reshape · `double-click` reset |
+| `I`                 | impact of selection (transitive dependents)                  |
+| `W`                 | what if — what deleting the selection would break            |
+| `C`                 | co-change — what the history moves with it, unimported       |
+| `H`                 | hotspots — often rewritten, and much rests on them           |
+| `shift-click`       | trace dependency path from selection                         |
+| `⌘Z`                | take back a deselection — file, lens and vantage             |
+| `O`                 | open selection in your editor                                |
+| `⌘K` / `/`          | command palette (search nodes, commands)                     |
+| `⌘E`                | export PNG                                                   |
+| `E`                 | cycle edge-type filter                                       |
+| `L`                 | toggle labels                                                |
+| `G`                 | toggle folder labels                                         |
+| `?`                 | all shortcuts, any time                                      |
+| `F`                 | focus selection · `Space` reset camera · `Esc` deselect      |
 
 ## Node & edge language
 
-| Node | Shape | Color | | Edge | Style |
-|---|---|---|---|---|---|
-| Page | octahedron | blue | | `import` | thin grey |
-| Component | rounded box | green | | `component` | green |
-| Hook | sphere | mauve | | `api-call` | peach |
-| API endpoint | cylinder | peach | | `query-key` | pink |
-| Query key | tetrahedron | pink | | `context` | yellow |
-| Context | torus | yellow | | violation | **red** |
-| Store | dodecahedron | teal | | | |
+| Node         | Shape        | Color  |     | Edge        | Style     |
+| ------------ | ------------ | ------ | --- | ----------- | --------- |
+| Page         | octahedron   | blue   |     | `import`    | thin grey |
+| Component    | rounded box  | green  |     | `component` | green     |
+| Hook         | sphere       | mauve  |     | `api-call`  | peach     |
+| API endpoint | cylinder     | peach  |     | `query-key` | pink      |
+| Query key    | tetrahedron  | pink   |     | `context`   | yellow    |
+| Context      | torus        | yellow |     | violation   | **red**   |
+| Store        | dodecahedron | teal   |     |             |           |
 
 Nodes are sized by connectivity. At rest everything is grey — color is information, not decoration.
 
@@ -391,15 +437,15 @@ Violations show up red in the graph, with the message in the inspector, and make
 
 ## Stack
 
-| | |
-|---|---|
-| Three.js **r185** | WebGPU renderer, automatic WebGL2 fallback |
-| React Three Fiber 9 + drei 10 | scene |
-| ts-morph 28 | TypeScript AST parsing |
-| d3-force-3d | 3D force layout + custom cluster force |
-| TypeScript 7 (native) · Vite 8 · Turborepo | toolchain |
-| zustand · cmdk · Tailwind 4 | state · palette · UI |
-| goey-toast | feedback for things you can't see happen |
+|                                            |                                            |
+| ------------------------------------------ | ------------------------------------------ |
+| Three.js **r185**                          | WebGPU renderer, automatic WebGL2 fallback |
+| React Three Fiber 9 + drei 10              | scene                                      |
+| ts-morph 28                                | TypeScript AST parsing                     |
+| d3-force-3d                                | 3D force layout + custom cluster force     |
+| TypeScript 7 (native) · Vite 8 · Turborepo | toolchain                                  |
+| zustand · cmdk · Tailwind 4                | state · palette · UI                       |
+| goey-toast                                 | feedback for things you can't see happen   |
 
 ## Monorepo
 

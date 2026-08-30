@@ -56,10 +56,7 @@ describe("naming a folder on the map", () => {
     // strewn between the other folders rather than owning a corner: every one
     // of its files has someone else's nearest, so its mean falls in a gap and
     // there is no place to name. The tight folder beside it keeps its label.
-    const clusters = [
-      folder("app", ["s1", "s2", "s3", "s4"]),
-      folder("lib", ["t1", "t2", "t3"]),
-    ]
+    const clusters = [folder("app", ["s1", "s2", "s3", "s4"]), folder("lib", ["t1", "t2", "t3"])]
     const positions = at({
       s1: [-100, -100, 0],
       s2: [100, 100, 0],

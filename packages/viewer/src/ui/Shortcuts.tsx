@@ -33,6 +33,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
       { keys: ["I"], label: "Impact — what depends on the selection" },
       { keys: ["W"], label: "What if — what deleting it would break" },
       { keys: ["C"], label: "Co-change — what the history moves with it, unimported" },
+      { keys: ["H"], label: "Hotspots — often rewritten, and much rests on them" },
       { keys: ["shift", "click"], label: "Path — the chain between two nodes" },
       { keys: ["R"], label: "Replay — the architecture through git history" },
       { keys: ["esc"], label: "Drop the lens, keep the selection" },
@@ -105,29 +106,29 @@ export function Shortcuts({ open, onClose }: { open: boolean; onClose: () => voi
         if (!inside) dialog.close()
       }}
     >
-        <div className="shortcuts-head">
-          <span>
-            trame<span className="d">_</span> shortcuts
-          </span>
-          <span className="esc">esc</span>
-        </div>
-        <div className="shortcuts-grid">
-          {GROUPS.map((group) => (
-            <section key={group.title}>
-              <h3>{group.title}</h3>
-              {group.rows.map((row) => (
-                <div className="sc-row" key={row.label}>
-                  <span className="sc-keys">
-                    {row.keys.map((k) => (
-                      <kbd key={k}>{k}</kbd>
-                    ))}
-                  </span>
-                  <span className="sc-label">{row.label}</span>
-                </div>
-              ))}
-            </section>
-          ))}
-        </div>
+      <div className="shortcuts-head">
+        <span>
+          trame<span className="d">_</span> shortcuts
+        </span>
+        <span className="esc">esc</span>
+      </div>
+      <div className="shortcuts-grid">
+        {GROUPS.map((group) => (
+          <section key={group.title}>
+            <h3>{group.title}</h3>
+            {group.rows.map((row) => (
+              <div className="sc-row" key={row.label}>
+                <span className="sc-keys">
+                  {row.keys.map((k) => (
+                    <kbd key={k}>{k}</kbd>
+                  ))}
+                </span>
+                <span className="sc-label">{row.label}</span>
+              </div>
+            ))}
+          </section>
+        ))}
+      </div>
     </dialog>
   )
 }

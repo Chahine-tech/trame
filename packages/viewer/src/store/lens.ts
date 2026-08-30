@@ -7,13 +7,21 @@
  * cancelled each other in a chain of if/else, and the reader had no way to
  * know which question the colours were currently answering.
  */
-export type LensKind = "none" | "impact" | "path" | "whatif" | "cochange" | "diff" | "replay"
+export type LensKind =
+  | "none"
+  | "impact"
+  | "path"
+  | "whatif"
+  | "cochange"
+  | "hotspots"
+  | "diff"
+  | "replay"
 
 export interface LensInfo {
   /** short name shown in the top bar while the lens is on */
   label: string
   /** the palette token that carries this lens' meaning */
-  accent: "yellow" | "lav" | "peach" | "green" | "teal"
+  accent: "yellow" | "lav" | "peach" | "green" | "teal" | "red"
   /** what the reader is looking at, in one line */
   hint: string
 }
@@ -39,6 +47,11 @@ export const LENSES: Record<Exclude<LensKind, "none">, LensInfo> = {
     accent: "teal",
     hint: "files the history moves with the selection that nothing imports",
   },
+  hotspots: {
+    label: "hotspots",
+    accent: "red",
+    hint: "files rewritten again and again that much of the codebase rests on",
+  },
   diff: {
     label: "diff",
     accent: "green",
@@ -57,6 +70,7 @@ export interface LensReadiness {
   hasTimeline: boolean
   /** whether the graph was parsed inside a repository with history to read */
   hasCoChange: boolean
+  hasHotspots: boolean
 }
 
 /**
@@ -69,12 +83,15 @@ export interface LensReadiness {
  */
 export function blockedBecause(
   kind: Exclude<LensKind, "none" | "diff">,
-  { selectedId, hasTimeline, hasCoChange }: LensReadiness,
+  { selectedId, hasTimeline, hasCoChange, hasHotspots }: LensReadiness,
 ): string | null {
   if (kind === "replay") return hasTimeline ? null : "Run trame replay to generate one"
   // two different absences, and a reader can act on each: one needs a click,
   // the other needs the graph reparsed somewhere git can be read
   if (kind === "cochange" && !hasCoChange) return "Reparse inside a git repository"
+  // the only lens that asks nothing of the reader: it is a statement about the
+  // whole codebase, so it answers the moment the history is there
+  if (kind === "hotspots") return hasHotspots ? null : "Reparse inside a git repository"
   if (selectedId) return null
   return kind === "path" ? "Select a file, then shift-click a second" : "Select a file first"
 }

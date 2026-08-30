@@ -35,9 +35,7 @@ function edgeTypeFor(targetType: NodeType): EdgeType {
 }
 
 export function buildGraph(project: Project, srcRoot: string, projectName: string): GraphData {
-  const files = project
-    .getSourceFiles()
-    .filter((f) => !f.getFilePath().endsWith(".d.ts"))
+  const files = project.getSourceFiles().filter((f) => !f.getFilePath().endsWith(".d.ts"))
 
   const nodes: GraphNode[] = []
   const byPath = new Map<string, GraphNode>()

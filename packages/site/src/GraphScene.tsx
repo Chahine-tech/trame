@@ -109,7 +109,25 @@ function SlowDrift({ pose }: { pose: CameraPose }) {
    * the origin, so the hero is framed exactly as it was tuned.
    */
   const centre = useRef(new THREE.Vector3())
-  const lensCentre = useGraphStore((s) => (s.lens === "none" ? null : s.viewCentre))
+  /**
+   * The file the beat is about, and only then the middle of what is drawn.
+   *
+   * `viewCentre` is the centre of the drawn set, which is the answer's centre
+   * for impact and co-change because both reframe on entry, and is not for what
+   * if: `toggleWhatIf` deliberately moves no camera, so the orbit aimed at the
+   * selection's neighbourhood and left `toast`, the file the section is about,
+   * sixteen pixels under the fold at 723x642. Every beat here is about one
+   * file; aiming at it is truer than aiming at its surroundings.
+   *
+   * Except one. Hotspots is about the whole map, and the selection left over
+   * from an earlier beat is not what it is answering, so that beat keeps the
+   * centre its own lens computed: the middle of the ranking.
+   */
+  const lensCentre = useGraphStore((s) => {
+    if (s.lens === "none") return null
+    if (s.lens === "hotspots") return s.viewCentre
+    return (s.selectedId && s.positions.get(s.selectedId)) || s.viewCentre
+  })
 
   /**
    * The canvas owns only part of the page, so a narrow window turns it

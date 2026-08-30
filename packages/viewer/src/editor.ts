@@ -55,9 +55,6 @@ export function openInEditor(file: string, line: number): void {
   if (!file) return
   const scheme = getEditor()
   // zed uses file:line, the vscode family uses ?file=…:line
-  const url =
-    scheme === "zed"
-      ? `zed://file${file}:${line}`
-      : `${scheme}://file${file}:${line}`
+  const url = scheme === "zed" ? `zed://file${file}:${line}` : `${scheme}://file${file}:${line}`
   window.location.href = url
 }

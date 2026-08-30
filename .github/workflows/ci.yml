@@ -20,6 +20,12 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      # correctness rules are errors and fail the build; the rest are advice.
+      # Every rule turned off in .oxlintrc.json says why on the line above it.
+      - run: pnpm lint
+      - run: pnpm format:check
+
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build

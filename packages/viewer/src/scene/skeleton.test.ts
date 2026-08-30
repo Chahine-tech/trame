@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { coreness, fittingNeighbourhood, fittingRings, impassable, neighbourhood, skeleton } from "./skeleton"
+import {
+  coreness,
+  fittingNeighbourhood,
+  fittingRings,
+  impassable,
+  neighbourhood,
+  skeleton,
+} from "./skeleton"
 import type { GraphEdge } from "../types"
 
 function links(pairs: [string, string][]): GraphEdge[] {
