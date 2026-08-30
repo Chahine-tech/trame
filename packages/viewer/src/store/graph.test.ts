@@ -734,6 +734,37 @@ describe("the co-change lens", () => {
     }
   })
 
+  it("frames a scattered answer whatever the layout put where", () => {
+    /**
+     * The version above asserts the same thing on whatever arrangement the
+     * force simulation happens to produce, and that is not the same arrangement
+     * on every machine: it passed here on radii of 258, 392, 402 and 419 and
+     * failed in CI on a set whose median was 102 and whose furthest was 305.
+     * The clamp in `reachOf` cut the framing to 2.5 medians — 254 — and drew
+     * the furthest partner off the screen.
+     *
+     * So this one places the files itself, in exactly that shape: three close
+     * together and one a long way out. No simulation, nothing to drift.
+     */
+    useGraphStore.getState().select("ring/0.ts")
+    const placed = new Map(useGraphStore.getState().positions)
+    placed.set("ring/0.ts", [0, 0, 0])
+    placed.set("leaf/150.ts", [40, 0, 0])
+    placed.set("leaf/60.ts", [-40, 30, 0])
+    placed.set("ring/140.ts", [0, 400, 0])
+    useGraphStore.setState({ positions: placed, lens: "none" })
+
+    useGraphStore.getState().toggleCoChange()
+    const s = useGraphStore.getState()
+    const at = s.viewCentre
+    const halfHeight = s.extent * 1.35 * Math.tan((30 * Math.PI) / 180)
+    for (const id of ["ring/0.ts", ...s.coChangeWith.keys()]) {
+      const p = s.positions.get(id)!
+      const r = Math.hypot(p[0] - at[0], p[1] - at[1], p[2] - at[2])
+      expect(r).toBeLessThan(halfHeight)
+    }
+  })
+
   it("hands the view back when it closes, like every other lens", () => {
     useGraphStore.getState().select("ring/0.ts")
     const before = useGraphStore.getState().nearby

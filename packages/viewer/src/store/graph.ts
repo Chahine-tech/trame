@@ -527,11 +527,22 @@ function reachOf(ids: string[], positions: Map<string, Vec3>, along?: Vec3): Rea
    * So the whole set counts, up to a few times the middle of it — and each
    * direction is clamped against its own distribution, because a set can be
    * wide and shallow or narrow and long, and one median cannot describe both.
+   *
+   * The clamp only applies to a set big enough to have a middle. It exists to
+   * stop *one* wanderer deciding the view, and with four files a wanderer is a
+   * quarter of the answer: CI caught this on the co-change lens, where four
+   * partners came out at radii whose median was 102 and whose furthest was 305,
+   * so the clamp cut the framing to 254 and drew the furthest partner off the
+   * screen. That is the exact failure the test guarding this describes, and it
+   * had been passing on the layouts this machine happens to produce. A median
+   * over four points is not a median.
    */
+  const ENOUGH_FOR_A_MIDDLE = 12
   const bounded = (xs: number[]) => {
     xs.sort((a, b) => a - b)
-    const median = xs[Math.floor(xs.length / 2)] ?? 60
     const furthest = xs[xs.length - 1] ?? 60
+    if (xs.length < ENOUGH_FOR_A_MIDDLE) return Math.max(40, furthest)
+    const median = xs[Math.floor(xs.length / 2)] ?? 60
     return Math.max(40, Math.min(furthest, median * 2.5))
   }
   return { at, across: bounded(across), deep: bounded(deep) }
