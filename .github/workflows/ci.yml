@@ -67,16 +67,21 @@ jobs:
         env:
           VITE_VIEWER_URL: https://trame-viewer.pages.dev/
 
+      # Wrangler is run directly rather than through `cloudflare/wrangler-action`.
+      # That action detects the package manager and installs wrangler with it,
+      # and `pnpm add` at the root of a workspace fails outright unless it is
+      # given `-w` — so the deploy died on the installer before it ever reached
+      # Cloudflare. `dlx` fetches it for the length of one command and needs no
+      # entry in the lockfile. Both credentials are read from the environment,
+      # which is where wrangler looks for them without being told.
       - name: Publish the viewer
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy packages/viewer/dist --project-name=trame-viewer --branch=main
+        run: pnpm dlx wrangler@4 pages deploy packages/viewer/dist --project-name=trame-viewer --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Publish the landing
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy packages/site/dist --project-name=trame --branch=main
+        run: pnpm dlx wrangler@4 pages deploy packages/site/dist --project-name=trame --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
