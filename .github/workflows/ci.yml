@@ -39,3 +39,44 @@ jobs:
       # failed with ERR_MODULE_NOT_FOUND; it was found by hand, after release.
       # Runs after build, since it inspects dist.
       - run: pnpm check:package
+
+  # Nothing ships that has not passed everything above. Both Pages projects were
+  # created as Direct Upload, and Cloudflare cannot convert one to a Git-backed
+  # project — the only way to get there is to delete and recreate them, which
+  # would surrender `trame-61t.pages.dev`, the suffix Cloudflare assigned because
+  # `trame` was taken and which the README links to. So the repository does the
+  # triggering instead of the dashboard.
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # the landing's call to action, and the hand-off out of the hotspot beat,
+      # both point here. Unset, they fall back to the repository — which is a
+      # dead end for someone who came to see the thing run.
+      - run: pnpm build
+        env:
+          VITE_VIEWER_URL: https://trame-viewer.pages.dev/
+
+      - name: Publish the viewer
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/viewer/dist --project-name=trame-viewer --branch=main
+
+      - name: Publish the landing
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/site/dist --project-name=trame --branch=main
