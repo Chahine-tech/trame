@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import type { GraphData } from "@trame/viewer/types"
+import { useGraphStore } from "@trame/viewer/store/graph"
 import { Hero } from "./Hero"
 import { SECTIONS } from "./sections"
 import { useActiveSection } from "./useActiveSection"
@@ -20,6 +21,9 @@ const Stage = lazy(() => enginePromise.then((m) => ({ default: m.Stage })))
 
 export function Page() {
   const [data, setData] = useState<GraphData | null>(null)
+  // the same knot the viewer's panel reads, so a beat cannot offer a hand-off
+  // on a graph that does have a finding of its own
+  const knot = useGraphStore((s) => s.hotspotKnot)
   const { active, register } = useActiveSection(SECTIONS.length)
 
   // fetched in the light chunk. In Stage it sat behind 300 kB of renderer.
@@ -76,6 +80,14 @@ export function Page() {
             <span className="eyebrow">{section.eyebrow}</span>
             <h2 id={`${section.id}-title`}>{section.title}</h2>
             <p>{section.body}</p>
+            {/* only when this beat's finding really is absent here: the store
+                holds the same knot the viewer's panel reads */}
+            {section.handoff && knot.size === 0 && (
+              <p className="handoff">
+                {section.handoff.text}{" "}
+                <a href={section.handoff.href}>See it on a codebase that has one →</a>
+              </p>
+            )}
           </div>
         </section>
       ))}

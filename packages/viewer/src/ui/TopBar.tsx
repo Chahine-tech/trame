@@ -33,6 +33,9 @@ export function TopBar({
     browse(browsing === kind ? null : kind)
   const has = (kind: "cycle" | "violation" | "orphan") => found.some((f) => f.kind === kind)
   const hotspots = useGraphStore((s) => s.hotspotHeat.size)
+  // the part of that ranking the lens is actually reporting, from the store the
+  // panel reads, so the bar and the panel cannot say two different things
+  const knotted = useGraphStore((s) => s.hotspotKnot.size)
 
   const healthy =
     (data?.violations?.length ?? 0) === 0 &&
@@ -171,8 +174,15 @@ export function TopBar({
         /* the top file's counts used to sit here too: sixty-one characters,
            which made this the widest thing in the bar and the reason a narrow
            window wrapped it onto two rows. The panel says them right below,
-           and says them better. */
-        <span className="mode hotspots">hotspots · {hotspots} files</span>
+           and says them better.
+           And it said "157 files" while the panel three inches to the right
+           said "37 caught in a cycle" — two counts for one lens, on the same
+           screen. The size of the cut is a property of the percentile; what the
+           lens found is the knot, so that is what the bar carries now, and it
+           falls back to the ranking where there is no knot to report. */
+        <span className="mode hotspots">
+          {knotted > 0 ? `hotspots · ${knotted} knotted` : `hotspots · ${hotspots} files`}
+        </span>
       )}
       {impactLabel && (
         <span className="mode impact">

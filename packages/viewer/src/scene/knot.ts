@@ -26,7 +26,8 @@ import type { Vec3 } from "../types"
  * run over the induced subgraph alone, where nothing external is pulling: the
  * members answer only to each other, which is exactly the claim being made
  * about them. Position then carries membership and internal adjacency, both
- * identity, which is what `CHANNELS.md` says the map may say.
+ * identity — which is membership and neighbourhood, not a magnitude, and so
+ * something the map is allowed to carry.
  */
 export interface KnotLayout {
   /** where each member goes, in world space */

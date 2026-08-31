@@ -6,7 +6,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { positionOf, useGraphStore } from "../store/graph"
 import { isDarkGround, mix, NODE_COLOR, usePalette } from "../theme"
 import { nodeInk } from "./ink"
-import { MARK_PX, markScale } from "./mark"
+import { CONTEXT_PX, crowding, MARK_PX, marksMayGlow, RANKED_PX, markScale } from "./mark"
 import { nodeProgress, overshoot } from "./arrival"
 import type { GraphNode } from "../types"
 
@@ -138,6 +138,10 @@ export function NodeMesh({ node }: { node: GraphNode }) {
   const heat = useGraphStore((s) => s.hotspotHeat.get(node.id))
   // in the ranking and inside an import cycle: what the lens is actually about
   const knotted = useGraphStore((s) => s.hotspotKnot.has(node.id))
+  // how crowded the scene is, and how many marks are in it: the lens sizes
+  // itself to what it found rather than to the graph it was tuned on
+  const drawn = useGraphStore((s) => s.nearby?.size ?? s.data?.nodes.length ?? 0)
+  const marks = useGraphStore((s) => s.hotspotHeat.size)
   const impactStartedAt = useGraphStore((s) => s.impactStartedAt)
   const pathOn = useGraphStore((s) => s.pathNodes.length > 0)
   const onPath = useGraphStore((s) => s.pathNodes.includes(node.id))
@@ -347,16 +351,23 @@ export function NodeMesh({ node }: { node: GraphNode }) {
      * as it did before — a parked camera gives the same distance twice, so the
      * cheap path is reached on the second one.
      */
+    /**
+     * Under this lens the ground is measured the way the mark is.
+     *
+     * The mark alone was fixed in pixels and everything else kept a size in
+     * world units, so which of the two looked bigger depended on how far the
+     * camera happened to be standing. `mark.ts` has the measurement that caught
+     * it. Both are pinned now, so the answer is always the larger of the two.
+     */
     let want = targetScale
-    if (uniformMark) {
+    if (hotspotsOn) {
       const fov = (camera as THREE.PerspectiveCamera).fov ?? 60
+      // three registers, three sizes: the knot, the rest of the ranking, and
+      // the map they sit on. `mark.ts` says why the middle one exists
+      const px = (knotted ? MARK_PX : uniformMark ? RANKED_PX : CONTEXT_PX) * crowding(drawn)
       want =
-        markScale(
-          camera.position.distanceTo(m.getWorldPosition(scratch)),
-          fov,
-          size.height,
-          MARK_PX,
-        ) * lift
+        markScale(camera.position.distanceTo(m.getWorldPosition(scratch)), fov, size.height, px) *
+        lift
     }
 
     /**
@@ -519,7 +530,7 @@ export function NodeMesh({ node }: { node: GraphNode }) {
        * while `cache` had one. Two tiers, carrying no fact: the same vice as the
        * gradient this lens started with. */}
       {(hotspotsOn
-        ? isSelected
+        ? isSelected || (uniformMark && marksMayGlow(marks))
         : isLit || isViolated || onPath || (impactOn && impactDepth !== undefined)) &&
         (() => {
           const accent = hotspotsOn

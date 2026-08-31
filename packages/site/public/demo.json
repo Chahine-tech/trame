@@ -1,9 +1,9 @@
 {
   "meta": {
     "project": "trame",
-    "generated": "2026-08-07T15:49:30.007Z",
-    "nodeCount": 24,
-    "edgeCount": 58
+    "generated": "2026-08-31T12:12:53.644Z",
+    "nodeCount": 45,
+    "edgeCount": 111
   },
   "nodes": [
     {
@@ -11,11 +11,11 @@
       "label": "App",
       "type": "component",
       "file": "App.tsx",
-      "line": 22,
+      "line": 28,
       "cluster": "src",
-      "x": 1.85,
-      "y": -5.49,
-      "z": 24.03
+      "x": 49.71,
+      "y": 0.02,
+      "z": 12.84
     },
     {
       "id": "demo-data.ts",
@@ -24,9 +24,9 @@
       "file": "demo-data.ts",
       "line": 4,
       "cluster": "src",
-      "x": -51.05,
-      "y": 7.37,
-      "z": 16.96
+      "x": -5.14,
+      "y": -5.38,
+      "z": -60.03
     },
     {
       "id": "editor.ts",
@@ -35,9 +35,9 @@
       "file": "editor.ts",
       "line": 2,
       "cluster": "src",
-      "x": 3.23,
-      "y": -33.26,
-      "z": 27.96
+      "x": 61.85,
+      "y": 9.93,
+      "z": 7.4
     },
     {
       "id": "graph-feed.ts",
@@ -46,9 +46,9 @@
       "file": "graph-feed.ts",
       "line": 7,
       "cluster": "src",
-      "x": -29.82,
-      "y": 2.34,
-      "z": 28.05
+      "x": 23.24,
+      "y": -0.13,
+      "z": -46.81
     },
     {
       "id": "main.tsx",
@@ -57,20 +57,31 @@
       "file": "main.tsx",
       "line": 1,
       "cluster": "src",
-      "x": 16.22,
-      "y": 15.12,
-      "z": 3.74
+      "x": 16,
+      "y": -12.12,
+      "z": 35.62
+    },
+    {
+      "id": "share.ts",
+      "label": "share",
+      "type": "module",
+      "file": "share.ts",
+      "line": 17,
+      "cluster": "src",
+      "x": 38.37,
+      "y": 2.48,
+      "z": 38.86
     },
     {
       "id": "theme.ts",
       "label": "theme",
       "type": "module",
       "file": "theme.ts",
-      "line": 4,
+      "line": 33,
       "cluster": "src",
-      "x": -1.43,
-      "y": 7.23,
-      "z": 4.35
+      "x": 10.27,
+      "y": 14.21,
+      "z": 16.88
     },
     {
       "id": "types.ts",
@@ -79,9 +90,31 @@
       "file": "types.ts",
       "line": 1,
       "cluster": "src",
-      "x": -25.22,
-      "y": 4.19,
-      "z": -1.96
+      "x": -1.29,
+      "y": 4.67,
+      "z": -18.05
+    },
+    {
+      "id": "scene/arrival.ts",
+      "label": "arrival",
+      "type": "module",
+      "file": "scene/arrival.ts",
+      "line": 37,
+      "cluster": "scene",
+      "x": -47.35,
+      "y": 35.65,
+      "z": 4.45
+    },
+    {
+      "id": "scene/budget.ts",
+      "label": "budget",
+      "type": "module",
+      "file": "scene/budget.ts",
+      "line": 11,
+      "cluster": "scene",
+      "x": -14.5,
+      "y": -36.3,
+      "z": 31.33
     },
     {
       "id": "scene/CaptureFrame.tsx",
@@ -90,75 +123,185 @@
       "file": "scene/CaptureFrame.tsx",
       "line": 13,
       "cluster": "scene",
-      "x": 24.33,
-      "y": -16.82,
-      "z": -22.24
+      "x": 22.82,
+      "y": -31.9,
+      "z": 2.5
     },
     {
       "id": "scene/Clusters.tsx",
       "label": "Clusters",
       "type": "component",
       "file": "scene/Clusters.tsx",
-      "line": 55,
+      "line": 56,
       "cluster": "scene",
-      "x": 32.4,
-      "y": 5.52,
-      "z": -31.62
+      "x": -20.8,
+      "y": -28.86,
+      "z": -12.7
+    },
+    {
+      "id": "scene/CoChangeMesh.tsx",
+      "label": "CoChangeMesh",
+      "type": "component",
+      "file": "scene/CoChangeMesh.tsx",
+      "line": 17,
+      "cluster": "scene",
+      "x": -27.06,
+      "y": 6.67,
+      "z": 27.19
     },
     {
       "id": "scene/Districts.tsx",
       "label": "Districts",
       "type": "component",
       "file": "scene/Districts.tsx",
-      "line": 160,
+      "line": 185,
       "cluster": "scene",
-      "x": -7.91,
-      "y": 4.96,
-      "z": -25.14
+      "x": 19.49,
+      "y": -0.2,
+      "z": -19.37
     },
     {
       "id": "scene/EdgeMesh.tsx",
       "label": "EdgeMesh",
       "type": "component",
       "file": "scene/EdgeMesh.tsx",
-      "line": 120,
+      "line": 61,
       "cluster": "scene",
-      "x": -2.91,
-      "y": 25.45,
-      "z": -12.28
+      "x": -20.07,
+      "y": 28.23,
+      "z": 17.98
+    },
+    {
+      "id": "scene/folders.ts",
+      "label": "folders",
+      "type": "module",
+      "file": "scene/folders.ts",
+      "line": 6,
+      "cluster": "scene",
+      "x": -21.86,
+      "y": -26.79,
+      "z": -39.14
+    },
+    {
+      "id": "scene/ink.ts",
+      "label": "ink",
+      "type": "module",
+      "file": "scene/ink.ts",
+      "line": 5,
+      "cluster": "scene",
+      "x": -29.8,
+      "y": 20.68,
+      "z": 10.51
+    },
+    {
+      "id": "scene/knot.ts",
+      "label": "knot",
+      "type": "module",
+      "file": "scene/knot.ts",
+      "line": 31,
+      "cluster": "scene",
+      "x": -34.81,
+      "y": 3.41,
+      "z": -23.03
+    },
+    {
+      "id": "scene/labels.ts",
+      "label": "labels",
+      "type": "module",
+      "file": "scene/labels.ts",
+      "line": 2,
+      "cluster": "scene",
+      "x": 11.88,
+      "y": -31.03,
+      "z": -32.15
     },
     {
       "id": "scene/Layout.ts",
       "label": "Layout",
       "type": "module",
       "file": "scene/Layout.ts",
-      "line": 38,
+      "line": 430,
       "cluster": "scene",
-      "x": -26.6,
-      "y": -4.05,
-      "z": -28.63
+      "x": -5.88,
+      "y": 40.64,
+      "z": 1.88
+    },
+    {
+      "id": "scene/Lighting.tsx",
+      "label": "Lighting",
+      "type": "component",
+      "file": "scene/Lighting.tsx",
+      "line": 20,
+      "cluster": "scene",
+      "x": -30.81,
+      "y": 29.22,
+      "z": -6.41
+    },
+    {
+      "id": "scene/mark.ts",
+      "label": "mark",
+      "type": "module",
+      "file": "scene/mark.ts",
+      "line": 24,
+      "cluster": "scene",
+      "x": -55.27,
+      "y": -33.82,
+      "z": -9.24
+    },
+    {
+      "id": "scene/names.ts",
+      "label": "names",
+      "type": "module",
+      "file": "scene/names.ts",
+      "line": 16,
+      "cluster": "scene",
+      "x": -8.38,
+      "y": 23.1,
+      "z": -23.33
+    },
+    {
+      "id": "scene/nodeLabels.ts",
+      "label": "nodeLabels",
+      "type": "module",
+      "file": "scene/nodeLabels.ts",
+      "line": 13,
+      "cluster": "scene",
+      "x": -33.92,
+      "y": -26.06,
+      "z": 24.76
     },
     {
       "id": "scene/NodeMesh.tsx",
       "label": "NodeMesh",
       "type": "component",
       "file": "scene/NodeMesh.tsx",
-      "line": 88,
+      "line": 102,
       "cluster": "scene",
-      "x": -10.09,
-      "y": 15.91,
-      "z": -17.53
+      "x": -36.7,
+      "y": -1.55,
+      "z": -2.27
     },
     {
       "id": "scene/Scene.tsx",
       "label": "Scene",
       "type": "component",
       "file": "scene/Scene.tsx",
-      "line": 120,
+      "line": 378,
       "cluster": "scene",
-      "x": 14.55,
-      "y": 13.89,
-      "z": -23.24
+      "x": -14.96,
+      "y": -4.7,
+      "z": 2.93
+    },
+    {
+      "id": "scene/skeleton.ts",
+      "label": "skeleton",
+      "type": "module",
+      "file": "scene/skeleton.ts",
+      "line": 21,
+      "cluster": "scene",
+      "x": 8.03,
+      "y": -7.39,
+      "z": -35.1
     },
     {
       "id": "scene/useDisposable.ts",
@@ -167,31 +310,64 @@
       "file": "scene/useDisposable.ts",
       "line": 14,
       "cluster": "scene",
-      "x": -2.34,
-      "y": 54.56,
-      "z": -29.54
+      "x": -46.59,
+      "y": 4.8,
+      "z": 34.71
     },
     {
       "id": "scene/ZoomDirector.tsx",
       "label": "ZoomDirector",
       "type": "component",
       "file": "scene/ZoomDirector.tsx",
-      "line": 12,
+      "line": 26,
       "cluster": "scene",
-      "x": 14.39,
-      "y": -1.28,
-      "z": -44.18
+      "x": -8.01,
+      "y": 34.25,
+      "z": -19.74
     },
     {
       "id": "store/graph.ts",
       "label": "graph",
       "type": "store",
       "file": "store/graph.ts",
-      "line": 117,
+      "line": 42,
       "cluster": "store",
-      "x": 2.97,
-      "y": -7.5,
-      "z": -10.09
+      "x": 10.86,
+      "y": 1.73,
+      "z": 3.5
+    },
+    {
+      "id": "store/lens.ts",
+      "label": "lens",
+      "type": "module",
+      "file": "store/lens.ts",
+      "line": 10,
+      "cluster": "store",
+      "x": -2.29,
+      "y": -9.28,
+      "z": 40.55
+    },
+    {
+      "id": "store/reading.ts",
+      "label": "reading",
+      "type": "module",
+      "file": "store/reading.ts",
+      "line": 44,
+      "cluster": "store",
+      "x": 17.91,
+      "y": 25.79,
+      "z": -32.15
+    },
+    {
+      "id": "store/timeline.ts",
+      "label": "timeline",
+      "type": "module",
+      "file": "store/timeline.ts",
+      "line": 16,
+      "cluster": "store",
+      "x": -4.71,
+      "y": -35.41,
+      "z": -7.03
     },
     {
       "id": "store/whatif.ts",
@@ -200,9 +376,20 @@
       "file": "store/whatif.ts",
       "line": 5,
       "cluster": "store",
-      "x": -25.3,
-      "y": -22.21,
-      "z": -18.15
+      "x": -17.98,
+      "y": 12.88,
+      "z": -39.09
+    },
+    {
+      "id": "ui/Findings.tsx",
+      "label": "Findings",
+      "type": "component",
+      "file": "ui/Findings.tsx",
+      "line": 33,
+      "cluster": "ui",
+      "x": 27.26,
+      "y": 34.23,
+      "z": 13.89
     },
     {
       "id": "ui/FirstRunHint.tsx",
@@ -211,53 +398,97 @@
       "file": "ui/FirstRunHint.tsx",
       "line": 10,
       "cluster": "ui",
-      "x": 23.67,
-      "y": -16.03,
-      "z": 51.93
+      "x": 50.05,
+      "y": -2.24,
+      "z": 53.68
+    },
+    {
+      "id": "ui/Hotspots.tsx",
+      "label": "Hotspots",
+      "type": "component",
+      "file": "ui/Hotspots.tsx",
+      "line": 22,
+      "cluster": "ui",
+      "x": 23.01,
+      "y": 32.04,
+      "z": -8.89
     },
     {
       "id": "ui/Inspector.tsx",
       "label": "Inspector",
       "type": "component",
       "file": "ui/Inspector.tsx",
-      "line": 5,
+      "line": 6,
       "cluster": "ui",
-      "x": 18.62,
-      "y": -15.49,
-      "z": 16.65
+      "x": 39.8,
+      "y": 24.57,
+      "z": -4.46
+    },
+    {
+      "id": "ui/LensBar.tsx",
+      "label": "LensBar",
+      "type": "component",
+      "file": "ui/LensBar.tsx",
+      "line": 48,
+      "cluster": "ui",
+      "x": 14.65,
+      "y": -19.84,
+      "z": 20.58
+    },
+    {
+      "id": "ui/NodeLabels.tsx",
+      "label": "NodeLabels",
+      "type": "component",
+      "file": "ui/NodeLabels.tsx",
+      "line": 22,
+      "cluster": "ui",
+      "x": -5.1,
+      "y": 4.34,
+      "z": 47.38
     },
     {
       "id": "ui/Palette.tsx",
       "label": "Palette",
       "type": "component",
       "file": "ui/Palette.tsx",
-      "line": 38,
+      "line": 45,
       "cluster": "ui",
-      "x": -10.14,
-      "y": -16.86,
-      "z": 10.68
+      "x": 31.28,
+      "y": -3.44,
+      "z": 17.55
     },
     {
       "id": "ui/Shortcuts.tsx",
       "label": "Shortcuts",
       "type": "component",
       "file": "ui/Shortcuts.tsx",
-      "line": 57,
+      "line": 69,
       "cluster": "ui",
-      "x": 7.89,
-      "y": 2.53,
-      "z": 58.03
+      "x": 34.73,
+      "y": -32.27,
+      "z": -14.67
+    },
+    {
+      "id": "ui/Timeline.tsx",
+      "label": "Timeline",
+      "type": "component",
+      "file": "ui/Timeline.tsx",
+      "line": 13,
+      "cluster": "ui",
+      "x": 30.92,
+      "y": 28.29,
+      "z": 31.82
     },
     {
       "id": "ui/toast.ts",
       "label": "toast",
       "type": "module",
       "file": "ui/toast.ts",
-      "line": 28,
+      "line": 23,
       "cluster": "ui",
-      "x": 9.87,
-      "y": -24.36,
-      "z": 5.45
+      "x": 43.32,
+      "y": -21.01,
+      "z": 20.03
     },
     {
       "id": "ui/TopBar.tsx",
@@ -266,9 +497,9 @@
       "file": "ui/TopBar.tsx",
       "line": 7,
       "cluster": "ui",
-      "x": 22.78,
-      "y": 4.26,
-      "z": 16.78
+      "x": 45.2,
+      "y": -4.3,
+      "z": -5.59
     }
   ],
   "edges": [
@@ -297,6 +528,18 @@
       "type": "component"
     },
     {
+      "id": "App.tsx->ui/Hotspots.tsx",
+      "source": "App.tsx",
+      "target": "ui/Hotspots.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Findings.tsx",
+      "source": "App.tsx",
+      "target": "ui/Findings.tsx",
+      "type": "component"
+    },
+    {
       "id": "App.tsx->ui/Inspector.tsx",
       "source": "App.tsx",
       "target": "ui/Inspector.tsx",
@@ -321,10 +564,28 @@
       "type": "component"
     },
     {
+      "id": "App.tsx->ui/LensBar.tsx",
+      "source": "App.tsx",
+      "target": "ui/LensBar.tsx",
+      "type": "component"
+    },
+    {
+      "id": "App.tsx->ui/Timeline.tsx",
+      "source": "App.tsx",
+      "target": "ui/Timeline.tsx",
+      "type": "component"
+    },
+    {
       "id": "App.tsx->graph-feed.ts",
       "source": "App.tsx",
       "target": "graph-feed.ts",
       "type": "api-call"
+    },
+    {
+      "id": "App.tsx->share.ts",
+      "source": "App.tsx",
+      "target": "share.ts",
+      "type": "import"
     },
     {
       "id": "App.tsx->editor.ts",
@@ -351,6 +612,12 @@
       "type": "import"
     },
     {
+      "id": "main.tsx->ui/NodeLabels.tsx",
+      "source": "main.tsx",
+      "target": "ui/NodeLabels.tsx",
+      "type": "component"
+    },
+    {
       "id": "main.tsx->scene/Scene.tsx",
       "source": "main.tsx",
       "target": "scene/Scene.tsx",
@@ -372,6 +639,18 @@
       "id": "main.tsx->theme.ts",
       "source": "main.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "share.ts->store/graph.ts",
+      "source": "share.ts",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "share.ts->store/lens.ts",
+      "source": "share.ts",
+      "target": "store/lens.ts",
       "type": "import"
     },
     {
@@ -399,6 +678,36 @@
       "type": "import"
     },
     {
+      "id": "scene/Clusters.tsx->scene/folders.ts",
+      "source": "scene/Clusters.tsx",
+      "target": "scene/folders.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CoChangeMesh.tsx->store/graph.ts",
+      "source": "scene/CoChangeMesh.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CoChangeMesh.tsx->theme.ts",
+      "source": "scene/CoChangeMesh.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/CoChangeMesh.tsx->scene/EdgeMesh.tsx",
+      "source": "scene/CoChangeMesh.tsx",
+      "target": "scene/EdgeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/CoChangeMesh.tsx->scene/useDisposable.ts",
+      "source": "scene/CoChangeMesh.tsx",
+      "target": "scene/useDisposable.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/Districts.tsx->store/graph.ts",
       "source": "scene/Districts.tsx",
       "target": "store/graph.ts",
@@ -417,6 +726,12 @@
       "type": "import"
     },
     {
+      "id": "scene/Districts.tsx->scene/labels.ts",
+      "source": "scene/Districts.tsx",
+      "target": "scene/labels.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/EdgeMesh.tsx->store/graph.ts",
       "source": "scene/EdgeMesh.tsx",
       "target": "store/graph.ts",
@@ -426,6 +741,12 @@
       "id": "scene/EdgeMesh.tsx->theme.ts",
       "source": "scene/EdgeMesh.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/EdgeMesh.tsx->scene/ink.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "scene/ink.ts",
       "type": "import"
     },
     {
@@ -441,8 +762,50 @@
       "type": "import"
     },
     {
+      "id": "scene/EdgeMesh.tsx->scene/arrival.ts",
+      "source": "scene/EdgeMesh.tsx",
+      "target": "scene/arrival.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/folders.ts->types.ts",
+      "source": "scene/folders.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/ink.ts->theme.ts",
+      "source": "scene/ink.ts",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/ink.ts->types.ts",
+      "source": "scene/ink.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/knot.ts->types.ts",
+      "source": "scene/knot.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/Layout.ts->types.ts",
       "source": "scene/Layout.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Lighting.tsx->theme.ts",
+      "source": "scene/Lighting.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/names.ts->types.ts",
+      "source": "scene/names.ts",
       "target": "types.ts",
       "type": "import"
     },
@@ -456,6 +819,24 @@
       "id": "scene/NodeMesh.tsx->theme.ts",
       "source": "scene/NodeMesh.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->scene/ink.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "scene/ink.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->scene/mark.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "scene/mark.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/NodeMesh.tsx->scene/arrival.ts",
+      "source": "scene/NodeMesh.tsx",
+      "target": "scene/arrival.ts",
       "type": "import"
     },
     {
@@ -477,9 +858,21 @@
       "type": "import"
     },
     {
+      "id": "scene/Scene.tsx->scene/Lighting.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/Lighting.tsx",
+      "type": "component"
+    },
+    {
       "id": "scene/Scene.tsx->scene/NodeMesh.tsx",
       "source": "scene/Scene.tsx",
       "target": "scene/NodeMesh.tsx",
+      "type": "component"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/CoChangeMesh.tsx",
+      "source": "scene/Scene.tsx",
+      "target": "scene/CoChangeMesh.tsx",
       "type": "component"
     },
     {
@@ -513,6 +906,24 @@
       "type": "component"
     },
     {
+      "id": "scene/Scene.tsx->scene/labels.ts",
+      "source": "scene/Scene.tsx",
+      "target": "scene/labels.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/Scene.tsx->scene/nodeLabels.ts",
+      "source": "scene/Scene.tsx",
+      "target": "scene/nodeLabels.ts",
+      "type": "import"
+    },
+    {
+      "id": "scene/skeleton.ts->types.ts",
+      "source": "scene/skeleton.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
       "id": "scene/ZoomDirector.tsx->store/graph.ts",
       "source": "scene/ZoomDirector.tsx",
       "target": "store/graph.ts",
@@ -531,9 +942,21 @@
       "type": "import"
     },
     {
-      "id": "store/graph.ts->ui/toast.ts",
+      "id": "store/graph.ts->scene/budget.ts",
       "source": "store/graph.ts",
-      "target": "ui/toast.ts",
+      "target": "scene/budget.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->scene/skeleton.ts",
+      "source": "store/graph.ts",
+      "target": "scene/skeleton.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->scene/names.ts",
+      "source": "store/graph.ts",
+      "target": "scene/names.ts",
       "type": "import"
     },
     {
@@ -543,9 +966,87 @@
       "type": "import"
     },
     {
+      "id": "store/graph.ts->store/timeline.ts",
+      "source": "store/graph.ts",
+      "target": "store/timeline.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->store/lens.ts",
+      "source": "store/graph.ts",
+      "target": "store/lens.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->store/reading.ts",
+      "source": "store/graph.ts",
+      "target": "store/reading.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/graph.ts->scene/knot.ts",
+      "source": "store/graph.ts",
+      "target": "scene/knot.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/reading.ts->types.ts",
+      "source": "store/reading.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/reading.ts->store/whatif.ts",
+      "source": "store/reading.ts",
+      "target": "store/whatif.ts",
+      "type": "import"
+    },
+    {
+      "id": "store/timeline.ts->types.ts",
+      "source": "store/timeline.ts",
+      "target": "types.ts",
+      "type": "import"
+    },
+    {
       "id": "store/whatif.ts->types.ts",
       "source": "store/whatif.ts",
       "target": "types.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Findings.tsx->store/graph.ts",
+      "source": "ui/Findings.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Findings.tsx->theme.ts",
+      "source": "ui/Findings.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Hotspots.tsx->store/graph.ts",
+      "source": "ui/Hotspots.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Hotspots.tsx->scene/names.ts",
+      "source": "ui/Hotspots.tsx",
+      "target": "scene/names.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Hotspots.tsx->store/reading.ts",
+      "source": "ui/Hotspots.tsx",
+      "target": "store/reading.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Hotspots.tsx->theme.ts",
+      "source": "ui/Hotspots.tsx",
+      "target": "theme.ts",
       "type": "import"
     },
     {
@@ -567,6 +1068,42 @@
       "type": "import"
     },
     {
+      "id": "ui/Inspector.tsx->store/reading.ts",
+      "source": "ui/Inspector.tsx",
+      "target": "store/reading.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/LensBar.tsx->store/graph.ts",
+      "source": "ui/LensBar.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/LensBar.tsx->store/lens.ts",
+      "source": "ui/LensBar.tsx",
+      "target": "store/lens.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/LensBar.tsx->theme.ts",
+      "source": "ui/LensBar.tsx",
+      "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/NodeLabels.tsx->store/graph.ts",
+      "source": "ui/NodeLabels.tsx",
+      "target": "store/graph.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/NodeLabels.tsx->scene/nodeLabels.ts",
+      "source": "ui/NodeLabels.tsx",
+      "target": "scene/nodeLabels.ts",
+      "type": "import"
+    },
+    {
       "id": "ui/Palette.tsx->store/graph.ts",
       "source": "ui/Palette.tsx",
       "target": "store/graph.ts",
@@ -576,6 +1113,12 @@
       "id": "ui/Palette.tsx->theme.ts",
       "source": "ui/Palette.tsx",
       "target": "theme.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Palette.tsx->share.ts",
+      "source": "ui/Palette.tsx",
+      "target": "share.ts",
       "type": "import"
     },
     {
@@ -594,6 +1137,12 @@
       "id": "ui/Palette.tsx->ui/toast.ts",
       "source": "ui/Palette.tsx",
       "target": "ui/toast.ts",
+      "type": "import"
+    },
+    {
+      "id": "ui/Timeline.tsx->store/graph.ts",
+      "source": "ui/Timeline.tsx",
+      "target": "store/graph.ts",
       "type": "import"
     },
     {
@@ -627,42 +1176,60 @@
       "label": "scene",
       "color": "#89b4fa",
       "nodeIds": [
+        "scene/arrival.ts",
+        "scene/budget.ts",
         "scene/CaptureFrame.tsx",
         "scene/Clusters.tsx",
+        "scene/CoChangeMesh.tsx",
         "scene/Districts.tsx",
         "scene/EdgeMesh.tsx",
+        "scene/folders.ts",
+        "scene/ink.ts",
+        "scene/knot.ts",
+        "scene/labels.ts",
         "scene/Layout.ts",
+        "scene/Lighting.tsx",
+        "scene/mark.ts",
+        "scene/names.ts",
+        "scene/nodeLabels.ts",
         "scene/NodeMesh.tsx",
         "scene/Scene.tsx",
+        "scene/skeleton.ts",
         "scene/useDisposable.ts",
         "scene/ZoomDirector.tsx"
       ]
     },
     {
+      "id": "ui",
+      "label": "ui",
+      "color": "#a6e3a1",
+      "nodeIds": [
+        "ui/Findings.tsx",
+        "ui/FirstRunHint.tsx",
+        "ui/Hotspots.tsx",
+        "ui/Inspector.tsx",
+        "ui/LensBar.tsx",
+        "ui/NodeLabels.tsx",
+        "ui/Palette.tsx",
+        "ui/Shortcuts.tsx",
+        "ui/Timeline.tsx",
+        "ui/toast.ts",
+        "ui/TopBar.tsx"
+      ]
+    },
+    {
       "id": "src",
       "label": "src",
-      "color": "#a6e3a1",
+      "color": "#cba6f7",
       "nodeIds": [
         "App.tsx",
         "demo-data.ts",
         "editor.ts",
         "graph-feed.ts",
         "main.tsx",
+        "share.ts",
         "theme.ts",
         "types.ts"
-      ]
-    },
-    {
-      "id": "ui",
-      "label": "ui",
-      "color": "#cba6f7",
-      "nodeIds": [
-        "ui/FirstRunHint.tsx",
-        "ui/Inspector.tsx",
-        "ui/Palette.tsx",
-        "ui/Shortcuts.tsx",
-        "ui/toast.ts",
-        "ui/TopBar.tsx"
       ]
     },
     {
@@ -671,6 +1238,9 @@
       "color": "#fab387",
       "nodeIds": [
         "store/graph.ts",
+        "store/lens.ts",
+        "store/reading.ts",
+        "store/timeline.ts",
         "store/whatif.ts"
       ]
     }
@@ -713,56 +1283,64 @@
     {
       "a": "scene/EdgeMesh.tsx",
       "b": "scene/NodeMesh.tsx",
+      "together": 10,
+      "jaccard": 0.625
+    },
+    {
+      "a": "App.tsx",
+      "b": "scene/EdgeMesh.tsx",
       "together": 9,
-      "jaccard": 0.6
+      "jaccard": 0.47368421052631576
     },
     {
       "a": "scene/NodeMesh.tsx",
       "b": "ui/TopBar.tsx",
       "together": 8,
-      "jaccard": 0.47058823529411764
+      "jaccard": 0.4444444444444444
+    },
+    {
+      "a": "App.tsx",
+      "b": "scene/NodeMesh.tsx",
+      "together": 9,
+      "jaccard": 0.42857142857142855
     },
     {
       "a": "types.ts",
       "b": "ui/TopBar.tsx",
       "together": 6,
-      "jaccard": 0.46153846153846156
+      "jaccard": 0.42857142857142855
     },
     {
       "a": "App.tsx",
-      "b": "scene/EdgeMesh.tsx",
-      "together": 8,
-      "jaccard": 0.4444444444444444
+      "b": "types.ts",
+      "together": 7,
+      "jaccard": 0.4117647058823529
     },
     {
       "a": "scene/EdgeMesh.tsx",
       "b": "ui/TopBar.tsx",
       "together": 7,
-      "jaccard": 0.4375
-    },
-    {
-      "a": "main.tsx",
-      "b": "scene/EdgeMesh.tsx",
-      "together": 5,
-      "jaccard": 0.4166666666666667
-    },
-    {
-      "a": "App.tsx",
-      "b": "scene/NodeMesh.tsx",
-      "together": 8,
-      "jaccard": 0.4
+      "jaccard": 0.4117647058823529
     }
   ],
   "hotspots": [
     {
       "id": "store/graph.ts",
-      "churn": 21,
-      "degree": 16
+      "churn": 22,
+      "degree": 29,
+      "recent": 22
     },
     {
       "id": "App.tsx",
-      "churn": 17,
-      "degree": 11
+      "churn": 18,
+      "degree": 16,
+      "recent": 18
+    },
+    {
+      "id": "scene/Scene.tsx",
+      "churn": 16,
+      "degree": 13,
+      "recent": 16
     }
   ]
 }

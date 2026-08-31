@@ -1,5 +1,6 @@
 import { useGraphStore } from "@trame/viewer/store/graph"
 import { coChangeSubjectOf } from "./subject"
+import { DEMO_URL } from "./viewer-url"
 
 /**
  * One entry per beat of the page.
@@ -20,6 +21,22 @@ export interface Section {
   eyebrow: string
   title: string
   body: string
+  /**
+   * What to say when this beat has nothing of its own to show here.
+   *
+   * One lens on this page asks about the whole repository rather than about a
+   * file, and it needs a year of history and a structure that has gone wrong.
+   * The landing runs on trame's own source, which is three weeks old and has no
+   * import cycle at all — so the honest answer is "nothing here", and a beat
+   * whose honest answer is nothing is a weak beat on a page that has to
+   * convince.
+   *
+   * Rather than hide it, this is where the page hands over: the one section
+   * about the whole codebase is the right place to send someone to a real one.
+   * `Page` draws it only when the finding really is absent, so on a graph that
+   * has a knot the beat shows the knot and says none of this.
+   */
+  handoff?: { text: string; href: string }
   /** orbit radius while this section holds the viewport */
   distance: number
   /** how high the slow orbit rides, which changes the angle as well as the zoom */
@@ -92,7 +109,11 @@ export const SECTIONS: Section[] = [
     lens: "hotspots",
     eyebrow: "hotspots",
     title: "Where the codebase is under pressure.",
-    body: "A file rewritten every week is where mistakes are made. A file everything imports is where a mistake travels furthest. Neither is a finding alone — the pillar nothing has touched all year is a structure doing its job. trame lights the files that are both.",
+    body: "A file rewritten every week is where mistakes are made. A file everything imports is where a mistake travels furthest. Neither is a finding alone — the pillar nothing has touched all year is a structure doing its job. trame takes the files that are both and asks which of them sit inside an import cycle: the ones you rewrite constantly and cannot change on their own.",
+    handoff: {
+      text: "This codebase is three weeks old and nothing in it is knotted — which is the honest answer, and not much of a demonstration. Open the viewer on dub: a year of commits, three and a half thousand files, and a cycle nobody can leave alone.",
+      href: DEMO_URL,
+    },
     // the only beat about the whole map rather than about one file, so the
     // camera stands back far enough to see the ranking spread across it
     distance: 60,

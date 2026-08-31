@@ -14,6 +14,9 @@ export function useLensStatus(): string | null {
   const coChangeOf = useGraphStore((s) => s.coChangeOf)
   const coChangeWith = useGraphStore((s) => s.coChangeWith)
   const hotspotHeat = useGraphStore((s) => s.hotspotHeat)
+  // read from the store rather than recomputed here: the viewer's panel and
+  // this bubble have to be able to disagree about nothing
+  const hotspotKnot = useGraphStore((s) => s.hotspotKnot)
   const timeline = useGraphStore((s) => s.timeline)
   const frameIndex = useGraphStore((s) => s.frameIndex)
   const data = useGraphStore((s) => s.data)
@@ -56,12 +59,25 @@ export function useLensStatus(): string | null {
 
   if (lens === "hotspots" && hotspotHeat.size > 0) {
     const n = hotspotHeat.size
-    // the top of the ranking by name, with both counts: the claim is that the
-    // two together are the finding, so the bubble has to carry both
-    const [first] = data.hotspots ?? []
-    return `hotspots · ${n} of ${total} files, hottest ${
-      first ? `${label(first.id)} — ${first.churn} changes, ${first.degree} dependants` : ""
-    }`
+    /**
+     * The finding, not the size of the cut.
+     *
+     * This said "N of M files, hottest X — 22 changes, 29 dependants", which is
+     * the headline the viewer itself dropped: a cut at the ninetieth percentile
+     * of two distributions returns about a tenth of the files whatever the
+     * repository looks like, so the number describes the cut and not the code.
+     * What the lens reports is the part of that ranking nobody can change on
+     * their own.
+     *
+     * And when there is no cycle to report it says so, which is the honest
+     * thing and a good look: this landing runs on trame's own source, which has
+     * none. A lens that invents a finding when there is none is a lens nobody
+     * should trust with the times there is one.
+     */
+    if (hotspotKnot.size > 0) {
+      return `hotspots · ${hotspotKnot.size} of ${n} caught in an import cycle`
+    }
+    return `hotspots · ${n} of ${total} files under pressure — none of them in a cycle`
   }
 
   if (lens === "replay" && timeline) {

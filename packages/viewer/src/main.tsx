@@ -55,6 +55,39 @@ createRoot(document.getElementById("root")!).render(
         // We want the Catppuccin values on screen exactly as written.
         renderer.toneMapping = THREE.NoToneMapping
         await renderer.init()
+
+        /**
+         * Stop the renderer's own animation loop, which nothing can switch off.
+         *
+         * `Renderer.init()` calls `_animation.start()`, and that loop
+         * re-schedules itself with `requestAnimationFrame` for the rest of the
+         * session whether or not anything is drawn — `setAnimationLoop` only
+         * hands it a callback, and only `dispose()` stops it. Reported upstream
+         * as mrdoob/three.js#29712 and closed as not planned, so the workaround
+         * is ours.
+         *
+         * It meant `frameloop="demand"` above had never been able to work: it
+         * governs React Three Fiber's loop, and this one runs underneath it.
+         * Measured on a settled scene with nothing selected and nobody
+         * invalidating: sixty frames a second, with R3F itself reporting
+         * `frames=0`, `active=false` and a draw count frozen at 208. The engine
+         * was drawing nothing and the machine was hot anyway.
+         *
+         * The one thing the loop does for us is advance the node frame — the
+         * clock time-based material nodes read. `render()` does not do it
+         * itself, so we take it over and pay it on the frames we actually draw.
+         */
+        const inner = renderer as unknown as {
+          _animation: { stop: () => void }
+          _nodes: { nodeFrame: { update: () => void } }
+        }
+        inner._animation.stop()
+        const draw = renderer.render.bind(renderer)
+        renderer.render = ((scene: THREE.Object3D, camera: THREE.Camera) => {
+          inner._nodes.nodeFrame.update()
+          return draw(scene as never, camera as never)
+        }) as typeof renderer.render
+
         return renderer
       }}
     >

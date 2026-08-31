@@ -343,7 +343,8 @@ describe("the hotspot lens draws a ranking, not a set", () => {
     /**
      * The one distinction the map is allowed to make here, and it is allowed
      * because it is a category: this file is inside an import cycle, or it is
-     * not. `scene/CHANNELS.md` has the rule and the four attempts that broke it.
+     * not. A category is something an identity channel can hold; a rank is not,
+     * which is what killed the radius, the gradient, the halo and the shapes.
      *
      * The rest of the ranking stays drawn rather than receding to the
      * background, because every row of the panel is clickable and a row you can
@@ -418,6 +419,16 @@ describe("the hotspot lens draws a ranking, not a set", () => {
     const knot = edgeInk(mood({ hotspotsOn: true, knotEdge: true }), LATTE, false)
     expect(contrast(other, LATTE.base)).toBeLessThan(contrast(lit, LATTE.base))
     expect(contrast(knot, LATTE.base)).toBeGreaterThan(contrast(other, LATTE.base) * 2)
+
+    /**
+     * And further back than the context of any other lens, because this one
+     * also shrinks every node to a fixed few pixels. Left at the ordinary
+     * dimming the imports became the heaviest ink on screen — on a graph with
+     * nothing knotted, a wash of grey curves and three specks, which reads as
+     * broken rather than as empty.
+     */
+    const elsewhere = edgeInk(mood({ impactOn: true, impacted: false }), LATTE, false)
+    expect(other.opacity).toBeLessThan(elsewhere.opacity / 2)
 
     // and on the dark ground, where an answer emits rather than inks
     const onDark = edgeInk(mood({ hotspotsOn: true, knotEdge: true }), MOCHA, true)

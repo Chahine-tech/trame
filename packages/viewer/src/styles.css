@@ -656,7 +656,7 @@ html, body, #root {
    The dimming is the load-bearing half, and it was missing at first. Hue alone
    separated the two by 1.06:1 on Mocha — `--red` and `--subtext` are within a
    twentieth of each other in luminance there, so the panel was leaning on the
-   one channel `scene/CHANNELS.md` spends four failures warning about, in the one
+   one channel four separate attempts in this scene have failed on, in the one
    place that had been getting it right. Latte hid it, because its red is dark
    and saturated against a pale page.
 

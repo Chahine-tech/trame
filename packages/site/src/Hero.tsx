@@ -1,19 +1,8 @@
 import { useState } from "react"
 import { cycleThemePref, getThemePref } from "@trame/viewer/theme"
+import { DEMO_URL, REPO } from "./viewer-url"
 
 const THEME_ICON = { auto: "◐", dark: "●", light: "○" } as const
-
-const REPO = "https://github.com/Chahine-tech/trame"
-
-/**
- * Set VITE_VIEWER_URL at build time to the hosted viewer.
- *
- * The fallbacks differ by environment: unset in production the localhost URL
- * would be a dead link on the primary call to action, on every machine but
- * the author's.
- */
-const DEMO_URL =
-  import.meta.env.VITE_VIEWER_URL ?? (import.meta.env.DEV ? "http://localhost:5173/" : REPO)
 
 /** Copy only. The page pins one canvas behind every section. */
 export function Hero() {

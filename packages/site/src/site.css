@@ -310,8 +310,40 @@ html {
 .beat[data-lens="whatif"] .eyebrow {
   color: var(--peach-ink);
 }
+/* The two newest lenses were added without a line here, so both announced
+   themselves in the resting grey while every older beat wore its own colour.
+   Teal and red are the ones the viewer paints their answers in, so the label
+   and the picture below it now agree. Red clears 4.8:1 on the page unaided;
+   teal needed the -ink correction, see tokens.css. */
+.beat[data-lens="cochange"] .eyebrow {
+  color: var(--teal-ink);
+}
+.beat[data-lens="hotspots"] .eyebrow {
+  color: var(--red);
+}
+/* Replay wore the path lens' lavender — the exact mistake the note at the top
+   of this block warns about, made a second time. Green is its own: it is what
+   the viewer paints a file the frame just introduced. */
 .beat[data-lens="replay"] .eyebrow {
-  color: var(--lav-ink);
+  color: var(--green-ink);
+}
+
+/* The hand-off, on the one beat whose finding this codebase does not have.
+   Set apart from the body so it reads as the page speaking rather than as more
+   of the argument: smaller, and the link carries the lens' own red. */
+.handoff {
+  margin-top: 18px;
+  font-size: 0.86rem;
+  color: var(--overlay);
+}
+.handoff a {
+  color: var(--red);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
+  white-space: nowrap;
+}
+.handoff a:hover {
+  border-bottom-color: var(--red);
 }
 
 .beat h2 {

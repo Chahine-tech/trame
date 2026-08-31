@@ -58,6 +58,13 @@
   --yellow-ink: #8d642f;
   --lav-ink: #5565c2;
   --peach-ink: #ac522b;
+  /* Same correction, for the two accents the newer lenses use. Raw, Latte's
+     teal reaches 3.17:1 against the page and its green 3.89:1 — under the 4.37
+     the resting `--subtext` already gives, so an uncorrected accent would make
+     a label *less* readable than no accent at all. Walked toward the page ink
+     and darkened until both clear 4.7. */
+  --teal-ink: #117580;
+  --green-ink: #307827;
 
   /* Emil Kowalski easing tokens — built-in curves are too weak */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -95,6 +102,9 @@
     --yellow-ink: #f9e2af;
     --lav-ink: #b4befe;
     --peach-ink: #fab387;
+    /* 11:1 apiece on near-black — nothing to correct */
+    --teal-ink: #94e2d5;
+    --green-ink: #a6e3a1;
   }
 }
 
@@ -106,6 +116,7 @@
   --pink: #d4529f; --yellow: #b0700f; --teal: #00969e; --lav: #5a71f0;
   --red: #d20f39;
   --yellow-ink: #8d642f; --lav-ink: #5565c2; --peach-ink: #ac522b;
+  --teal-ink: #117580; --green-ink: #307827;
 }
 :root[data-theme="dark"] {
   --crust: #11111b; --mantle: #181825; --base: #1e1e2e; --surface0: #313244;
@@ -115,5 +126,6 @@
   --pink: #f5c2e7; --yellow: #f9e2af; --teal: #94e2d5; --lav: #b4befe;
   --red: #f38ba8;
   --yellow-ink: #f9e2af; --lav-ink: #b4befe; --peach-ink: #fab387;
+  --teal-ink: #94e2d5; --green-ink: #a6e3a1;
 }
 

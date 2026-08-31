@@ -128,7 +128,24 @@ export function edgeInk(mood: EdgeMood, p: Palette, dark: boolean): Ink {
    * alone in some empty corner; a closed tangle of 198 imports is an object,
    * and an object holds the eye without anything else having to be flattened.
    */
-  if (mood.hotspotsOn) return mood.knotEdge ? answer(p.red, 0.9) : background
+  if (mood.hotspotsOn) {
+    if (mood.knotEdge) return answer(p.red, 0.9)
+    /**
+     * Further back than any other lens sends its context, because under this
+     * one the nodes go further back too.
+     *
+     * The other lenses answer about a file and leave the map around it at
+     * `dimmed`, which is the right weight for a ground that still has to read
+     * as a map. This lens fixes every node in pixels — the answer at eleven,
+     * the rest of the ranking at eight, the ground at six — so an edge left at
+     * the ordinary dimming becomes the heaviest ink on screen. On the landing,
+     * where nothing is knotted and so every import is context, that is exactly
+     * what happened: a wash of grey curves that mean nothing, with three
+     * specks in it. It read as broken rather than as empty, while the sentence
+     * underneath said there was nothing to report.
+     */
+    return { color: background.color, opacity: dimmed * 0.45 }
+  }
   if (mood.violated) {
     const near = mood.selected || mood.lit
     return answer(p.red, near ? 0.95 : 0.55, near ? 0.95 : 0.7)
@@ -277,7 +294,7 @@ export function nodeInk(mood: NodeMood, p: Palette, dark: boolean): Surface {
    * because a reader following a row of the panel has to be able to find its
    * file on the map whether or not it is knotted. Everything else recedes.
    *
-   * `scene/CHANNELS.md` is why this is allowed where a gradient was not. In or
+   * This is allowed where a gradient was not. In or
    * out of a cycle is a category, and categories are what an identity channel
    * carries; rank is a magnitude and no perspective scene can hold one. The
    * first version of this lens spent four attempts learning that — radius, hue,
