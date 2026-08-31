@@ -4,7 +4,7 @@ import path from "node:path"
 import process from "node:process"
 import { Project } from "ts-morph"
 import { buildGraph } from "./graph.js"
-import { coChangeFor } from "./cochange.js"
+import { coChangeFor, HistoryUnreadable } from "./cochange.js"
 import { hotspotsFor } from "./hotspots.js"
 import { evaluateRules } from "./rules.js"
 import { ConfigError, loadConfig } from "./config.js"
@@ -402,14 +402,29 @@ async function runParse(args: Args, srcRoot: string, quiet = false): Promise<Gra
     graph.violations = evaluateRules(graph, config)
     graph.rules = config.rules
   }
-  // what the history couples that the imports do not. One `git log` pass, and
-  // silent where there is no repository to read: a parse does not depend on it
-  const coupled = coChangeFor(graph, args.repo, srcRoot, args.since)
-  if (coupled.length > 0) graph.coChange = coupled
-  // and where that history lands hardest: the files rewritten again and again
-  // that much of the rest rests on
-  const hot = hotspotsFor(graph, args.repo, srcRoot, args.since)
-  if (hot.length > 0) graph.hotspots = hot
+  /**
+   * What the history says, when it can be read.
+   *
+   * Silent where there is no repository: a parse does not depend on one. Loud
+   * where there is a repository whose history git refuses to walk, which is the
+   * case that used to pass unnoticed — `--filter=blob:none` and `--depth=1` are
+   * what most CI checkouts hand you, and on those the two history-derived
+   * features returned nothing while the graph looked perfectly healthy.
+   */
+  try {
+    const coupled = coChangeFor(graph, args.repo, srcRoot, args.since)
+    if (coupled.length > 0) graph.coChange = coupled
+    const hot = hotspotsFor(graph, args.repo, srcRoot, args.since)
+    if (hot.length > 0) graph.hotspots = hot
+  } catch (err) {
+    if (!(err instanceof HistoryUnreadable)) throw err
+    console.warn(
+      `  ! ${err.reason}\n` +
+        `    hotspots and co-change need the full history and are left out of this graph.\n` +
+        `    A shallow or filtered clone cannot serve them: fetch with the blobs, or\n` +
+        `    run trame on a complete checkout.`,
+    )
+  }
 
   const outPath = path.resolve(args.out)
   fs.writeFileSync(outPath, render(graph, args.format))

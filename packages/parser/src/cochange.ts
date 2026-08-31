@@ -138,6 +138,40 @@ function readCommitFiles(repo: string, since: string): string[][] {
 }
 
 /** A commit in the window: when it landed, and what it touched. */
+/**
+ * The history is there and git refused to read it.
+ *
+ * Distinct from the ordinary "no repository, no git, no history", which is
+ * expected and silent — a parse does not depend on a repository. This one is
+ * the case that cost a day: on a `--filter=blob:none` clone, `git log
+ * --name-only` walks until it needs an object the promisor cannot hand over and
+ * dies with `could not fetch ... from promisor remote`. Both analyses caught it,
+ * returned nothing, and the graph came out looking perfectly normal with its two
+ * history-derived features silently missing.
+ *
+ * A shallow or filtered checkout is what most CI systems hand you by default, so
+ * this is the failure a first user meets, and it has to say so out loud.
+ */
+export class HistoryUnreadable extends Error {
+  constructor(readonly reason: string) {
+    super(`git could not read this repository's history: ${reason}`)
+    this.name = "HistoryUnreadable"
+  }
+}
+
+/** Whether the directory is a git repository at all. */
+function isRepository(repo: string): boolean {
+  try {
+    execFileSync("git", ["-C", repo, "rev-parse", "--git-dir"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export interface Commit {
   /** committer timestamp, in seconds, as git reports it */
   at: number
@@ -156,11 +190,21 @@ export interface Commit {
  * undated commit counted as 1970 is a commit that silently never looks recent.
  */
 export function readCommits(repo: string, since: string): Commit[] {
-  const raw = execFileSync(
-    "git",
-    ["-C", repo, "log", "--name-only", `--since=${since}`, "--pretty=format:%x1f%ct"],
-    { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] },
-  )
+  let raw: string
+  try {
+    raw = execFileSync(
+      "git",
+      ["-C", repo, "log", "--name-only", `--since=${since}`, "--pretty=format:%x1f%ct"],
+      // stderr is captured rather than discarded: on a partial clone the reason
+      // this fails is written there and nowhere else
+      { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] },
+    )
+  } catch (err) {
+    if (!isRepository(repo)) throw err
+    const stderr = String((err as { stderr?: unknown }).stderr ?? "").trim()
+    const line = stderr.split("\n").find((l) => l.startsWith("fatal:")) ?? stderr.split("\n")[0]
+    throw new HistoryUnreadable(line || "git exited without saying why")
+  }
   const out: Commit[] = []
   for (const block of raw.split(SEP)) {
     const lines = block.split("\n")
@@ -214,7 +258,9 @@ export function coChangeFor(
   let commits: string[][]
   try {
     commits = readCommitFiles(repo, since)
-  } catch {
+  } catch (err) {
+    // the history is unreadable rather than absent: the caller has to say so
+    if (err instanceof HistoryUnreadable) throw err
     return []
   }
   return coChanges(commits, known, linked, opts).map((c) => ({

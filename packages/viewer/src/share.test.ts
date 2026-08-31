@@ -19,6 +19,28 @@ describe("encodeView / decodeView", () => {
     expect(roundTrip(view)).toEqual(view)
   })
 
+  it("carries a lens with no selection at all", () => {
+    /**
+     * The hotspot lens asks nothing of the reader, so its link names no file —
+     * and this was the link that did not exist. `hotspots` was missing from the
+     * shareable set, so it was never written into the address bar, and the
+     * receiving end discarded any link without a file before looking at it.
+     *
+     * The consequence was not subtle: the one address worth sending anybody,
+     * the one that opens on the finding, could not be produced or followed.
+     */
+    expect(roundTrip({ lens: "hotspots" })).toEqual({ lens: "hotspots" })
+    expect(decodeView("#lens=hotspots")).toEqual({ lens: "hotspots" })
+  })
+
+  it("carries the coupling a reader wanted to show somebody", () => {
+    // it answers about a file, so unlike hotspots its link names one — and
+    // "these two move together and nothing imports either" is the sort of
+    // thing that gets pasted into a review
+    const view: SharedView = { node: "lib/types.ts", lens: "cochange" }
+    expect(roundTrip(view)).toEqual(view)
+  })
+
   it("carries both ends of a traced path", () => {
     const view: SharedView = { node: "a/one.ts", to: "b/two.ts", lens: "path" }
     expect(roundTrip(view)).toEqual(view)

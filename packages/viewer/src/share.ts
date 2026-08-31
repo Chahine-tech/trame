@@ -23,7 +23,23 @@ export interface SharedView {
 }
 
 // three of them: a Set here would be slower to build than the scan it saves
-const SHAREABLE: LensKind[] = ["impact", "path", "whatif"]
+/**
+ * Which lenses a link may carry.
+ *
+ * `hotspots` was missing, and it is the one that most needed to be here: it
+ * asks nothing of the reader, so it is the only lens whose link names no file —
+ * and a link naming no file was thrown away on arrival. The address of the
+ * finding, the one worth sending anybody, did not exist.
+ *
+ * `cochange` belongs here for the opposite reason to `hotspots`: it answers
+ * about a file the way `impact` does, so its link carries one, and "what moves
+ * with this file that nothing imports" is exactly the kind of thing a reader
+ * sends to somebody else.
+ *
+ * `replay` is not here and should not be: it is a sequence being played, not a
+ * state, so an address for it would name a moment nobody can return to.
+ */
+const SHAREABLE: LensKind[] = ["impact", "path", "whatif", "hotspots", "cochange"]
 
 export function encodeView(view: SharedView): string {
   const parts: string[] = []
@@ -68,12 +84,26 @@ export function shareUrl(): string {
  */
 function applyView(view: SharedView): void {
   const store = useGraphStore.getState()
-  if (!view.node || !store.data?.nodes.some((n) => n.id === view.node)) return
 
+  /**
+   * A link that names no file, which is what the hotspot lens' link is.
+   *
+   * Every other lens answers about a file, so every other link carries one, and
+   * the guard here used to be `if (!view.node) return`. That silently discarded
+   * the address of the only answer about the whole repository.
+   */
+  if (!view.node) {
+    if (view.lens === "hotspots" && store.lens !== "hotspots") store.toggleHotspots()
+    return
+  }
+
+  if (!store.data?.nodes.some((n) => n.id === view.node)) return
   store.select(view.node)
   store.focus(view.node)
   if (view.lens === "impact") store.toggleImpact()
   else if (view.lens === "whatif") store.toggleWhatIf()
+  else if (view.lens === "hotspots") store.toggleHotspots()
+  else if (view.lens === "cochange") store.toggleCoChange()
   else if (view.lens === "path" && view.to) store.tracePathTo(view.to)
 }
 
@@ -96,7 +126,8 @@ export function useShareLink(): void {
     if (!data || applied.current) return
     applied.current = true
     const view = decodeView(location.hash)
-    if (view.node) applyView(view)
+    // a lens can be the whole link: see `applyView`
+    if (view.node || view.lens) applyView(view)
   }, [data])
 
   /**
@@ -113,7 +144,7 @@ export function useShareLink(): void {
     const onHash = () => {
       if (!useGraphStore.getState().data) return
       const view = decodeView(location.hash)
-      if (view.node) applyView(view)
+      if (view.node || view.lens) applyView(view)
     }
     window.addEventListener("hashchange", onHash)
     return () => window.removeEventListener("hashchange", onHash)

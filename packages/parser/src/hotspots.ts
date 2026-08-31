@@ -1,5 +1,5 @@
 import path from "node:path"
-import { type Commit, readCommits } from "./cochange.js"
+import { type Commit, HistoryUnreadable, readCommits } from "./cochange.js"
 import type { GraphData, Hotspot } from "./types.js"
 
 /**
@@ -122,7 +122,9 @@ export function hotspotsFor(
   let commits: Commit[]
   try {
     commits = readCommits(repo, since)
-  } catch {
+  } catch (err) {
+    // the history is unreadable rather than absent: the caller has to say so
+    if (err instanceof HistoryUnreadable) throw err
     return []
   }
   /**
